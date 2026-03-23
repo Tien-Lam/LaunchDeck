@@ -129,4 +129,62 @@ public class ConfigModelsTests
             File.Delete(tempFile);
         }
     }
+
+    [Fact]
+    public void ConfigLoader_Save_WritesValidJson()
+    {
+        var config = new LaunchPadConfig
+        {
+            Items = new List<LaunchItemConfig>
+            {
+                new() { Name = "Test", Type = LaunchItemType.Exe, Path = @"C:\test.exe" }
+            }
+        };
+        var tempFile = Path.GetTempFileName();
+
+        try
+        {
+            ConfigLoader.Save(tempFile, config);
+            var result = ConfigLoader.Load(tempFile);
+            Assert.Equal(ConfigLoadStatus.Success, result.Status);
+            Assert.Single(result.Config!.Items);
+            Assert.Equal("Test", result.Config.Items[0].Name);
+        }
+        finally
+        {
+            File.Delete(tempFile);
+        }
+    }
+
+    [Fact]
+    public void ConfigLoader_Save_PreservesAllFields()
+    {
+        var config = new LaunchPadConfig
+        {
+            Items = new List<LaunchItemConfig>
+            {
+                new()
+                {
+                    Name = "Discord",
+                    Type = LaunchItemType.Exe,
+                    Path = @"C:\Discord\Update.exe",
+                    Args = "--processStart Discord.exe",
+                    Icon = @"C:\icons\discord.png"
+                }
+            }
+        };
+        var tempFile = Path.GetTempFileName();
+
+        try
+        {
+            ConfigLoader.Save(tempFile, config);
+            var result = ConfigLoader.Load(tempFile);
+            Assert.Equal("--processStart Discord.exe", result.Config!.Items[0].Args);
+            Assert.Equal(@"C:\icons\discord.png", result.Config.Items[0].Icon);
+        }
+        finally
+        {
+            File.Delete(tempFile);
+        }
+    }
 }

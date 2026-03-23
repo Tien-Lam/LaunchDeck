@@ -73,6 +73,21 @@ public static class ConfigLoader
         }
     }
 
+    public static void Save(string path, LaunchPadConfig config)
+    {
+        var dir = System.IO.Path.GetDirectoryName(path);
+        if (dir != null && !Directory.Exists(dir))
+            Directory.CreateDirectory(dir);
+
+        var options = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNameCaseInsensitive = true
+        };
+        var json = JsonSerializer.Serialize(config, options);
+        File.WriteAllText(path, json);
+    }
+
     public static string GetDefaultConfigPath()
     {
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
