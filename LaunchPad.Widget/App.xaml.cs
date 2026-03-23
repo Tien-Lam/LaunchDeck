@@ -28,7 +28,7 @@ sealed partial class App : Application
         if (args.Kind == ActivationKind.Protocol)
         {
             var protocolArgs = args as IProtocolActivatedEventArgs;
-            if (protocolArgs?.Uri.SchemeName == "ms-gamebarwidget")
+            if (protocolArgs?.Uri.Scheme == "ms-gamebarwidget")
             {
                 var widgetArgs = args as XboxGameBarWidgetActivatedEventArgs;
                 if (widgetArgs != null && widgetArgs.IsLaunchActivation)
