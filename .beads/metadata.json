@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "server",
+  "dolt_database": "LaunchPad",
+  "project_id": "29fd4b55-d087-4097-9c4c-519cff0378e7"
+}
