@@ -9,6 +9,7 @@
     <AppxPackageSigningEnabled>false</AppxPackageSigningEnabled>
     <EntryPointProjectUniqueName>..\LaunchPad.Widget\LaunchPad.Widget.csproj</EntryPointProjectUniqueName>
     <WapProjPath Condition="'$(WapProjPath)'==''">$(MSBuildExtensionsPath)\Microsoft\DesktopBridge</WapProjPath>
+    <NoWarn>NU1702</NoWarn>
   </PropertyGroup>
   <Import Project="$(WapProjPath)\Microsoft.DesktopBridge.props" />
   <ItemGroup Label="ProjectConfigurations">
