@@ -45,6 +45,18 @@
             </GridView.ItemTemplate>
         </GridView>
 
+        <!-- Add app button -->
+        <Button x:Name="AddButton"
+                Content="+"
+                FontSize="20" FontWeight="Bold"
+                Width="40" Height="40"
+                CornerRadius="20"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Margin="0,0,8,8"
+                Click="OnAddClick"
+                ToolTipService.ToolTip="Add application" />
+
         <!-- Empty/error state -->
         <StackPanel x:Name="EmptyState"
                     Visibility="Collapsed"

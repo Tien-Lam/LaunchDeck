@@ -65,4 +65,29 @@ public static class CompanionClient
 
         return null;
     }
+
+    public static async Task<(bool Success, string? Name, string? Path)> AddExeAsync(string configPath)
+    {
+        var connection = App.CompanionConnection;
+        if (connection == null) return (false, null, null);
+
+        var request = new ValueSet
+        {
+            ["action"] = "add-exe",
+            ["configPath"] = configPath
+        };
+
+        var response = await connection.SendMessageAsync(request);
+        if (response.Status != AppServiceResponseStatus.Success) return (false, null, null);
+
+        var status = response.Message["status"] as string;
+        if (status == "ok")
+        {
+            var name = response.Message["name"] as string;
+            var path = response.Message["path"] as string;
+            return (true, name, path);
+        }
+
+        return (false, null, null);
+    }
 }

@@ -183,6 +183,23 @@ public sealed partial class LaunchPadWidget : Page
                 ?? new SolidColorBrush(Windows.UI.Colors.Transparent);
     }
 
+    private async void OnAddClick(object sender, RoutedEventArgs e)
+    {
+        AddButton.IsEnabled = false;
+        try
+        {
+            var configPath = ConfigLoader.GetDefaultConfigPath();
+            var (success, name, path) = await CompanionClient.AddExeAsync(configPath);
+
+            if (success)
+                await LoadConfigAsync();
+        }
+        finally
+        {
+            AddButton.IsEnabled = true;
+        }
+    }
+
     private static T? FindChild<T>(DependencyObject parent) where T : DependencyObject
     {
         var count = VisualTreeHelper.GetChildrenCount(parent);
