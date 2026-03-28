@@ -44,32 +44,32 @@ public sealed partial class LaunchPadWidget : Page
 
     private async Task LoadConfigAsync()
     {
-        var configPath = ConfigLoader.GetDefaultConfigPath();
-        var result = ConfigLoader.Load(configPath);
+        var (status, config, configPath, error) = await CompanionClient.LoadConfigAsync();
+        var displayPath = configPath ?? ConfigLoader.GetDefaultConfigPath();
 
-        if (result.Status == ConfigLoadStatus.FileNotFound)
+        if (status == ConfigLoadStatus.FileNotFound)
         {
             ShowEmptyState("No config file found",
-                $"Create a config.json at:\n{configPath}");
+                $"Create a config.json at:\n{displayPath}");
             return;
         }
 
-        if (result.Status == ConfigLoadStatus.ParseError)
+        if (status == ConfigLoadStatus.ParseError)
         {
             ShowEmptyState("Invalid config file",
-                $"JSON parse error:\n{result.ErrorMessage}");
+                $"JSON parse error:\n{error}");
             return;
         }
 
-        if (result.Config == null || result.Config.Items.Count == 0)
+        if (config == null || config.Items.Count == 0)
         {
             ShowEmptyState("No apps configured",
-                $"Add items to:\n{configPath}");
+                $"Add items to:\n{displayPath}");
             return;
         }
 
         Items.Clear();
-        foreach (var item in result.Config.Items)
+        foreach (var item in config.Items)
         {
             var launchItem = new LaunchItem
             {
@@ -85,7 +85,6 @@ public sealed partial class LaunchPadWidget : Page
         ItemsGrid.Visibility = Visibility.Visible;
         EmptyState.Visibility = Visibility.Collapsed;
 
-        // Load icons in the background
         await LoadIconsAsync();
     }
 

@@ -23,6 +23,12 @@ sealed partial class App : Application
         this.Suspending += OnSuspending;
     }
 
+    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    {
+        // Widget only works via Game Bar protocol activation. Close if launched directly.
+        Current.Exit();
+    }
+
     protected override void OnActivated(IActivatedEventArgs args)
     {
         if (args.Kind == ActivationKind.Protocol)

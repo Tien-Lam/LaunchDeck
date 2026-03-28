@@ -54,6 +54,9 @@ class Program
                 case "fetch-favicon":
                     response = await HandleFetchFaviconAsync(message);
                     break;
+                case "load-config":
+                    response = HandleLoadConfig(message);
+                    break;
                 case "add-exe":
                     response = HandleAddExe(message);
                     break;
@@ -107,6 +110,32 @@ class Program
 
         var response = new ValueSet { ["status"] = success ? "ok" : "error" };
         if (iconPath != null) response["iconPath"] = iconPath;
+        return response;
+    }
+
+    private static ValueSet HandleLoadConfig(ValueSet message)
+    {
+        var configPath = message.ContainsKey("configPath")
+            ? message["configPath"] as string ?? ConfigLoader.GetDefaultConfigPath()
+            : ConfigLoader.GetDefaultConfigPath();
+
+        var result = ConfigLoader.Load(configPath);
+
+        var response = new ValueSet
+        {
+            ["status"] = result.Status.ToString().ToLowerInvariant(),
+            ["configPath"] = configPath
+        };
+
+        if (result.Status == ConfigLoadStatus.Success && result.Config != null)
+        {
+            var options = new System.Text.Json.JsonSerializerOptions { WriteIndented = false };
+            response["json"] = System.Text.Json.JsonSerializer.Serialize(result.Config, options);
+        }
+
+        if (result.ErrorMessage != null)
+            response["error"] = result.ErrorMessage;
+
         return response;
     }
 

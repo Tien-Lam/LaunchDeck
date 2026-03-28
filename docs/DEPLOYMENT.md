@@ -1,0 +1,251 @@
+# LaunchPad Deployment Guide
+
+## Solution Structure
+
+The solution (`LaunchPad.sln`) contains five projects:
+
+| Project | Type | Target | Purpose |
+|---------|------|--------|---------|
+| `LaunchPad.Shared` | .NET Standard 2.0 class library | `netstandard2.0` | Config models, JSON serialization (System.Text.Json 8.0.5). Referenced by both Widget and Companion. |
+| `LaunchPad.Widget` | UWP XAML app | UAP 10.0.19041.0+ | Game Bar widget UI. Output type `AppContainerExe`. References Shared. |
+| `LaunchPad.Companion` | .NET 8 WinExe | `net8.0-windows10.0.19041.0` | Full-trust Win32 companion process. Uses WindowsForms for file dialogs. References Shared. |
+| `LaunchPad.Tests` | .NET test project | (standard) | Unit tests for Shared and Companion logic. |
+| `LaunchPad.Package` | Windows Application Packaging (WAPPROJ) | MSIX | Packages Widget + Companion into a single MSIX bundle for deployment. |
+
+### Project Dependencies
+
+```
+LaunchPad.Package (WAPPROJ)
+  +-- LaunchPad.Widget (UWP, entry point)
+  |     +-- LaunchPad.Shared (.NET Standard 2.0)
+  +-- LaunchPad.Companion (.NET 8)
+        +-- LaunchPad.Shared (.NET Standard 2.0)
+```
+
+The WAPPROJ declares `LaunchPad.Widget.csproj` as the `EntryPointProjectUniqueName`. Both Widget and Companion are listed as `ProjectReference` items in the WAPPROJ.
+
+---
+
+## Build Pipeline
+
+### Non-UWP projects (Shared, Companion, Tests)
+
+These use the .NET SDK and can be built from the command line:
+
+```bash
+dotnet build LaunchPad.Shared/LaunchPad.Shared.csproj
+dotnet build LaunchPad.Companion/LaunchPad.Companion.csproj
+dotnet test  LaunchPad.Tests/
+```
+
+### Full solution (requires Visual Studio / MSBuild)
+
+The Widget project is a classic UWP project (not SDK-style) and requires MSBuild with the UWP workload. It cannot be built with `dotnet build`.
+
+```bash
+# In bash, use -p: instead of /p: to avoid shell path expansion
+msbuild LaunchPad.sln -p:Configuration=Debug -p:Platform=x64 /restore
+```
+
+In PowerShell or Developer Command Prompt, `/p:` syntax works:
+
+```powershell
+msbuild LaunchPad.sln /p:Configuration=Debug /p:Platform=x64 /restore
+```
+
+The solution is configured for `Debug|x64` and `Release|x64` platform configurations. The Shared project builds as `Any CPU`; all other projects build as `x64`.
+
+### Prerequisites
+
+- Visual Studio 2022 with the **Universal Windows Platform development** workload
+- Windows SDK 10.0.19041.0 or later (max tested: 10.0.26100.0)
+- .NET 8 SDK (for Companion)
+- NuGet packages:
+  - `Microsoft.Gaming.XboxGameBar` 5.8.220627001 (Widget)
+  - `Microsoft.NETCore.UniversalWindowsPlatform` 6.2.14 (Widget)
+  - `System.Text.Json` 8.0.5 (Shared)
+  - `System.Drawing.Common` 8.0.0 (Companion)
+
+---
+
+## Deployment
+
+### Deploy method: Visual Studio F5 ONLY
+
+**Use Visual Studio's F5 (Start Debugging) or Deploy command to install the package.** Set `LaunchPad.Package` as the startup project and deploy.
+
+**Do NOT use `Add-AppxPackage` from PowerShell.** Command-line sideloading does not reliably register Game Bar widget extensions. The widget may not appear in Game Bar's widget list even though the package installs successfully. This was discovered through trial and error -- the manifest registers correctly only when deployed through Visual Studio's packaging pipeline.
+
+### Steps
+
+1. Open `LaunchPad.sln` in Visual Studio 2022.
+2. Set **LaunchPad.Package** as the startup project.
+3. Select `Debug | x64` configuration.
+4. Press **F5** (or right-click LaunchPad.Package and select **Deploy**).
+5. Open Game Bar with `Win+G`. The LaunchPad widget should appear in the widget menu.
+
+---
+
+## MSIX Package Structure
+
+The WAPPROJ (`LaunchPad.Package.wapproj`) produces a single MSIX package containing:
+
+```
+LaunchPad.Package/
+  Package.appxmanifest          -- App manifest (identity, extensions, capabilities)
+  Images/                       -- Store and tile logos
+    StoreLogo.png
+    Square150x150Logo.png
+    Square44x44Logo.png
+    Wide310x150Logo.png
+  LaunchPad.Widget/             -- UWP widget binaries
+    LaunchPad.Widget.exe
+    LaunchPad.Widget.dll
+    (XAML pages, assets, SDK WinMD files)
+  LaunchPad.Companion/          -- .NET 8 companion binaries
+    LaunchPad.Companion.exe
+    (runtime dependencies)
+```
+
+Package signing is disabled (`AppxPackageSigningEnabled=false`), which is appropriate for local development deployment via Visual Studio.
+
+---
+
+## Manifest Structure
+
+The manifest (`Package.appxmanifest`) declares the following:
+
+### Identity
+
+```xml
+<Identity Name="LaunchPad" Publisher="CN=Developer" Version="1.0.0.0" />
+```
+
+Target: `Windows.Desktop`, minimum SDK `10.0.19041.0`, max tested `10.0.26100.0`.
+
+The `AppListEntry` is set to `none` -- the app does not appear in the Start menu. It is only accessible through Game Bar.
+
+### Application Entry Point
+
+- **Executable:** `LaunchPad.Widget\LaunchPad.Widget.exe`
+- **Entry point class:** `LaunchPad.Widget.App`
+
+### Extensions (registered under the Application element)
+
+#### 1. Game Bar Widget (`windows.appExtension`)
+
+```xml
+<uap3:AppExtension Name="microsoft.gameBarUIExtension"
+                   Id="LaunchPadWidget"
+                   DisplayName="LaunchPad"
+                   Description="Quick app launcher grid"
+                   PublicFolder="GameBar">
+```
+
+Widget properties:
+
+| Property | Value | Meaning |
+|----------|-------|---------|
+| `Type` | `Standard` | Standard Game Bar widget (not a background/performance widget) |
+| `HomeMenuVisible` | `true` | Widget appears in Game Bar's home menu |
+| `PinningSupported` | `true` | User can pin the widget to the overlay |
+| `ActivateAfterInstall` | `true` | Widget activates immediately after package install |
+| `FavoriteAfterInstall` | `true` | Widget is added to favorites on install |
+
+Window sizing:
+
+| Dimension | Default | Min | Max |
+|-----------|---------|-----|-----|
+| Height | 350 | 250 | 500 |
+| Width | 400 | 300 | 600 |
+
+Both horizontal and vertical resizing are enabled.
+
+#### 2. App Service (`windows.appService`)
+
+```xml
+<uap:AppService Name="com.launchpad.service" />
+```
+
+This is the IPC channel between the UWP widget and the full-trust companion process. The widget sends launch requests through this service; the companion executes them outside the app container.
+
+#### 3. Full Trust Process (`windows.fullTrustProcess`)
+
+```xml
+<desktop:Extension Category="windows.fullTrustProcess"
+                   Executable="LaunchPad.Companion\LaunchPad.Companion.exe" />
+```
+
+Declares the companion as a full-trust desktop process that runs outside the UWP sandbox. This is required to launch arbitrary EXE files and access the file system.
+
+### Extensions (registered at Package level)
+
+#### 4. Proxy/Stub for Game Bar SDK Interop
+
+```xml
+<Extension Category="windows.activatableClass.proxyStub">
+  <ProxyStub ClassId="00000355-0000-0000-C000-000000000046">
+    <Path>Microsoft.Gaming.XboxGameBar.winmd</Path>
+    <!-- 19 interface registrations for IXboxGameBar* private interfaces -->
+  </ProxyStub>
+</Extension>
+```
+
+This registers COM proxy/stub interfaces required for the Game Bar SDK to communicate with the widget across process boundaries. The interfaces include `IXboxGameBarWidgetHost` (versions 1-6), `IXboxGameBarWidgetPrivate` (versions 1-4), `IXboxGameBarWidgetControlHost`, `IXboxGameBarWidgetForegroundWorkerHost`, and various other SDK-internal interfaces. These are standard boilerplate required by `Microsoft.Gaming.XboxGameBar` and should not be modified.
+
+### Capabilities
+
+| Capability | Type | Purpose |
+|------------|------|---------|
+| `internetClient` | Standard | Network access for URL launches |
+| `runFullTrust` | Restricted | Required to launch the companion process via `FullTrustProcessLauncher` |
+
+---
+
+## Troubleshooting
+
+### Stale builds / mysterious runtime errors
+
+**Symptom:** Changes to XAML, config models, or companion logic do not take effect after building.
+
+**Fix:** Perform a clean rebuild. Delete `bin/` and `obj/` directories across all projects, then rebuild:
+
+```bash
+# From solution root
+rm -rf LaunchPad.Widget/bin LaunchPad.Widget/obj
+rm -rf LaunchPad.Companion/bin LaunchPad.Companion/obj
+rm -rf LaunchPad.Shared/bin LaunchPad.Shared/obj
+rm -rf LaunchPad.Package/bin LaunchPad.Package/obj
+msbuild LaunchPad.sln -p:Configuration=Debug -p:Platform=x64 /restore
+```
+
+Or in Visual Studio: **Build > Clean Solution**, then **Build > Rebuild Solution**.
+
+### Game Bar does not show the widget after re-registration
+
+**Symptom:** After uninstalling and reinstalling the package, or after significant manifest changes, the widget does not appear in Game Bar's widget list.
+
+**Fix:** Reboot Windows. Game Bar caches widget registrations and does not always pick up changes from redeployment alone. After reboot, deploy again via F5 if needed.
+
+### Blank window on direct launch
+
+**Symptom:** Launching `LaunchPad.Widget.exe` directly (or clicking the app tile if one exists) shows a blank window that immediately closes.
+
+**Explanation:** This is expected behavior. The widget is designed to run only inside Game Bar. The `App.OnLaunched` method detects that it was not activated by Game Bar and exits. The widget must be opened through Game Bar (`Win+G`).
+
+### Companion process not starting
+
+**Symptom:** Widget loads but cannot launch apps. App Service connection fails.
+
+**Check:** Verify the `runFullTrust` restricted capability is present in the manifest. Verify the companion executable path in the `fullTrustProcess` extension matches the actual output path (`LaunchPad.Companion\LaunchPad.Companion.exe`).
+
+### NuGet restore failures
+
+**Symptom:** Build fails with missing package errors.
+
+**Fix:** Ensure NuGet restore runs before build. Use the `/restore` flag with MSBuild, or run `nuget restore LaunchPad.sln` separately. The Widget project uses `packages.config`-style references through the UWP SDK toolchain, not SDK-style `PackageReference` (though they are declared inline in the csproj).
+
+## See Also
+
+- [Architecture](ARCHITECTURE.md) -- project structure and inter-project dependencies
+- [Testing](TESTING.md) -- run tests before deploying to catch regressions

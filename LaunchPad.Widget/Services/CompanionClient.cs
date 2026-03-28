@@ -1,5 +1,7 @@
 using System;
+using System.Text.Json;
 using System.Threading.Tasks;
+using LaunchPad.Shared;
 using Windows.ApplicationModel.AppService;
 using Windows.Foundation.Collections;
 
@@ -7,6 +9,36 @@ namespace LaunchPad.Widget.Services;
 
 public static class CompanionClient
 {
+    public static async Task<(ConfigLoadStatus Status, LaunchPadConfig? Config, string? ConfigPath, string? Error)> LoadConfigAsync()
+    {
+        var connection = App.CompanionConnection;
+        if (connection == null)
+            return (ConfigLoadStatus.FileNotFound, null, null, "Companion not connected");
+
+        var request = new ValueSet { ["action"] = "load-config" };
+        var response = await connection.SendMessageAsync(request);
+        if (response.Status != AppServiceResponseStatus.Success)
+            return (ConfigLoadStatus.FileNotFound, null, null, "App Service error");
+
+        var msg = response.Message;
+        var status = msg["status"] as string;
+        var configPath = msg.ContainsKey("configPath") ? msg["configPath"] as string : null;
+
+        if (status == "success" && msg.ContainsKey("json"))
+        {
+            var json = msg["json"] as string;
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var config = JsonSerializer.Deserialize<LaunchPadConfig>(json, options);
+            return (ConfigLoadStatus.Success, config, configPath, null);
+        }
+
+        if (status == "filenotfound")
+            return (ConfigLoadStatus.FileNotFound, null, configPath, null);
+
+        var error = msg.ContainsKey("error") ? msg["error"] as string : null;
+        return (ConfigLoadStatus.ParseError, null, configPath, error);
+    }
+
     public static async Task<bool> LaunchAsync(string type, string path, string? args = null)
     {
         var connection = App.CompanionConnection;
