@@ -22,42 +22,48 @@
 
     <Grid Padding="8">
         <!-- Normal state: grid of items -->
-        <GridView x:Name="ItemsGrid"
-                  ItemsSource="{x:Bind Items}"
-                  SelectionMode="None"
-                  IsItemClickEnabled="True"
-                  ItemClick="OnItemClick"
-                  Visibility="Visible">
-            <GridView.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <ItemsWrapGrid MaximumRowsOrColumns="4" Orientation="Horizontal"
-                                   ItemWidth="88" ItemHeight="88" />
-                </ItemsPanelTemplate>
-            </GridView.ItemsPanel>
-            <GridView.ItemTemplate>
-                <DataTemplate x:DataType="models:LaunchItem">
-                    <Grid Width="80" Height="80"
-                          CornerRadius="8" Padding="4"
-                          Background="{StaticResource TileBackground}"
-                          PointerEntered="OnTilePointerEntered"
-                          PointerExited="OnTilePointerExited">
-                        <StackPanel VerticalAlignment="Center"
-                                    HorizontalAlignment="Center"
-                                    Spacing="4">
-                            <Image Source="{x:Bind IconSource, Mode=OneWay}"
-                                   Width="36" Height="36"
-                                   HorizontalAlignment="Center"
-                                   Stretch="Uniform" />
-                            <TextBlock Text="{x:Bind Name}"
-                                       FontSize="12"
-                                       TextAlignment="Center"
-                                       TextTrimming="CharacterEllipsis"
-                                       MaxLines="1" />
-                        </StackPanel>
-                    </Grid>
-                </DataTemplate>
-            </GridView.ItemTemplate>
-        </GridView>
+        <ScrollViewer x:Name="ItemsScrollViewer"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Visibility="Visible">
+            <GridView x:Name="ItemsGrid"
+                      ItemsSource="{x:Bind Items}"
+                      SelectionMode="None"
+                      IsItemClickEnabled="True"
+                      ItemClick="OnItemClick"
+                      HorizontalAlignment="Center">
+                <GridView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <ItemsWrapGrid MaximumRowsOrColumns="4" Orientation="Horizontal"
+                                       ItemWidth="88" ItemHeight="88"
+                                       HorizontalAlignment="Center" />
+                    </ItemsPanelTemplate>
+                </GridView.ItemsPanel>
+                <GridView.ItemTemplate>
+                    <DataTemplate x:DataType="models:LaunchItem">
+                        <Grid Width="80" Height="80"
+                              CornerRadius="8" Padding="4"
+                              Background="{StaticResource TileBackground}"
+                              PointerEntered="OnTilePointerEntered"
+                              PointerExited="OnTilePointerExited">
+                            <StackPanel VerticalAlignment="Center"
+                                        HorizontalAlignment="Center"
+                                        Spacing="4">
+                                <Image Source="{x:Bind IconSource, Mode=OneWay}"
+                                       Width="36" Height="36"
+                                       HorizontalAlignment="Center"
+                                       Stretch="Uniform" />
+                                <TextBlock Text="{x:Bind Name}"
+                                           FontSize="12"
+                                           TextAlignment="Center"
+                                           TextTrimming="CharacterEllipsis"
+                                           MaxLines="1" />
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </GridView.ItemTemplate>
+            </GridView>
+        </ScrollViewer>
 
         <!-- Edit config button -->
         <Button x:Name="EditButton"

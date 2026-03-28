@@ -96,7 +96,7 @@ public sealed partial class LaunchPadWidget : Page
             Items.Add(launchItem);
         }
 
-        ItemsGrid.Visibility = Visibility.Visible;
+        ItemsScrollViewer.Visibility = Visibility.Visible;
         EmptyState.Visibility = Visibility.Collapsed;
 
         await LoadIconsAsync();
@@ -150,7 +150,7 @@ public sealed partial class LaunchPadWidget : Page
 
     private void ShowEmptyState(string title, string message)
     {
-        ItemsGrid.Visibility = Visibility.Collapsed;
+        ItemsScrollViewer.Visibility = Visibility.Collapsed;
         EmptyState.Visibility = Visibility.Visible;
         EmptyStateTitle.Text = title;
         EmptyStateMessage.Text = message;
