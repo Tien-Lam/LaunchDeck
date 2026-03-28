@@ -86,10 +86,7 @@ msbuild LaunchPad.sln /p:Configuration=Debug /p:Platform=x64 /restore
 ## Deploy
 
 ```bash
-# Full build + deploy (requires VS MSBuild)
-MSBUILD="/c/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/MSBuild.exe"
-"$MSBUILD" LaunchPad.sln -p:Configuration=Debug -p:Platform=x64 -restore -v:minimal
-powershell.exe -Command "Add-AppxPackage -Register 'V:\Projects\LaunchPad\LaunchPad.Package\bin\x64\Debug\AppX\AppxManifest.xml' -ForceApplicationShutdown"
+powershell.exe -ExecutionPolicy Bypass -File deploy.ps1
 ```
 
-After deploying, open Game Bar (Win+G) to use the widget.
+The script kills running LaunchPad processes, builds with MSBuild, and registers the package. After deploying, open Game Bar (Win+G) to use the widget.

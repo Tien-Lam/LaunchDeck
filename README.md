@@ -48,17 +48,11 @@ msbuild LaunchPad.sln /p:Configuration=Debug /p:Platform=x64 /restore
 
 ## Deploy
 
-Build the full solution with MSBuild, then register the package layout:
-
 ```powershell
-# Build
-msbuild LaunchPad.sln -p:Configuration=Debug -p:Platform=x64 -restore
-
-# Register (loose-file deployment, no signing needed)
-Add-AppxPackage -Register "LaunchPad.Package\bin\x64\Debug\AppX\AppxManifest.xml" -ForceApplicationShutdown
+.\deploy.ps1
 ```
 
-Requires a **Developer Command Prompt** or MSBuild on PATH. After deploying, open Game Bar (Win+G) and enable the LaunchPad widget from the widget menu.
+Builds the full solution with MSBuild and registers the package via loose-file deployment (no signing needed). Requires Visual Studio with the UWP workload installed. After deploying, open Game Bar (Win+G) and enable the LaunchPad widget from the widget menu.
 
 ## Configuration
 
