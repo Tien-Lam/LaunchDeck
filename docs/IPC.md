@@ -335,7 +335,7 @@ ValueSet {
 ValueSet { ["status"] = "ok" }
 ```
 
-**Widget client:** `CompanionClient.OpenEditorAsync(string configPath)` returns `bool` (`true` on success).
+**Widget client:** `CompanionClient.OpenEditorAsync()` returns `bool` (`true` on success).
 
 ---
 
@@ -439,7 +439,7 @@ Widget UI                CompanionClient              Companion
 Widget UI                CompanionClient              Companion
    |                           |                          |
    | User clicks gear button   |                          |
-   |  OpenEditorAsync(path)    |                          |
+   |  OpenEditorAsync()        |                          |
    |-------------------------->|                          |
    |                           | SendMessageAsync         |
    |                           |  { action: "open-editor",|

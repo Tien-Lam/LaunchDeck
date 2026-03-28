@@ -227,37 +227,31 @@ The widget (UWP) cannot read arbitrary filesystem paths due to the UWP sandbox. 
 
 ---
 
-## How Items Are Added (Add-EXE Flow)
+## How Items Are Added (Config Editor)
 
-Users can add EXE items from the widget by clicking the "+" button. This triggers an IPC round-trip that opens a native file picker on the companion side.
+Users add or edit items by opening the WPF config editor from the widget. Clicking the gear button triggers an IPC request that opens the editor window in the companion process.
 
 ### Flow
 
-1. **User clicks "+"** -- `OnAddClick` in the widget disables the button and calls `CompanionClient.AddExeAsync(configPath)`.
+1. **User clicks gear button** -- `OnEditClick` in the widget disables the button and calls `CompanionClient.OpenEditorAsync()`.
 
 2. **Widget sends IPC request**:
    ```
-   { "action": "add-exe", "configPath": "<resolved path>" }
+   { "action": "open-editor", "configPath": "<resolved path>" }
    ```
 
-3. **Companion opens file picker** -- `HandleAddExe` calls `ExePicker.ShowPickerDialog()`, which spawns an STA thread (required for Win32 `OpenFileDialog`) and shows a file picker filtered to `*.exe`.
+3. **Companion opens WPF editor** -- The companion launches `ConfigEditorWindow`, loading the current config. If the editor is already open, the existing window is focused instead.
 
-4. **User picks a file (or cancels)**:
-   - If cancelled: companion returns `{ "status": "cancelled" }` and the widget takes no action.
-   - If a file is selected: flow continues.
+4. **User adds/edits items** -- The editor provides a UI for adding, removing, and editing launch items (EXE, URL, Store).
 
-5. **Companion resolves display name** -- `ExePicker.GetDisplayName(exePath)` reads the EXE's `FileVersionInfo.FileDescription`. If that is blank, it falls back to the filename without extension.
+5. **User clicks "Save & Refresh"** -- The editor calls `ConfigLoader.Save(configPath, config)` to write the updated JSON back to disk with `WriteIndented = true`.
 
-6. **Companion appends to config** -- `ExePicker.AppendToConfig` adds a new `LaunchItemConfig` with `type: Exe` to the in-memory config. Duplicate paths (case-insensitive) are silently skipped.
-
-7. **Companion saves config** -- `ConfigLoader.Save(configPath, config)` writes the updated JSON back to disk with `WriteIndented = true`.
-
-8. **Companion returns result**:
+6. **Companion notifies widget** -- After saving, the companion sends an unsolicited push message to the widget:
    ```
-   { "status": "ok", "name": "<display name>", "path": "<exe path>" }
+   { "action": "config-updated" }
    ```
 
-9. **Widget reloads** -- On success, the widget calls `LoadConfigAsync()` again, which reloads the full config from disk (via the companion) and re-resolves all icons.
+7. **Widget reloads** -- The widget's `ConfigUpdated` event handler calls `LoadConfigAsync()`, which reloads the full config from disk (via the companion) and re-resolves all icons.
 
 ---
 
@@ -343,15 +337,15 @@ Note: `ConfigLoader.Load` uses `PropertyNameCaseInsensitive = true`, so field na
 | File | Role |
 |------|------|
 | `LaunchPad.Shared/ConfigModels.cs` | `LaunchPadConfig`, `LaunchItemConfig`, `LaunchItemType`, `ConfigLoadResult`, `ConfigLoadStatus`, `ConfigLoader` |
-| `LaunchPad.Companion/Program.cs` | IPC dispatcher: `HandleLoadConfig`, `HandleAddExe` |
+| `LaunchPad.Companion/Program.cs` | IPC dispatcher: `HandleLoadConfig`, `HandleOpenEditor` |
 | `LaunchPad.Companion/IconExtractor.cs` | EXE icon extraction, favicon fetching, cache management |
 | `LaunchPad.Companion/ExePicker.cs` | Win32 file picker dialog, display name extraction, config append |
-| `LaunchPad.Widget/Services/CompanionClient.cs` | Widget-side IPC client: `LoadConfigAsync`, `ExtractIconAsync`, `FetchFaviconAsync`, `AddExeAsync` |
-| `LaunchPad.Widget/LaunchPadWidget.xaml.cs` | Widget UI: `LoadConfigAsync`, `LoadIconsAsync`, `OnAddClick` |
+| `LaunchPad.Widget/Services/CompanionClient.cs` | Widget-side IPC client: `LoadConfigAsync`, `ExtractIconAsync`, `FetchFaviconAsync`, `OpenEditorAsync` |
+| `LaunchPad.Widget/LaunchPadWidget.xaml.cs` | Widget UI: `LoadConfigAsync`, `LoadIconsAsync`, `OnEditClick` |
 | `config.sample.json` | Example config file with all three item types |
 
 ## See Also
 
 - [Architecture](ARCHITECTURE.md) -- system overview and why config is loaded through the companion
-- [IPC Protocol](IPC.md) -- `load-config` and `add-exe` message format for config operations over IPC
+- [IPC Protocol](IPC.md) -- `load-config` and `open-editor` message format for config operations over IPC
 - [UI](UI.md) -- how config items drive the tile grid display and icon resolution

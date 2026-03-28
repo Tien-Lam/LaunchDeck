@@ -56,14 +56,13 @@ All communication uses `ValueSet` messages over `AppServiceConnection`. Every re
 | `load-config` | Widget -> Companion | Read config.json | `configPath` (optional) |
 | `extract-icon` | Widget -> Companion | Get icon from EXE | `path` |
 | `fetch-favicon` | Widget -> Companion | Get favicon for URL | `url` |
-| `add-exe` | Widget -> Companion | File picker + config append | `configPath` |
+| `open-editor` | Widget -> Companion | Open WPF config editor | `configPath` |
 
 ### Response Statuses
 
 - `ok` / `success` -- action completed
 - `error` -- failed, `error` field has message
 - `filenotfound` -- config file missing (load-config)
-- `cancelled` -- user cancelled file picker (add-exe)
 
 ## Key Constraints
 

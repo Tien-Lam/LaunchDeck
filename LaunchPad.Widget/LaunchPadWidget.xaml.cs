@@ -17,6 +17,7 @@ namespace LaunchPad.Widget;
 
 public sealed partial class LaunchPadWidget : Page
 {
+    private bool _configUpdatedSubscribed;
     public ObservableCollection<LaunchItem> Items { get; } = new();
 
     public LaunchPadWidget()
@@ -41,13 +42,17 @@ public sealed partial class LaunchPadWidget : Page
 
         await LoadConfigAsync();
 
-        CompanionClient.ConfigUpdated += async () =>
+        if (!_configUpdatedSubscribed)
         {
-            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
+            _configUpdatedSubscribed = true;
+            CompanionClient.ConfigUpdated += async () =>
             {
-                await LoadConfigAsync();
-            });
-        };
+                await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
+                {
+                    await LoadConfigAsync();
+                });
+            };
+        }
     }
 
     private async Task LoadConfigAsync()

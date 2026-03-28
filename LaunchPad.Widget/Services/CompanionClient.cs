@@ -118,12 +118,21 @@ public static class CompanionClient
         return response.Message["status"] as string == "ok";
     }
 
-    public static void OnCompanionMessage(AppServiceConnection sender, AppServiceRequestReceivedEventArgs args)
+    public static async void OnCompanionMessage(AppServiceConnection sender, AppServiceRequestReceivedEventArgs args)
     {
-        var message = args.Request.Message;
-        if (message.ContainsKey("action") && message["action"] as string == "config-updated")
+        var deferral = args.GetDeferral();
+        try
         {
-            ConfigUpdated?.Invoke();
+            var message = args.Request.Message;
+            if (message.ContainsKey("action") && message["action"] as string == "config-updated")
+            {
+                ConfigUpdated?.Invoke();
+            }
+            await args.Request.SendResponseAsync(new ValueSet());
+        }
+        finally
+        {
+            deferral.Complete();
         }
     }
 }
