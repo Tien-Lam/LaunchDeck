@@ -31,18 +31,9 @@ public static class EditorManager
 
             _editorThread = new Thread(() =>
             {
-                // WPF Application is required for Fluent theme and ThemeMode to work
+                // WPF Application is needed for theme resource resolution
                 if (Application.Current == null)
-                {
-                    var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
-                    app.Resources.MergedDictionaries.Add(new ResourceDictionary
-                    {
-                        Source = new Uri("pack://application:,,,/PresentationFramework.Fluent;component/Themes/Fluent.xaml")
-                    });
-#pragma warning disable WPF0001
-                    app.ThemeMode = ThemeMode.Dark;
-#pragma warning restore WPF0001
-                }
+                    new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
 
                 _editorWindow = new Editor.EditorWindow(configPath, onSaved);
                 _editorWindow.Closed += (_, _) =>
