@@ -9,6 +9,9 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="LaunchPad.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
     <ProjectReference Include="..\LaunchPad.Shared\LaunchPad.Shared.csproj" />
   </ItemGroup>

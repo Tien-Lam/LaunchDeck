@@ -48,4 +48,13 @@ public class LaunchHandlerTests
         Assert.Throws<System.ArgumentException>(
             () => LaunchHandler.BuildProcessStartInfo("unknown", "foo", null));
     }
+
+    [Fact]
+    public void Launch_InvalidPath_ReturnsFailureWithError()
+    {
+        var (success, error) = LaunchHandler.Launch("exe", @"C:\nonexistent\fake_app_12345.exe", null);
+
+        Assert.False(success);
+        Assert.NotNull(error);
+    }
 }
