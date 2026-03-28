@@ -140,13 +140,23 @@ public sealed partial class LaunchPadWidget : Page
         {
             byte[]? iconData = null;
 
-            if (item.Type == "exe")
+            // Custom icon takes priority over type-based extraction
+            if (!string.IsNullOrEmpty(item.CustomIconPath))
             {
-                iconData = await CompanionClient.ExtractIconAsync(item.Path);
+                iconData = await CompanionClient.LoadCustomIconAsync(item.CustomIconPath);
             }
-            else if (item.Type == "url")
+
+            // Fall back to type-based extraction
+            if (iconData == null)
             {
-                iconData = await CompanionClient.FetchFaviconAsync(item.Path);
+                if (item.Type == "exe")
+                {
+                    iconData = await CompanionClient.ExtractIconAsync(item.Path);
+                }
+                else if (item.Type == "url")
+                {
+                    iconData = await CompanionClient.FetchFaviconAsync(item.Path);
+                }
             }
 
             if (iconData != null)
