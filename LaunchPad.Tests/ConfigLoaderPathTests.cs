@@ -14,24 +14,24 @@ public class ConfigLoaderPathTests
     [Fact]
     public void StripPackagePath_RemovesPackagesSegment()
     {
-        var input = @"C:\Users\lamti\AppData\Local\Packages\SomeApp_xyz\LocalState";
+        var input = @"C:\Users\testuser\AppData\Local\Packages\SomeApp_xyz\LocalState";
         var result = ConfigLoader.StripPackagePath(input);
-        Assert.Equal(@"C:\Users\lamti\AppData\Local", result);
+        Assert.Equal(@"C:\Users\testuser\AppData\Local", result);
     }
 
     [Fact]
     public void StripPackagePath_LeavesNormalPathUnchanged()
     {
-        var input = @"C:\Users\lamti\AppData\Local";
+        var input = @"C:\Users\testuser\AppData\Local";
         var result = ConfigLoader.StripPackagePath(input);
-        Assert.Equal(@"C:\Users\lamti\AppData\Local", result);
+        Assert.Equal(@"C:\Users\testuser\AppData\Local", result);
     }
 
     [Fact]
     public void StripPackagePath_IsCaseInsensitive()
     {
-        var input = @"C:\Users\lamti\AppData\Local\packages\SomeApp_xyz\LocalState";
+        var input = @"C:\Users\testuser\AppData\Local\packages\SomeApp_xyz\LocalState";
         var result = ConfigLoader.StripPackagePath(input);
-        Assert.Equal(@"C:\Users\lamti\AppData\Local", result);
+        Assert.Equal(@"C:\Users\testuser\AppData\Local", result);
     }
 }
