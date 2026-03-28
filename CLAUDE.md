@@ -1,25 +1,16 @@
 # LaunchPad - Xbox Game Bar Widget
 
-## CRITICAL: Workflow Rules
-
-**Before writing ANY code**, you MUST:
-1. Run `export PATH="$PATH:/c/Users/lamti/AppData/Local/Programs/bd:/c/Program Files/dolt/bin"` (machine-specific)
-2. Create a beads issue: `bd create --title="..." --type=bug|task|feature --priority=2`
-3. Claim it: `bd update <id> --claim`
-
-**After completing code for an issue**: `bd close <id>`
-
-**NEVER use** TodoWrite, TaskCreate, or markdown task lists. Beads is the ONLY tracking system.
+@AGENTS.md
 
 ## Project Overview
 
-Game Bar widget that launches apps (EXEs, URLs, Store apps) from a configurable grid overlay. UWP XAML widget + Win32 companion process (App Service IPC) in a single MSIX package.
+Game Bar widget that launches apps and URLs from a configurable grid overlay. UWP XAML widget + Win32 companion process (App Service IPC) in a single MSIX package.
 
 ## Project Structure
 
 ```
 LaunchPad.Widget/       # UWP XAML widget (runs inside Game Bar)
-LaunchPad.Companion/    # .NET 8 Win32 process (IPC handler, WPF editor, icon extraction)
+LaunchPad.Companion/    # .NET 10 Win32 process (IPC handler, WPF editor, icon extraction)
 LaunchPad.Shared/       # .NET Standard 2.0 library (ConfigLoader, config models)
 LaunchPad.Tests/        # xUnit tests (references Shared + Companion)
 LaunchPad.Package/      # WAPPROJ — MSIX packaging, manifest, deployment
@@ -34,17 +25,6 @@ docs/                   # Architecture, IPC, Config, UI, Deployment, Testing doc
 - [UI](docs/UI.md) -- dark theme palette, XAML structure, interactive states
 - [Deployment](docs/DEPLOYMENT.md) -- build pipeline, VS deploy, manifest, troubleshooting
 - [Testing](docs/TESTING.md) -- test coverage, boundaries, manual test checklist
-
-## Beads Quick Reference
-
-```bash
-bd prime                 # Full workflow context (run at session start)
-bd ready                 # Find unblocked work
-bd create --title="..." --type=task --priority=2  # Create issue
-bd update <id> --claim   # Claim and start work
-bd close <id>            # Complete work
-bd show <id>             # View issue details
-```
 
 ## Sub-Agents
 
