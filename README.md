@@ -16,13 +16,13 @@ An Xbox Game Bar widget that launches apps and URLs from a configurable tile gri
 LaunchPad uses a two-process design to work around UWP sandbox restrictions:
 
 - **Widget** (UWP) — the tile grid UI that runs inside Game Bar
-- **Companion** (.NET 8 Win32) — handles file I/O, process launching, icon extraction, and hosts the config editor
+- **Companion** (.NET 10 Win32) — handles file I/O, process launching, icon extraction, and hosts the config editor
 
 The two processes communicate over Windows App Service IPC, packaged together in a single MSIX via a Windows Application Packaging Project.
 
 ```
 LaunchPad.Widget/       # UWP XAML widget
-LaunchPad.Companion/    # .NET 8 companion (WPF editor, IPC handlers)
+LaunchPad.Companion/    # .NET 10 companion (WPF editor, IPC handlers)
 LaunchPad.Shared/       # Shared library (config models, loader)
 LaunchPad.Tests/        # xUnit tests
 LaunchPad.Package/      # MSIX packaging and manifest
@@ -32,7 +32,7 @@ LaunchPad.Package/      # MSIX packaging and manifest
 
 - Windows 10 19041+ with Xbox Game Bar
 - Visual Studio 2022 with UWP workload and Windows SDK 19041+
-- .NET 8 SDK
+- .NET 10 SDK
 
 ## Build
 

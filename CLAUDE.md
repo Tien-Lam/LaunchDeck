@@ -67,7 +67,7 @@ Always pass `model: "opus"` on every Agent tool call. Never use sonnet or haiku 
 
 ## Tech Stack
 
-- C# / UWP XAML (widget) / .NET 8 + WPF + WinForms (companion) / .NET Standard 2.0 (shared)
+- C# / UWP XAML (widget) / .NET 10 + WPF + WinForms (companion) / .NET Standard 2.0 (shared)
 - Microsoft.Gaming.XboxGameBar NuGet
 - Visual Studio 2022 + UWP workload + Windows SDK 19041+
 - Windows Application Packaging Project (WAPPROJ)
