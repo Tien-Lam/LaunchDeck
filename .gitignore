@@ -4,6 +4,7 @@ obj/
 *.user
 AppPackages/
 .superpowers/
+.claude/docs/
 
 # Beads / Dolt files (added by bd init)
 .dolt/

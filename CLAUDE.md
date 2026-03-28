@@ -79,6 +79,10 @@ Always pass `model: "opus"` on every Agent tool call. Never use sonnet or haiku 
 - **Path virtualization**: UWP sees `%LOCALAPPDATA%` as `Packages\<id>\LocalState`. `ConfigLoader.StripPackagePath()` corrects this so widget and companion resolve the same config path.
 - **WPF + WinForms coexistence**: Both are enabled in the companion. Qualify `System.Windows.Forms.OpenFileDialog` to avoid ambiguity with `Microsoft.Win32.OpenFileDialog`.
 
+## Working Documents
+
+Superpowers specs and plans go in `.claude/docs/` (gitignored), not `docs/`. These are working files for Claude, not project documentation. Beads tracks issues, git tracks changes, `docs/` has living documentation.
+
 ## Docs Maintenance
 
 When changing IPC actions, UI behavior, or config schema, update the corresponding doc in `docs/` and `README.md`. Grep for the old behavior across all docs to catch stale references.
