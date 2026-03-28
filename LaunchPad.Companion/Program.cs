@@ -110,7 +110,8 @@ class Program
         var (success, iconPath) = IconExtractor.ExtractFromExe(path, cacheDir);
 
         var response = new ValueSet { ["status"] = success ? "ok" : "error" };
-        if (iconPath != null) response["iconPath"] = iconPath;
+        if (success && iconPath != null && System.IO.File.Exists(iconPath))
+            response["iconData"] = Convert.ToBase64String(System.IO.File.ReadAllBytes(iconPath));
         return response;
     }
 
@@ -121,7 +122,8 @@ class Program
         var (success, iconPath) = await IconExtractor.FetchFaviconAsync(url, cacheDir);
 
         var response = new ValueSet { ["status"] = success ? "ok" : "error" };
-        if (iconPath != null) response["iconPath"] = iconPath;
+        if (success && iconPath != null && System.IO.File.Exists(iconPath))
+            response["iconData"] = Convert.ToBase64String(System.IO.File.ReadAllBytes(iconPath));
         return response;
     }
 

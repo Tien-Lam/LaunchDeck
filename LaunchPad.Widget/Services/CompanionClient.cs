@@ -60,7 +60,7 @@ public static class CompanionClient
         return response.Message["status"] as string == "ok";
     }
 
-    public static async Task<string?> ExtractIconAsync(string exePath)
+    public static async Task<byte[]?> ExtractIconAsync(string exePath)
     {
         var connection = App.CompanionConnection;
         if (connection == null) return null;
@@ -74,13 +74,13 @@ public static class CompanionClient
         var response = await connection.SendMessageAsync(request);
         if (response.Status != AppServiceResponseStatus.Success) return null;
 
-        if (response.Message["status"] as string == "ok")
-            return response.Message["iconPath"] as string;
+        if (response.Message["status"] as string == "ok" && response.Message.ContainsKey("iconData"))
+            return Convert.FromBase64String(response.Message["iconData"] as string);
 
         return null;
     }
 
-    public static async Task<string?> FetchFaviconAsync(string url)
+    public static async Task<byte[]?> FetchFaviconAsync(string url)
     {
         var connection = App.CompanionConnection;
         if (connection == null) return null;
@@ -94,8 +94,8 @@ public static class CompanionClient
         var response = await connection.SendMessageAsync(request);
         if (response.Status != AppServiceResponseStatus.Success) return null;
 
-        if (response.Message["status"] as string == "ok")
-            return response.Message["iconPath"] as string;
+        if (response.Message["status"] as string == "ok" && response.Message.ContainsKey("iconData"))
+            return Convert.FromBase64String(response.Message["iconData"] as string);
 
         return null;
     }

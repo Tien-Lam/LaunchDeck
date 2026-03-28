@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.UI.Xaml;
@@ -105,27 +106,29 @@ public sealed partial class LaunchPadWidget : Page
     {
         foreach (var item in Items)
         {
-            string? iconPath = null;
+            byte[]? iconData = null;
 
-            if (item.CustomIconPath != null)
+            if (item.Type == "exe")
             {
-                iconPath = item.CustomIconPath;
-            }
-            else if (item.Type == "exe")
-            {
-                iconPath = await CompanionClient.ExtractIconAsync(item.Path);
+                iconData = await CompanionClient.ExtractIconAsync(item.Path);
             }
             else if (item.Type == "url")
             {
-                iconPath = await CompanionClient.FetchFaviconAsync(item.Path);
+                iconData = await CompanionClient.FetchFaviconAsync(item.Path);
             }
 
-            if (iconPath != null)
+            if (iconData != null)
             {
                 try
                 {
-                    var uri = new Uri(iconPath);
-                    item.IconSource = new BitmapImage(uri);
+                    var bitmap = new BitmapImage();
+                    using (var stream = new Windows.Storage.Streams.InMemoryRandomAccessStream())
+                    {
+                        await stream.WriteAsync(iconData.AsBuffer());
+                        stream.Seek(0);
+                        await bitmap.SetSourceAsync(stream);
+                    }
+                    item.IconSource = bitmap;
                 }
                 catch
                 {
