@@ -16,13 +16,8 @@
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
                 <Setter Property="Margin" Value="0,0,0,4"/>
             </Style>
-            <Style x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                <Setter Property="Background" Value="#0E639C"/>
-                <Setter Property="Foreground" Value="White"/>
-            </Style>
             <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                <Setter Property="Background" Value="#6E2020"/>
-                <Setter Property="Foreground" Value="#F0A0A0"/>
+                <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBackgroundBrush}"/>
             </Style>
         </ResourceDictionary>
     </Window.Resources>
@@ -37,7 +32,7 @@
                            FontSize="11" Opacity="0.5"
                            VerticalAlignment="Center"/>
                 <Button x:Name="SaveButton" Content="Save and Refresh"
-                        Style="{StaticResource AccentButton}"
+                        Style="{DynamicResource AccentButtonStyle}"
                         HorizontalAlignment="Right" DockPanel.Dock="Right"
                         Click="OnSaveClick"/>
             </DockPanel>
@@ -48,9 +43,9 @@
                 BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
                 BorderThickness="0,0,0,1">
             <StackPanel Orientation="Horizontal">
-                <Button Content="+ Add EXE" Style="{StaticResource AccentButton}"
+                <Button Content="+ Add EXE" Style="{DynamicResource AccentButtonStyle}"
                         Click="OnAddExeClick" Margin="0,0,4,0"/>
-                <Button Content="+ Add URL" Style="{StaticResource AccentButton}"
+                <Button Content="+ Add URL" Style="{DynamicResource AccentButtonStyle}"
                         Click="OnAddUrlClick" Margin="0,0,4,0"/>
                 <Separator Margin="4,0"/>
                 <Button x:Name="MoveUpButton" Content="&#x25B2;"
