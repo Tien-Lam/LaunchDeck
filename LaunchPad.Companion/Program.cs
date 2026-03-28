@@ -34,6 +34,18 @@ class Program
         ExitEvent.WaitOne();
     }
 
+    public static async void NotifyConfigUpdated()
+    {
+        var connection = _connection;
+        if (connection == null) return;
+        try
+        {
+            var message = new ValueSet { ["action"] = "config-updated" };
+            await connection.SendMessageAsync(message);
+        }
+        catch { }
+    }
+
     private static async void OnRequestReceived(AppServiceConnection sender, AppServiceRequestReceivedEventArgs args)
     {
         var deferral = args.GetDeferral();
@@ -57,8 +69,8 @@ class Program
                 case "load-config":
                     response = HandleLoadConfig(message);
                     break;
-                case "add-exe":
-                    response = HandleAddExe(message);
+                case "open-editor":
+                    response = HandleOpenEditor(message);
                     break;
                 default:
                     response = new ValueSet { ["status"] = "error", ["error"] = $"Unknown action: {action}" };
@@ -139,27 +151,13 @@ class Program
         return response;
     }
 
-    private static ValueSet HandleAddExe(ValueSet message)
+    private static ValueSet HandleOpenEditor(ValueSet message)
     {
-        var configPath = message["configPath"] as string ?? ConfigLoader.GetDefaultConfigPath();
+        var configPath = message.ContainsKey("configPath")
+            ? message["configPath"] as string ?? ConfigLoader.GetDefaultConfigPath()
+            : ConfigLoader.GetDefaultConfigPath();
 
-        var exePath = ExePicker.ShowPickerDialog();
-        if (exePath == null)
-            return new ValueSet { ["status"] = "cancelled" };
-
-        var displayName = ExePicker.GetDisplayName(exePath);
-
-        var loadResult = ConfigLoader.Load(configPath);
-        var config = loadResult.Config ?? new LaunchPadConfig();
-
-        ExePicker.AppendToConfig(config, exePath, displayName);
-        ConfigLoader.Save(configPath, config);
-
-        return new ValueSet
-        {
-            ["status"] = "ok",
-            ["name"] = displayName,
-            ["path"] = exePath
-        };
+        EditorManager.OpenEditor(configPath, NotifyConfigUpdated);
+        return new ValueSet { ["status"] = "ok" };
     }
 }
