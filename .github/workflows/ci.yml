@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build Shared
+        run: dotnet build LaunchPad.Shared/LaunchPad.Shared.csproj --configuration Release
+
+      - name: Build Companion
+        run: dotnet build LaunchPad.Companion/LaunchPad.Companion.csproj --configuration Release
+
+      - name: Run Tests
+        run: dotnet test LaunchPad.Tests/ --configuration Release --verbosity normal
