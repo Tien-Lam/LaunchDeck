@@ -5,78 +5,50 @@
         Width="500" Height="450"
         MinWidth="400" MinHeight="350"
         WindowStartupLocation="CenterScreen"
-        Background="#1E1E1E">
+        ThemeMode="Dark">
     <Window.Resources>
-        <Style x:Key="DarkTextBox" TargetType="TextBox">
-            <Setter Property="Background" Value="#3C3C3C"/>
-            <Setter Property="Foreground" Value="#E0E0E0"/>
-            <Setter Property="BorderBrush" Value="#555555"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="5,3"/>
-            <Setter Property="FontSize" Value="13"/>
-        </Style>
-        <Style x:Key="AccentButton" TargetType="Button">
-            <Setter Property="Background" Value="#0E639C"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="12,4"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style x:Key="ToolbarButton" TargetType="Button">
-            <Setter Property="Background" Value="#3C3C3C"/>
-            <Setter Property="Foreground" Value="#CCCCCC"/>
-            <Setter Property="BorderBrush" Value="#555555"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="8,4"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Foreground" Value="#888888"/>
-            <Setter Property="Margin" Value="0,0,0,4"/>
-        </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/PresentationFramework.Fluent;component/Themes/Fluent.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <Style x:Key="FieldLabel" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="11"/>
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                <Setter Property="Margin" Value="0,0,0,4"/>
+            </Style>
+        </ResourceDictionary>
     </Window.Resources>
 
     <DockPanel>
         <!-- Bottom bar -->
-        <Border DockPanel.Dock="Bottom" Background="#252526"
-                BorderBrush="#3C3C3C" BorderThickness="0,1,0,0"
-                Padding="12,8">
+        <Border DockPanel.Dock="Bottom" Padding="12,8"
+                BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
+                BorderThickness="0,1,0,0">
             <DockPanel>
                 <TextBlock x:Name="ItemCountLabel" Text="0 items"
-                           Foreground="#666666" FontSize="11"
+                           FontSize="11" Opacity="0.5"
                            VerticalAlignment="Center"/>
-                <Button x:Name="SaveButton" Content="Save &amp; Refresh"
-                        Style="{StaticResource AccentButton}"
+                <Button x:Name="SaveButton" Content="Save and Refresh"
                         HorizontalAlignment="Right" DockPanel.Dock="Right"
                         Click="OnSaveClick"/>
             </DockPanel>
         </Border>
 
         <!-- Toolbar -->
-        <Border DockPanel.Dock="Top" Background="#2D2D2D"
-                BorderBrush="#3C3C3C" BorderThickness="0,0,0,1"
-                Padding="12,6">
+        <Border DockPanel.Dock="Top" Padding="8,6"
+                BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
+                BorderThickness="0,0,0,1">
             <StackPanel Orientation="Horizontal">
-                <Button Content="+ Add EXE" Style="{StaticResource AccentButton}"
-                        Click="OnAddExeClick" Margin="0,0,6,0"/>
-                <Button Content="+ Add URL" Style="{StaticResource AccentButton}"
-                        Click="OnAddUrlClick" Margin="0,0,6,0"/>
-                <Border Width="1" Background="#3C3C3C" Margin="6,0"/>
+                <Button Content="+ Add EXE" Click="OnAddExeClick" Margin="0,0,4,0"/>
+                <Button Content="+ Add URL" Click="OnAddUrlClick" Margin="0,0,4,0"/>
+                <Separator Margin="4,0"/>
                 <Button x:Name="MoveUpButton" Content="&#x25B2;"
-                        Style="{StaticResource ToolbarButton}"
-                        Click="OnMoveUpClick" Margin="6,0,4,0"/>
+                        Click="OnMoveUpClick" Margin="4,0,2,0" Padding="8,4"/>
                 <Button x:Name="MoveDownButton" Content="&#x25BC;"
-                        Style="{StaticResource ToolbarButton}"
-                        Click="OnMoveDownClick" Margin="0,0,6,0"/>
-                <Border Width="1" Background="#3C3C3C" Margin="6,0"/>
+                        Click="OnMoveDownClick" Margin="0,0,4,0" Padding="8,4"/>
+                <Separator Margin="4,0"/>
                 <Button x:Name="RemoveButton" Content="Remove"
-                        Background="#5A1D1D" Foreground="#E0E0E0"
-                        BorderBrush="#8B3A3A" BorderThickness="1"
-                        Padding="12,4" FontSize="12" Cursor="Hand"
-                        Click="OnRemoveClick" Margin="6,0,0,0"/>
+                        Click="OnRemoveClick" Margin="4,0,0,0"/>
             </StackPanel>
         </Border>
 
@@ -84,59 +56,28 @@
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="180"/>
-                <ColumnDefinition Width="1"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
             <!-- Left: Item list -->
             <ListBox x:Name="ItemList" Grid.Column="0"
-                     Background="#252526" BorderThickness="0"
-                     Foreground="#E0E0E0"
+                     BorderThickness="0"
                      SelectionChanged="OnItemSelectionChanged">
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="Padding" Value="8,6"/>
-                        <Setter Property="BorderBrush" Value="Transparent"/>
-                        <Setter Property="BorderThickness" Value="2,0,0,0"/>
-                        <Setter Property="Background" Value="Transparent"/>
-                        <Setter Property="Foreground" Value="#E0E0E0"/>
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="ListBoxItem">
-                                    <Border Background="{TemplateBinding Background}"
-                                            BorderBrush="{TemplateBinding BorderBrush}"
-                                            BorderThickness="{TemplateBinding BorderThickness}"
-                                            Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                        <Style.Triggers>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="#094771"/>
-                                <Setter Property="BorderBrush" Value="#0E639C"/>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#2A2D2E"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </ListBox.ItemContainerStyle>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="24" Height="24" Background="#3C3C3C"
-                                    CornerRadius="3" Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal" Margin="2,2">
+                            <Border Width="24" Height="24" CornerRadius="3"
+                                    Margin="0,0,8,0" Opacity="0.6"
+                                    Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
                                 <TextBlock Text="{Binding TypeIcon}"
-                                           FontSize="12"
+                                           FontSize="10" FontWeight="SemiBold"
                                            HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"
-                                           Foreground="#AAAAAA"/>
+                                           VerticalAlignment="Center"/>
                             </Border>
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#E0E0E0"/>
-                                <TextBlock Text="{Binding Type}" FontSize="10" Foreground="#888888"/>
+                                <TextBlock Text="{Binding Name}" FontSize="12"/>
+                                <TextBlock Text="{Binding Type}" FontSize="10" Opacity="0.5"/>
                             </StackPanel>
                         </StackPanel>
                     </DataTemplate>
@@ -144,43 +85,39 @@
             </ListBox>
 
             <!-- Separator -->
-            <Border Grid.Column="1" Background="#3C3C3C"/>
+            <GridSplitter Grid.Column="1" Width="1" HorizontalAlignment="Center"
+                          Background="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"/>
 
             <!-- Right: Edit panel -->
-            <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto"
-                          Background="#1E1E1E">
+            <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
                 <StackPanel x:Name="EditPanel" Margin="16" Visibility="Collapsed">
                     <TextBlock Text="NAME" Style="{StaticResource FieldLabel}"/>
-                    <TextBox x:Name="NameBox" Style="{StaticResource DarkTextBox}"
-                             Margin="0,0,0,14"/>
+                    <TextBox x:Name="NameBox" Margin="0,0,0,14"/>
 
                     <TextBlock Text="TYPE" Style="{StaticResource FieldLabel}"/>
-                    <TextBlock x:Name="TypeLabel" Foreground="#888888"
+                    <TextBlock x:Name="TypeLabel" Opacity="0.5"
                                FontSize="13" Margin="0,0,0,14"
-                               Padding="6,5"
-                               Background="#3C3C3C"/>
+                               Padding="6,5"/>
 
                     <TextBlock Text="PATH" Style="{StaticResource FieldLabel}"/>
                     <DockPanel Margin="0,0,0,14">
                         <Button x:Name="BrowsePathButton" Content="Browse"
-                                Style="{StaticResource ToolbarButton}"
                                 DockPanel.Dock="Right" Margin="4,0,0,0"
                                 Click="OnBrowsePathClick"/>
-                        <TextBox x:Name="PathBox" Style="{StaticResource DarkTextBox}"/>
+                        <TextBox x:Name="PathBox"/>
                     </DockPanel>
 
                     <StackPanel x:Name="ArgsPanel">
                         <TextBlock Text="ARGUMENTS" Style="{StaticResource FieldLabel}"/>
-                        <TextBox x:Name="ArgsBox" Style="{StaticResource DarkTextBox}"
-                                 Margin="0,0,0,14"/>
+                        <TextBox x:Name="ArgsBox" Margin="0,0,0,14"/>
                     </StackPanel>
 
                     <TextBlock Text="CUSTOM ICON" Style="{StaticResource FieldLabel}"/>
                     <DockPanel Margin="0,0,0,14">
-                        <Button Content="Browse" Style="{StaticResource ToolbarButton}"
+                        <Button Content="Browse"
                                 DockPanel.Dock="Right" Margin="4,0,0,0"
                                 Click="OnBrowseIconClick"/>
-                        <TextBox x:Name="IconBox" Style="{StaticResource DarkTextBox}"/>
+                        <TextBox x:Name="IconBox"/>
                     </DockPanel>
                 </StackPanel>
             </ScrollViewer>
