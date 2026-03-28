@@ -3,6 +3,8 @@ obj/
 .vs/
 *.user
 AppPackages/
+*.assets.cache
+UpgradeLog.htm
 .superpowers/
 .claude/working/
 
