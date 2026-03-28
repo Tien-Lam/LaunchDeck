@@ -48,4 +48,14 @@ public class ExePickerTests
 
         Assert.Single(config.Items);
     }
+
+    [Fact]
+    public void AppendToConfig_DuplicateIsCaseInsensitive()
+    {
+        var config = new LaunchPad.Shared.LaunchPadConfig();
+        ExePicker.AppendToConfig(config, @"C:\app.exe", "App");
+        ExePicker.AppendToConfig(config, @"C:\APP.EXE", "App");
+
+        Assert.Single(config.Items);
+    }
 }

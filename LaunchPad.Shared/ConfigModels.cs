@@ -88,16 +88,18 @@ public static class ConfigLoader
         File.WriteAllText(path, json);
     }
 
-    public static string GetDefaultConfigPath()
+    internal static string StripPackagePath(string localAppData)
     {
-        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-
-        // UWP virtualizes LocalAppData to Packages\<id>\LocalState. Strip back to real path
-        // so widget and companion both resolve to the same location.
         var packagesIdx = localAppData.IndexOf(@"\Packages\", StringComparison.OrdinalIgnoreCase);
         if (packagesIdx >= 0)
             localAppData = localAppData.Substring(0, packagesIdx);
+        return localAppData;
+    }
 
+    public static string GetDefaultConfigPath()
+    {
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        localAppData = StripPackagePath(localAppData);
         return System.IO.Path.Combine(localAppData, "LaunchPad", "config.json");
     }
 }

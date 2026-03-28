@@ -8,15 +8,30 @@ public class ConfigLoaderPathTests
     public void GetDefaultConfigPath_EndsWithExpectedPath()
     {
         var path = ConfigLoader.GetDefaultConfigPath();
-
         Assert.EndsWith(@"LaunchPad\config.json", path);
     }
 
     [Fact]
-    public void GetDefaultConfigPath_DoesNotContainPackages()
+    public void StripPackagePath_RemovesPackagesSegment()
     {
-        var path = ConfigLoader.GetDefaultConfigPath();
+        var input = @"C:\Users\lamti\AppData\Local\Packages\SomeApp_xyz\LocalState";
+        var result = ConfigLoader.StripPackagePath(input);
+        Assert.Equal(@"C:\Users\lamti\AppData\Local", result);
+    }
 
-        Assert.DoesNotContain(@"\Packages\", path);
+    [Fact]
+    public void StripPackagePath_LeavesNormalPathUnchanged()
+    {
+        var input = @"C:\Users\lamti\AppData\Local";
+        var result = ConfigLoader.StripPackagePath(input);
+        Assert.Equal(@"C:\Users\lamti\AppData\Local", result);
+    }
+
+    [Fact]
+    public void StripPackagePath_IsCaseInsensitive()
+    {
+        var input = @"C:\Users\lamti\AppData\Local\packages\SomeApp_xyz\LocalState";
+        var result = ConfigLoader.StripPackagePath(input);
+        Assert.Equal(@"C:\Users\lamti\AppData\Local", result);
     }
 }

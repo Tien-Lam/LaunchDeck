@@ -57,4 +57,24 @@ public class LaunchHandlerTests
         Assert.False(success);
         Assert.NotNull(error);
     }
+
+    [Theory]
+    [InlineData("EXE")]
+    [InlineData("Exe")]
+    [InlineData("URL")]
+    [InlineData("Store")]
+    public void BuildProcessStartInfo_IsCaseInsensitive(string type)
+    {
+        var info = LaunchHandler.BuildProcessStartInfo(type, "test", null);
+        Assert.True(info.UseShellExecute);
+    }
+
+    [Theory]
+    [InlineData("url")]
+    [InlineData("store")]
+    public void BuildProcessStartInfo_UrlAndStore_IgnoresArgs(string type)
+    {
+        var info = LaunchHandler.BuildProcessStartInfo(type, "https://example.com", "--some-args");
+        Assert.Equal("", info.Arguments);
+    }
 }
