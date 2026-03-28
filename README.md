@@ -48,9 +48,17 @@ msbuild LaunchPad.sln /p:Configuration=Debug /p:Platform=x64 /restore
 
 ## Deploy
 
-Deploy via Visual Studio (F5). Command-line `Add-AppxPackage` does not reliably register Game Bar widgets.
+Build the full solution with MSBuild, then register the package layout:
 
-After deploying, open Game Bar (Win+G) and enable the LaunchPad widget from the widget menu.
+```powershell
+# Build
+msbuild LaunchPad.sln -p:Configuration=Debug -p:Platform=x64 -restore
+
+# Register (loose-file deployment, no signing needed)
+Add-AppxPackage -Register "LaunchPad.Package\bin\x64\Debug\AppX\AppxManifest.xml" -ForceApplicationShutdown
+```
+
+Requires a **Developer Command Prompt** or MSBuild on PATH. After deploying, open Game Bar (Win+G) and enable the LaunchPad widget from the widget menu.
 
 ## Configuration
 
