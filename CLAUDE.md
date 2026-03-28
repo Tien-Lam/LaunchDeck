@@ -81,7 +81,7 @@ Always pass `model: "opus"` on every Agent tool call. Never use sonnet or haiku 
 
 ## Working Documents
 
-Superpowers specs and plans go in `.claude/docs/` (gitignored), not `docs/`. These are working files for Claude, not project documentation. Beads tracks issues, git tracks changes, `docs/` has living documentation.
+Superpowers specs and plans go in `.claude/working/` (gitignored), not `docs/`. These are working files for Claude, not project documentation. Beads tracks issues, git tracks changes, `docs/` has living documentation.
 
 ## Docs Maintenance
 
