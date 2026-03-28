@@ -1,6 +1,9 @@
 using System;
+using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Windows.Input;
 using LaunchPad.Shared;
 
 namespace LaunchPad.Companion.Editor;
@@ -11,6 +14,7 @@ public partial class EditorWindow : Window
     private readonly Action? _onSaved;
     private readonly EditorModel _model = new();
     private int _previousIndex = -1;
+    private Point _dragStartPoint;
 
     public EditorWindow(string configPath, Action? onSaved)
     {
@@ -30,8 +34,12 @@ public partial class EditorWindow : Window
     {
         ItemList.SelectionChanged -= OnItemSelectionChanged;
         ItemList.Items.Clear();
+        var cacheDir = IconExtractor.GetIconCacheDir();
         foreach (var item in _model.Items)
-            ItemList.Items.Add(new ListBoxEntry(item.Name, item.Type.ToString().ToLowerInvariant()));
+        {
+            var iconPath = ResolveIconPath(item, cacheDir);
+            ItemList.Items.Add(new ListBoxEntry(item.Name, item.Type.ToString().ToLowerInvariant(), iconPath));
+        }
 
         if (_model.Items.Count == 0)
         {
@@ -47,6 +55,20 @@ public partial class EditorWindow : Window
         }
         ItemCountLabel.Text = $"{_model.Items.Count} item{(_model.Items.Count == 1 ? "" : "s")}";
         ItemList.SelectionChanged += OnItemSelectionChanged;
+    }
+
+    private static string? ResolveIconPath(LaunchItemConfig item, string cacheDir)
+    {
+        if (!string.IsNullOrEmpty(item.Icon) && File.Exists(item.Icon))
+            return item.Icon;
+
+        if (item.Type == LaunchItemType.Exe)
+        {
+            var (success, path) = IconExtractor.ExtractFromExe(item.Path, cacheDir);
+            if (success) return path;
+        }
+
+        return null;
     }
 
     private void SyncFormToItem()
@@ -129,6 +151,76 @@ public partial class EditorWindow : Window
         RefreshList(_model.SelectedIndex);
     }
 
+    // -- Drag-and-drop reorder --
+
+    private void OnListPreviewMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        _dragStartPoint = e.GetPosition(null);
+    }
+
+    private void OnListPreviewMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed) return;
+
+        var pos = e.GetPosition(null);
+        var diff = _dragStartPoint - pos;
+
+        if (Math.Abs(diff.X) < SystemParameters.MinimumHorizontalDragDistance &&
+            Math.Abs(diff.Y) < SystemParameters.MinimumVerticalDragDistance)
+            return;
+
+        var listBox = (System.Windows.Controls.ListBox)sender;
+        var sourceIndex = listBox.SelectedIndex;
+        if (sourceIndex < 0) return;
+
+        SyncFormToItem();
+        DragDrop.DoDragDrop(listBox, sourceIndex, System.Windows.DragDropEffects.Move);
+    }
+
+    private void OnListDragOver(object sender, System.Windows.DragEventArgs e)
+    {
+        e.Effects = e.Data.GetDataPresent(typeof(int))
+            ? System.Windows.DragDropEffects.Move
+            : System.Windows.DragDropEffects.None;
+        e.Handled = true;
+    }
+
+    private void OnListDrop(object sender, System.Windows.DragEventArgs e)
+    {
+        if (!e.Data.GetDataPresent(typeof(int))) return;
+
+        var sourceIndex = (int)e.Data.GetData(typeof(int))!;
+        var listBox = (System.Windows.Controls.ListBox)sender;
+
+        // Find drop target index
+        var targetIndex = -1;
+        var point = e.GetPosition(listBox);
+        for (int i = 0; i < listBox.Items.Count; i++)
+        {
+            var container = (ListBoxItem?)listBox.ItemContainerGenerator.ContainerFromIndex(i);
+            if (container == null) continue;
+            var itemTop = container.TranslatePoint(new Point(0, 0), listBox).Y;
+            var itemMid = itemTop + container.ActualHeight / 2;
+            if (point.Y < itemMid)
+            {
+                targetIndex = i;
+                break;
+            }
+        }
+        if (targetIndex < 0) targetIndex = _model.Items.Count - 1;
+        if (targetIndex == sourceIndex) return;
+
+        // Move in model
+        var item = _model.Items[sourceIndex];
+        _model.Items.RemoveAt(sourceIndex);
+        _model.Items.Insert(targetIndex, item);
+        _model.SelectedIndex = targetIndex;
+
+        RefreshList(targetIndex);
+    }
+
+    // -- Browse dialogs --
+
     private void OnBrowsePathClick(object sender, RoutedEventArgs e)
     {
         using var dialog = new System.Windows.Forms.OpenFileDialog
@@ -160,7 +252,7 @@ public partial class EditorWindow : Window
     }
 }
 
-internal record ListBoxEntry(string Name, string Type)
+internal record ListBoxEntry(string Name, string Type, string? IconPath)
 {
     public string TypeIcon => Type switch
     {
@@ -168,5 +260,7 @@ internal record ListBoxEntry(string Name, string Type)
         "url" => "URL",
         _ => "APP"
     };
+    public Visibility FallbackVisibility =>
+        string.IsNullOrEmpty(IconPath) ? Visibility.Visible : Visibility.Collapsed;
     public override string ToString() => $"{Name}  [{Type}]";
 }

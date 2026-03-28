@@ -63,18 +63,29 @@
             <!-- Left: Item list -->
             <ListBox x:Name="ItemList" Grid.Column="0"
                      BorderThickness="0"
-                     SelectionChanged="OnItemSelectionChanged">
+                     AllowDrop="True"
+                     SelectionChanged="OnItemSelectionChanged"
+                     PreviewMouseLeftButtonDown="OnListPreviewMouseDown"
+                     PreviewMouseMove="OnListPreviewMouseMove"
+                     Drop="OnListDrop"
+                     DragOver="OnListDragOver">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal" Margin="2,2">
-                            <Border Width="24" Height="24" CornerRadius="3"
-                                    Margin="0,0,8,0" Opacity="0.6"
-                                    Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
-                                <TextBlock Text="{Binding TypeIcon}"
-                                           FontSize="10" FontWeight="SemiBold"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"/>
-                            </Border>
+                            <Grid Width="24" Height="24" Margin="0,0,8,0">
+                                <!-- Icon image (visible when loaded) -->
+                                <Image Source="{Binding IconPath}" Width="24" Height="24"
+                                       Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                <!-- Fallback text badge (visible when no icon) -->
+                                <Border CornerRadius="3" Opacity="0.6"
+                                        Visibility="{Binding FallbackVisibility}"
+                                        Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+                                    <TextBlock Text="{Binding TypeIcon}"
+                                               FontSize="10" FontWeight="SemiBold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="{Binding Name}" FontSize="12"/>
                                 <TextBlock Text="{Binding Type}" FontSize="10" Opacity="0.5"/>
