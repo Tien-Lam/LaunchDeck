@@ -219,9 +219,9 @@ The widget (UWP) cannot read arbitrary filesystem paths due to the UWP sandbox. 
 
 | Condition | Widget behavior |
 |-----------|----------------|
-| Config file not found | Shows empty state: "No config file found" with the expected path |
+| Config file not found | Shows empty state: "No apps configured — Click the gear button to add apps" |
 | JSON parse error | Shows empty state: "Invalid config file" with the parse error message |
-| Config exists but `items` is empty | Shows empty state: "No apps configured" with the config path |
+| Config exists but `items` is empty | Shows empty state: "No apps configured — Click the gear button to add apps" |
 | Companion not connected | `CompanionClient` returns `FileNotFound` status with error "Companion not connected" |
 | App Service communication failure | `CompanionClient` returns `FileNotFound` status with error "App Service error" |
 

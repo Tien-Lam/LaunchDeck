@@ -63,8 +63,8 @@ public sealed partial class LaunchPadWidget : Page
 
         if (status == ConfigLoadStatus.FileNotFound)
         {
-            ShowEmptyState("No config file found",
-                $"Create a config.json at:\n{displayPath}");
+            ShowEmptyState("No apps configured",
+                "Click the gear button to add apps");
             return;
         }
 
@@ -78,7 +78,7 @@ public sealed partial class LaunchPadWidget : Page
         if (config == null || config.Items.Count == 0)
         {
             ShowEmptyState("No apps configured",
-                $"Add items to:\n{displayPath}");
+                "Click the gear button to add apps");
             return;
         }
 

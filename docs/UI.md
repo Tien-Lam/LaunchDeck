@@ -157,9 +157,9 @@ The `ShowEmptyState(title, message)` method hides `ItemsGrid` and shows `EmptySt
 
 | Condition                     | Title                   | Message                                          |
 |-------------------------------|-------------------------|--------------------------------------------------|
-| `ConfigLoadStatus.FileNotFound` | "No config file found"  | "Create a config.json at:\n{path}"               |
+| `ConfigLoadStatus.FileNotFound` | "No apps configured"    | "Click the gear button to add apps"              |
 | `ConfigLoadStatus.ParseError`   | "Invalid config file"   | "JSON parse error:\n{error}"                     |
-| Config is null or has 0 items   | "No apps configured"    | "Add items to:\n{path}"                          |
+| Config is null or has 0 items   | "No apps configured"    | "Click the gear button to add apps"              |
 
 When items are loaded successfully, `ItemsGrid.Visibility` is set to `Visible` and `EmptyState.Visibility` to `Collapsed`.
 
