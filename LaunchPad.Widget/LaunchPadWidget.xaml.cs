@@ -172,22 +172,30 @@ public sealed partial class LaunchPadWidget : Page
         {
             var success = await CompanionClient.LaunchAsync(item.Type, item.Path, item.Args);
 
-            // Brief visual feedback: flash the clicked tile
             if (sender is GridView gridView)
             {
                 var container = gridView.ContainerFromItem(item) as GridViewItem;
                 if (container != null)
                 {
-                    var grid = FindChild<Grid>(container);
-                    if (grid != null)
+                    var overlay = FindChild<Border>(container, "FeedbackOverlay");
+                    if (overlay != null)
                     {
-                        var originalBrush = grid.Background;
-                        grid.Background = success
-                            ? new SolidColorBrush(Windows.UI.Colors.Green) { Opacity = 0.3 }
-                            : new SolidColorBrush(Windows.UI.Colors.Red) { Opacity = 0.3 };
+                        overlay.Background = success
+                            ? (SolidColorBrush)Resources["LaunchSuccessBrush"]
+                            : (SolidColorBrush)Resources["LaunchFailureBrush"];
 
-                        await Task.Delay(200);
-                        grid.Background = originalBrush;
+                        var fadeOut = new DoubleAnimation
+                        {
+                            From = 1.0,
+                            To = 0.0,
+                            Duration = new Duration(TimeSpan.FromMilliseconds(400)),
+                            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
+                        };
+                        Storyboard.SetTarget(fadeOut, overlay);
+                        Storyboard.SetTargetProperty(fadeOut, "Opacity");
+                        var sb = new Storyboard();
+                        sb.Children.Add(fadeOut);
+                        sb.Begin();
                     }
                 }
             }
@@ -197,13 +205,34 @@ public sealed partial class LaunchPadWidget : Page
     private void OnTilePointerEntered(object sender, PointerRoutedEventArgs e)
     {
         if (sender is Grid grid)
-            grid.Background = (Brush)Resources["TileBackgroundHover"];
+            AnimateTileBackground(grid, "#383838", TimeSpan.FromMilliseconds(150));
     }
 
     private void OnTilePointerExited(object sender, PointerRoutedEventArgs e)
     {
         if (sender is Grid grid)
-            grid.Background = (Brush)Resources["TileBackground"];
+        {
+            AnimateTileBackground(grid, "#2D2D2D", TimeSpan.FromMilliseconds(150));
+            AnimateTileScale(grid, 1.0, TimeSpan.FromMilliseconds(100));
+        }
+    }
+
+    private void OnTilePointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Grid grid)
+        {
+            AnimateTileBackground(grid, "#252525", TimeSpan.FromMilliseconds(100));
+            AnimateTileScale(grid, 0.95, TimeSpan.FromMilliseconds(100));
+        }
+    }
+
+    private void OnTilePointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Grid grid)
+        {
+            AnimateTileBackground(grid, "#383838", TimeSpan.FromMilliseconds(100));
+            AnimateTileScale(grid, 1.0, TimeSpan.FromMilliseconds(100));
+        }
     }
 
     private async void OnEditClick(object sender, RoutedEventArgs e)
@@ -219,14 +248,60 @@ public sealed partial class LaunchPadWidget : Page
         }
     }
 
-    private static T? FindChild<T>(DependencyObject parent) where T : DependencyObject
+    private static void AnimateTileBackground(Grid grid, string colorHex, TimeSpan duration)
+    {
+        var color = ParseHexColor(colorHex);
+        var animation = new ColorAnimation
+        {
+            To = color,
+            Duration = new Duration(duration),
+            EnableDependentAnimation = true
+        };
+        Storyboard.SetTarget(animation, grid.Background);
+        Storyboard.SetTargetProperty(animation, "Color");
+        var sb = new Storyboard();
+        sb.Children.Add(animation);
+        sb.Begin();
+    }
+
+    private static void AnimateTileScale(Grid grid, double scale, TimeSpan duration)
+    {
+        if (grid.RenderTransform is CompositeTransform transform)
+        {
+            var scaleX = new DoubleAnimation { To = scale, Duration = new Duration(duration) };
+            var scaleY = new DoubleAnimation { To = scale, Duration = new Duration(duration) };
+            Storyboard.SetTarget(scaleX, transform);
+            Storyboard.SetTargetProperty(scaleX, "ScaleX");
+            Storyboard.SetTarget(scaleY, transform);
+            Storyboard.SetTargetProperty(scaleY, "ScaleY");
+            var sb = new Storyboard();
+            sb.Children.Add(scaleX);
+            sb.Children.Add(scaleY);
+            sb.Begin();
+        }
+    }
+
+    private static Windows.UI.Color ParseHexColor(string hex)
+    {
+        hex = hex.TrimStart('#');
+        byte r = Convert.ToByte(hex.Substring(0, 2), 16);
+        byte g = Convert.ToByte(hex.Substring(2, 2), 16);
+        byte b = Convert.ToByte(hex.Substring(4, 2), 16);
+        return Windows.UI.Color.FromArgb(255, r, g, b);
+    }
+
+    private static T? FindChild<T>(DependencyObject parent, string? name = null) where T : DependencyObject
     {
         var count = VisualTreeHelper.GetChildrenCount(parent);
         for (int i = 0; i < count; i++)
         {
             var child = VisualTreeHelper.GetChild(parent, i);
-            if (child is T found) return found;
-            var result = FindChild<T>(child);
+            if (child is T found)
+            {
+                if (name == null || (found is FrameworkElement fe && fe.Name == name))
+                    return found;
+            }
+            var result = FindChild<T>(child, name);
             if (result != null) return result;
         }
         return null;
