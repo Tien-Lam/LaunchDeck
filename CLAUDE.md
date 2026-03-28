@@ -81,7 +81,7 @@ Always pass `model: "opus"` on every Agent tool call. Never use sonnet or haiku 
 
 ## Docs Maintenance
 
-When changing IPC actions, UI behavior, or config schema, update the corresponding doc in `docs/`. Grep for the old behavior across all docs to catch stale references.
+When changing IPC actions, UI behavior, or config schema, update the corresponding doc in `docs/` and `README.md`. Grep for the old behavior across all docs to catch stale references.
 
 ## Build
 
