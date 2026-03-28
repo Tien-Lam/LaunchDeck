@@ -80,14 +80,6 @@
             </StackPanel>
         </Border>
 
-        <!-- Title bar -->
-        <Border DockPanel.Dock="Top" Background="#252526"
-                BorderBrush="#3C3C3C" BorderThickness="0,0,0,1"
-                Padding="12,8">
-            <TextBlock Text="LaunchPad — Config Editor"
-                       Foreground="#CCCCCC" FontSize="13"/>
-        </Border>
-
         <!-- Main content: list + edit panel -->
         <Grid>
             <Grid.ColumnDefinitions>
@@ -100,8 +92,56 @@
             <ListBox x:Name="ItemList" Grid.Column="0"
                      Background="#252526" BorderThickness="0"
                      Foreground="#E0E0E0"
-                     SelectionChanged="OnItemSelectionChanged"
-                     DisplayMemberPath="Name"/>
+                     SelectionChanged="OnItemSelectionChanged">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="8,6"/>
+                        <Setter Property="BorderBrush" Value="Transparent"/>
+                        <Setter Property="BorderThickness" Value="2,0,0,0"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Foreground" Value="#E0E0E0"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <Border Background="{TemplateBinding Background}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#094771"/>
+                                <Setter Property="BorderBrush" Value="#0E639C"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#2A2D2E"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="24" Height="24" Background="#3C3C3C"
+                                    CornerRadius="3" Margin="0,0,8,0">
+                                <TextBlock Text="{Binding TypeIcon}"
+                                           FontSize="12"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           Foreground="#AAAAAA"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#E0E0E0"/>
+                                <TextBlock Text="{Binding Type}" FontSize="10" Foreground="#888888"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
 
             <!-- Separator -->
             <Border Grid.Column="1" Background="#3C3C3C"/>

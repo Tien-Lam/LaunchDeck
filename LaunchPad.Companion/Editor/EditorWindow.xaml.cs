@@ -182,5 +182,11 @@ public partial class EditorWindow : Window
 
 internal record ListBoxEntry(string Name, string Type)
 {
+    public string TypeIcon => Type switch
+    {
+        "exe" => "EXE",
+        "url" => "URL",
+        _ => "APP"
+    };
     public override string ToString() => $"{Name}  [{Type}]";
 }
