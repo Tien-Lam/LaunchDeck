@@ -9,9 +9,22 @@ This document describes the UI architecture, theming, layout, interactive behavi
 LaunchPad uses a hardcoded dark theme following the ToothNClaw Game Bar widget pattern:
 
 - `App.xaml` sets `RequestedTheme="Dark"` at the Application level.
-- `LaunchPadWidget.xaml` sets `Background="#25282C"` directly on the Page element and repeats `RequestedTheme="Dark"`.
-- There is **no** Game Bar opacity or theme event handling. The widget does not subscribe to `XboxGameBarWidget.ThemeChanged` or `XboxGameBarWidget.OpacityChanged`. The dark appearance is entirely self-managed.
+- `LaunchPadWidget.xaml` sets `Background="#202020"` directly on the Page element and repeats `RequestedTheme="Dark"`.
+- There is **no** Game Bar theme event handling. The widget does not subscribe to `XboxGameBarWidget.ThemeChanged`. The dark appearance is entirely self-managed.
+- The widget **does** subscribe to `XboxGameBarWidget.RequestedOpacityChanged` to honor the Game Bar's opacity slider (see Opacity Support below).
 - This avoids flickering and inconsistencies that can occur when trying to dynamically match the Game Bar overlay theme.
+
+---
+
+## Opacity Support
+
+The widget subscribes to `XboxGameBarWidget.RequestedOpacityChanged` and applies the requested opacity to the page background:
+
+1. On widget initialization, the handler is registered.
+2. When the Game Bar opacity slider changes, `RequestedOpacityChanged` fires.
+3. The handler reads `widget.RequestedOpacity` (a `double` from 0.0 to 1.0) and applies it to `Page.Background.Opacity`.
+
+This allows users to make the widget semi-transparent via the Game Bar's built-in opacity control while keeping the dark theme hardcoded.
 
 ---
 
@@ -19,22 +32,23 @@ LaunchPad uses a hardcoded dark theme following the ToothNClaw Game Bar widget p
 
 All colors are defined as `SolidColorBrush` resources in `LaunchPadWidget.xaml` `Page.Resources`, except the page background which is set inline.
 
-| Token                          | Hex       | Usage                                      |
-|--------------------------------|-----------|----------------------------------------------|
-| Page `Background`              | `#25282C` | Page/widget background                       |
-| `TileBackground`               | `#30343A` | Default tile background                      |
-| `TileBackgroundHover`          | `#3E434B` | Tile background on pointer hover              |
-| `ButtonBackground`             | `#3E434B` | Add button resting background                 |
-| `ButtonBackgroundPointerOver`  | `#484E58` | Add button hover background                   |
-| `ButtonBackgroundPressed`      | `#3A3F47` | Add button pressed background                 |
-| `ButtonBorderBrush`            | `#6B7584` | Add button border (resting and hover)         |
-| `ButtonBorderBrushPointerOver` | `#6B7584` | Add button border on hover (same as resting)  |
-| `ButtonBorderBrushPressed`     | `#555D69` | Add button border when pressed                |
-| Secondary text foreground      | `#A1A3A5` | Empty state message text (`EmptyStateMessage`) |
+| Token                          | Hex          | Usage                                      |
+|--------------------------------|--------------|--------------------------------------------|
+| Page `Background`              | `#202020`    | Page/widget background                     |
+| `TileBackground`               | `#2D2D2D`   | Default tile background                    |
+| `TileBackgroundHover`          | `#383838`   | Tile background on pointer hover           |
+| `TileBackgroundPressed`        | `#252525`   | Tile background when pressed               |
+| `LaunchSuccessBrush`           | `#4D107C10` | Launch success overlay (Xbox green at 30%) |
+| `LaunchFailureBrush`           | `#4DC42B1C` | Launch failure overlay (red at 30%)        |
+| `ButtonBackground`             | `#2D2D2D`   | Edit button resting background             |
+| `ButtonBackgroundPointerOver`  | `#383838`   | Edit button hover background               |
+| `ButtonBackgroundPressed`      | `#252525`   | Edit button pressed background             |
+| `ButtonBorderBrush`            | `#1FFFFFFF` | Edit button border (12% white)             |
+| `ButtonBorderBrushPointerOver` | `#1FFFFFFF` | Edit button border on hover (12% white)    |
+| `ButtonBorderBrushPressed`     | `#14FFFFFF` | Edit button border when pressed            |
+| Secondary text foreground      | `#C5FFFFFF` | Empty state message text (77% white)       |
 
-Click feedback colors (set in code-behind, not in XAML resources):
-- **Success flash**: `Windows.UI.Colors.Green` at `Opacity = 0.3`
-- **Failure flash**: `Windows.UI.Colors.Red` at `Opacity = 0.3`
+Click feedback uses `LaunchSuccessBrush` / `LaunchFailureBrush` overlays that fade out over 400ms.
 
 ---
 
@@ -43,16 +57,15 @@ Click feedback colors (set in code-behind, not in XAML resources):
 The page layout follows this hierarchy:
 
 ```
-Page (Background=#25282C, RequestedTheme=Dark)
+Page (Background=#202020, RequestedTheme=Dark)
   Page.Resources (brush definitions)
   Grid (Padding=8)
-    GridView "ItemsGrid"         -- main tile grid, Visibility=Visible
-      ItemsWrapGrid              -- 4-column horizontal wrap
-      DataTemplate               -- per-tile template (LaunchItem)
-    Button "EditButton"          -- circular gear button, bottom-right
-    StackPanel "EmptyState"      -- centered message, Visibility=Collapsed
-      TextBlock "EmptyStateTitle"
-      TextBlock "EmptyStateMessage"
+    ScrollViewer "ItemsScrollViewer"  -- vertical scrolling for overflow
+      GridView "ItemsGrid"           -- centered tile grid, XYFocusKeyboardNavigation
+        ItemsWrapGrid                -- 4-column horizontal wrap, centered
+        DataTemplate                 -- per-tile template (LaunchItem)
+    Button "EditButton"              -- circular gear button, bottom-right
+    StackPanel "EmptyState"          -- centered message, Visibility=Collapsed
 ```
 
 ### GridView (ItemsGrid)
@@ -74,17 +87,21 @@ Page (Background=#25282C, RequestedTheme=Dark)
 Each tile is defined inside `GridView.ItemTemplate` as a `DataTemplate` with `x:DataType="models:LaunchItem"`.
 
 ```
-Grid (80x80, CornerRadius=8, Padding=4, Background=TileBackground)
+Grid "TileRoot" (80x80, CornerRadius=8, Padding=4, Background=TileBackground)
+  RenderTransform: CompositeTransform (RenderTransformOrigin=0.5,0.5)
+  Border "FeedbackOverlay" (CornerRadius=8, Opacity=0, overlay for launch feedback)
   StackPanel (centered, Spacing=4)
     Image (36x36, Stretch=Uniform, Source bound to IconSource)
-    TextBlock (FontSize=11, centered, CharacterEllipsis, MaxLines=1)
+    TextBlock (FontSize=12, centered, CharacterEllipsis, MaxLines=1)
 ```
 
 Key properties:
 - **Tile size**: 80x80 within an 88x88 cell, giving 4px implicit margin per side.
 - **Corner radius**: 8px rounded corners.
+- **CompositeTransform**: Enables scale animations on press (RenderTransformOrigin centered at 0.5,0.5).
+- **FeedbackOverlay**: A `Border` layered behind content, used for success/failure color feedback animations.
 - **Icon**: 36x36, uniform stretch, bound to `LaunchItem.IconSource` with `Mode=OneWay` to pick up async icon loads.
-- **Label**: `FontSize="11"`, single line, `TextTrimming="CharacterEllipsis"` for overflow, `TextAlignment="Center"`.
+- **Label**: `FontSize="12"`, single line, `TextTrimming="CharacterEllipsis"` for overflow, `TextAlignment="Center"`.
 
 ---
 
@@ -92,25 +109,34 @@ Key properties:
 
 ### Hover
 
-Pointer events are handled on each tile's root `Grid`:
+Pointer events animate the tile background over 150ms (was instant swap):
 
-- `PointerEntered` handler `OnTilePointerEntered`: sets `grid.Background` to `TileBackgroundHover` (`#3E434B`).
-- `PointerExited` handler `OnTilePointerExited`: resets `grid.Background` to `TileBackground` (`#30343A`).
+- `PointerEntered` handler: animates `TileRoot.Background` to `TileBackgroundHover` (`#383838`) over 150ms using a `ColorAnimation` storyboard.
+- `PointerExited` handler: animates back to `TileBackground` (`#2D2D2D`) over 150ms.
 
-These are defined in the code-behind (`LaunchPadWidget.xaml.cs`, lines 171-181) by casting the `sender` to `Grid` and swapping the brush from page resources.
+### Pressed
+
+Pointer press adds a scale-down effect:
+
+- `PointerPressed` handler: animates background to `TileBackgroundPressed` (`#252525`) and scales the tile to 0.95 via `CompositeTransform.ScaleX`/`ScaleY` over 100ms.
+- `PointerReleased` / `PointerExited`: restores scale to 1.0 and returns to the appropriate background state.
 
 ### Click Feedback
 
-On `ItemClick`, after the companion process reports launch success or failure, the clicked tile flashes briefly:
+On `ItemClick`, after the companion process reports launch success or failure, the `FeedbackOverlay` border flashes:
 
 1. The handler locates the `GridViewItem` container via `gridView.ContainerFromItem(item)`.
-2. It finds the inner `Grid` using a recursive `FindChild<Grid>()` helper that walks the visual tree.
-3. The grid's `Background` is temporarily replaced:
-   - **Success**: `SolidColorBrush(Colors.Green)` at `Opacity = 0.3`
-   - **Failure**: `SolidColorBrush(Colors.Red)` at `Opacity = 0.3`
-4. After a 200ms `Task.Delay`, the original brush is restored.
+2. It finds the `FeedbackOverlay` border inside the tile template.
+3. The overlay's `Background` is set to `LaunchSuccessBrush` or `LaunchFailureBrush`.
+4. The overlay's `Opacity` is animated from 1 to 0 over 400ms using a `DoubleAnimation` storyboard, providing a smooth fade-out.
 
-This provides non-intrusive confirmation without animation storyboards.
+### Controller Focus
+
+Tiles are focusable for gamepad/keyboard navigation:
+
+- `GridView` has `XYFocusKeyboardNavigation="Enabled"` for D-pad navigation.
+- System focus visuals are used (no custom focus styling).
+- On first load, focus is set to the first tile so controller users have an immediate starting point.
 
 ---
 
@@ -149,7 +175,7 @@ The `EmptyState` StackPanel is shown when the grid cannot display tiles. It is c
 ### EmptyStateMessage
 
 - `FontSize="11"`, centered, `TextWrapping="Wrap"`.
-- `Foreground="#A1A3A5"` (secondary/muted text).
+- `Foreground="#C5FFFFFF"` (secondary/muted text, 77% white).
 
 ### Trigger Conditions
 
@@ -246,13 +272,13 @@ The `IconSource` property is the only one with change notification, since icons 
 
 ### Icon Resolution Order
 
-In `LoadIconsAsync()`, icons are resolved per item:
+In `LoadIconsAsync()`, icons are resolved per item in priority order:
 
-1. If `CustomIconPath` is set, use it directly.
-2. If `Type == "exe"`, call `CompanionClient.ExtractIconAsync(path)` to extract the EXE's embedded icon via the companion process.
-3. If `Type == "url"`, call `CompanionClient.FetchFaviconAsync(path)` to download the site's favicon.
-4. If the resolved path is valid, create a `BitmapImage` from the URI.
-5. On failure or null, fall back to a default asset:
+1. **Custom icon** -- If `CustomIconPath` is set, call `CompanionClient.LoadCustomIconAsync(iconPath)` to load the image file as base64 PNG data via the companion process.
+2. **Type-based** -- If no custom icon:
+   - `Type == "exe"`: call `CompanionClient.ExtractIconAsync(path)` to extract the EXE's embedded icon.
+   - `Type == "url"`: call `CompanionClient.FetchFaviconAsync(path)` to download the site's favicon.
+3. **Default fallback** -- On failure or null, fall back to a default asset:
    - `"url"` type: `ms-appx:///Assets/DefaultGlobe.png`
    - All others: `ms-appx:///Assets/DefaultApp.png`
 

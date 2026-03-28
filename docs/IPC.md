@@ -215,6 +215,30 @@ ValueSet {
 
 ---
 
+### `load-custom-icon`
+
+Loads a custom icon image file from disk and returns it as base64-encoded PNG data. Supports PNG, JPG, BMP, and ICO formats. ICO files are converted to PNG. JPG and BMP are converted to PNG.
+
+**Request:**
+
+| Key      | Type   | Required | Description                              |
+|----------|--------|----------|------------------------------------------|
+| `action` | string | yes      | `"load-custom-icon"`                     |
+| `path`   | string | yes      | Full path to the image file              |
+
+**Response:**
+
+| Key        | Type   | Condition  | Description                              |
+|------------|--------|------------|------------------------------------------|
+| `status`   | string | always     | `"ok"` or `"error"`                      |
+| `iconData` | string | on success | Base64-encoded PNG image data            |
+
+**Supported formats:** `.png`, `.jpg`, `.jpeg`, `.bmp`, `.ico`
+
+**Widget client:** `CompanionClient.LoadCustomIconAsync(string iconPath)` returns `byte[]?` (PNG data on success, `null` on failure).
+
+---
+
 ### `load-config`
 
 Loads the LaunchPad configuration from a JSON file on disk. The default path is `%LOCALAPPDATA%\LaunchPad\config.json` (with UWP virtualization stripped).
