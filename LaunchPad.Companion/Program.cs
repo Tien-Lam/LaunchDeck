@@ -75,6 +75,9 @@ class Program
                 case "load-custom-icon":
                     response = HandleLoadCustomIcon(message);
                     break;
+                case "extract-store-icon":
+                    response = HandleExtractStoreIcon(message);
+                    break;
                 default:
                     response = new ValueSet { ["status"] = "error", ["error"] = $"Unknown action: {action}" };
                     break;
@@ -160,6 +163,17 @@ class Program
     {
         var path = message["path"] as string ?? "";
         var (success, data) = IconExtractor.LoadCustomIcon(path);
+
+        var response = new ValueSet { ["status"] = success ? "ok" : "error" };
+        if (success && data != null)
+            response["iconData"] = Convert.ToBase64String(data);
+        return response;
+    }
+
+    private static ValueSet HandleExtractStoreIcon(ValueSet message)
+    {
+        var aumid = message["aumid"] as string ?? "";
+        var (success, data) = IconExtractor.ExtractStoreAppIcon(aumid);
 
         var response = new ValueSet { ["status"] = success ? "ok" : "error" };
         if (success && data != null)
