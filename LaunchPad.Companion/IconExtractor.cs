@@ -12,6 +12,7 @@ namespace LaunchPad.Companion;
 public static class IconExtractor
 {
     private static readonly HttpClient HttpClient = new();
+    private static readonly string[] SupportedImageExtensions = { ".png", ".jpg", ".jpeg", ".bmp", ".ico" };
 
     public static string GetCacheFileName(string inputPath)
     {
@@ -78,6 +79,45 @@ public static class IconExtractor
             return (true, cacheFile);
         }
         catch (Exception)
+        {
+            return (false, null);
+        }
+    }
+
+    public static (bool Success, byte[]? Data) LoadCustomIcon(string path)
+    {
+        try
+        {
+            if (!File.Exists(path))
+                return (false, null);
+
+            var ext = Path.GetExtension(path).ToLowerInvariant();
+            if (Array.IndexOf(SupportedImageExtensions, ext) < 0)
+                return (false, null);
+
+            if (ext == ".ico")
+            {
+                using var icon = new Icon(path);
+                using var bitmap = icon.ToBitmap();
+                using var ms = new MemoryStream();
+                bitmap.Save(ms, ImageFormat.Png);
+                return (true, ms.ToArray());
+            }
+
+            if (ext == ".png")
+            {
+                return (true, File.ReadAllBytes(path));
+            }
+
+            // jpg, jpeg, bmp -- convert to PNG
+            using (var bitmap = new Bitmap(path))
+            using (var ms = new MemoryStream())
+            {
+                bitmap.Save(ms, ImageFormat.Png);
+                return (true, ms.ToArray());
+            }
+        }
+        catch
         {
             return (false, null);
         }

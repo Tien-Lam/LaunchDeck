@@ -72,6 +72,9 @@ class Program
                 case "open-editor":
                     response = HandleOpenEditor(message);
                     break;
+                case "load-custom-icon":
+                    response = HandleLoadCustomIcon(message);
+                    break;
                 default:
                     response = new ValueSet { ["status"] = "error", ["error"] = $"Unknown action: {action}" };
                     break;
@@ -150,6 +153,17 @@ class Program
         if (result.ErrorMessage != null)
             response["error"] = result.ErrorMessage;
 
+        return response;
+    }
+
+    private static ValueSet HandleLoadCustomIcon(ValueSet message)
+    {
+        var path = message["path"] as string ?? "";
+        var (success, data) = IconExtractor.LoadCustomIcon(path);
+
+        var response = new ValueSet { ["status"] = success ? "ok" : "error" };
+        if (success && data != null)
+            response["iconData"] = Convert.ToBase64String(data);
         return response;
     }
 
