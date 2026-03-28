@@ -18,13 +18,13 @@ LaunchPad uses a hardcoded dark theme following the ToothNClaw Game Bar widget p
 
 ## Opacity Support
 
-The widget subscribes to `XboxGameBarWidget.RequestedOpacityChanged` and applies the requested opacity to the page background:
+The widget subscribes to `XboxGameBarWidget.RequestedOpacityChanged` and applies the requested opacity to the page background's alpha channel:
 
-1. On widget initialization, the handler is registered.
+1. On widget initialization, the handler is registered and the current opacity is applied.
 2. When the Game Bar opacity slider changes, `RequestedOpacityChanged` fires.
-3. The handler reads `widget.RequestedOpacity` (a `double` from 0.0 to 1.0) and applies it to `Page.Background.Opacity`.
+3. The handler converts `widget.RequestedOpacity` (0–100 scale) to an alpha byte and rebuilds the page `Background` brush with `Color.FromArgb(alpha, 0x20, 0x20, 0x20)`.
 
-This allows users to make the widget semi-transparent via the Game Bar's built-in opacity control while keeping the dark theme hardcoded.
+Only the background becomes transparent — text, icons, and tile content stay fully opaque. Setting `Page.Opacity` directly would wash out all content, so the alpha channel approach is used instead.
 
 ---
 
