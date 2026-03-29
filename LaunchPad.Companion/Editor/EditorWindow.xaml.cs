@@ -293,12 +293,13 @@ public partial class EditorWindow : Window
         var errors = _model.Validate();
         if (errors.Count > 0)
         {
-            System.Windows.MessageBox.Show(
-                string.Join("\n", errors),
-                "Validation errors",
-                MessageBoxButton.OK,
+            var result = System.Windows.MessageBox.Show(
+                string.Join("\n", errors) + "\n\nSave anyway?",
+                "Validation warnings",
+                MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
-            return;
+            if (result != MessageBoxResult.Yes)
+                return;
         }
 
         _model.Save(_configPath, _onSaved);
