@@ -31,14 +31,14 @@
     {
       "name": "Spotify",
       "type": "store",
-      "path": "spotify:",
+      "path": "shell:AppsFolder\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify",
       "args": null,
       "icon": null
     },
     {
       "name": "Xbox",
       "type": "store",
-      "path": "xbox:",
+      "path": "shell:AppsFolder\\Microsoft.GamingApp_8wekyb3d8bbwe!Microsoft.Xbox.App",
       "args": null,
       "icon": null
     }
