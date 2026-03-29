@@ -92,7 +92,7 @@ No exceptions are thrown to callers. All methods return result tuples or nullabl
 
 Launches an application via `Process.Start` with `UseShellExecute = true`. For EXE launches, the companion also calls `SetForegroundWindow` on the launched process to bring it to the foreground.
 
-**Note:** URL and Store items are now launched directly from the widget via `XboxGameBarWidget.LaunchUriAsync`, which handles overlay dismissal and focus automatically. The `launch` IPC action is only used for EXE items or as a fallback when `LaunchUriAsync` is unavailable.
+**Note:** The widget prefers `XboxGameBarWidget.LaunchUriAsync` for all item types — it handles overlay dismissal and app focus automatically. URL and Store items always use it. EXE items without arguments use it with a `file:` URI. The `launch` IPC action is the fallback for EXE items with arguments or when `LaunchUriAsync` is unavailable. When the companion handles the launch, it also calls `SetForegroundWindow` on the launched process.
 
 **Request:**
 

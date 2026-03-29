@@ -121,14 +121,25 @@ Pointer press adds a scale-down effect:
 - `PointerPressed` handler: animates background to `TileBackgroundPressed` (`#252525`) and scales the tile to 0.95 via `CompositeTransform.ScaleX`/`ScaleY` over 100ms.
 - `PointerReleased` / `PointerExited`: restores scale to 1.0 and returns to the appropriate background state.
 
+### Launch and Dismiss
+
+On `ItemClick`, the widget launches the target app and dismisses the Game Bar overlay:
+
+1. **URL and Store items** use `XboxGameBarWidget.LaunchUriAsync(uri)` — Game Bar's built-in launcher that handles overlay dismissal and app focus automatically.
+2. **EXE items without arguments** also use `LaunchUriAsync` with the file path as a URI.
+3. **EXE items with arguments** (or if `LaunchUriAsync` fails) fall back to the companion process via the `launch` IPC action. The companion calls `SetForegroundWindow` on the launched process to bring it to the foreground.
+4. When the widget is pinned, no overlay dismissal occurs — the widget stays visible.
+
 ### Click Feedback
 
-On `ItemClick`, after the companion process reports launch success or failure, the `FeedbackOverlay` border flashes:
+After the launch completes, the `FeedbackOverlay` border flashes:
 
 1. The handler locates the `GridViewItem` container via `gridView.ContainerFromItem(item)`.
 2. It finds the `FeedbackOverlay` border inside the tile template.
 3. The overlay's `Background` is set to `LaunchSuccessBrush` or `LaunchFailureBrush`.
-4. The overlay's `Opacity` is animated from 1 to 0 over 400ms using a `DoubleAnimation` storyboard, providing a smooth fade-out.
+4. The overlay's `Opacity` is animated from 1 to 0 over 400ms using a `DoubleAnimation` storyboard.
+
+Note: In overlay mode, the feedback animation may not be visible since `LaunchUriAsync` dismisses Game Bar immediately.
 
 ### Controller Focus
 
