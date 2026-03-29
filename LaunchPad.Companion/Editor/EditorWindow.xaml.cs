@@ -140,15 +140,12 @@ public partial class EditorWindow : Window
 
     private void OnAddButtonClick(object sender, RoutedEventArgs e)
     {
-        if (sender is System.Windows.Controls.Button button && button.ContextMenu != null)
-        {
-            button.ContextMenu.PlacementTarget = button;
-            button.ContextMenu.IsOpen = true;
-        }
+        AddPopup.IsOpen = !AddPopup.IsOpen;
     }
 
     private void OnAddExeClick(object sender, RoutedEventArgs e)
     {
+        AddPopup.IsOpen = false;
         var exePath = ExePicker.ShowPickerDialog();
         if (exePath == null) return;
 
@@ -160,6 +157,7 @@ public partial class EditorWindow : Window
 
     private void OnAddUrlClick(object sender, RoutedEventArgs e)
     {
+        AddPopup.IsOpen = false;
         SyncFormToItem();
         _model.AddUrl();
         RefreshList(_model.SelectedIndex);
@@ -167,6 +165,7 @@ public partial class EditorWindow : Window
 
     private void OnAddStoreClick(object sender, RoutedEventArgs e)
     {
+        AddPopup.IsOpen = false;
         var picker = new StoreAppPickerWindow { Owner = this };
         if (picker.ShowDialog() == true && picker.SelectedApp != null)
         {
