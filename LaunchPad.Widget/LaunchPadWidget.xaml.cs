@@ -30,19 +30,28 @@ public sealed partial class LaunchPadWidget : Page
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        // Start companion process
-        try
+        // Launch companion — retry if first attempt fails (e.g. after widget close/re-add
+        // the old companion may still be exiting and holding the mutex briefly)
+        for (int attempt = 0; attempt < 3; attempt++)
         {
-            await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync();
-        }
-        catch (Exception)
-        {
-            // Companion may already be running
-        }
+            try
+            {
+                await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync();
+            }
+            catch (Exception)
+            {
+                // Companion may already be running
+            }
 
-        // Wait for companion to connect (up to 5 seconds)
-        for (int i = 0; i < 50 && App.CompanionConnection == null; i++)
-            await Task.Delay(100);
+            // Wait for companion to connect (up to 5 seconds)
+            for (int i = 0; i < 50 && App.CompanionConnection == null; i++)
+                await Task.Delay(100);
+
+            if (App.CompanionConnection != null) break;
+
+            // Connection didn't come up — wait a bit for old process to release mutex
+            await Task.Delay(1000);
+        }
 
         await LoadConfigAsync();
 
