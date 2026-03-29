@@ -74,7 +74,11 @@ public static class IconExtractor
         {
             var cacheFile = Path.Combine(cacheDir, GetCacheFileName(url));
             if (File.Exists(cacheFile))
-                return (true, cacheFile);
+            {
+                var age = DateTime.UtcNow - File.GetLastWriteTimeUtc(cacheFile);
+                if (age.TotalDays < 7)
+                    return (true, cacheFile);
+            }
 
             var faviconUrl = GetFaviconUrl(url);
             var bytes = await HttpClient.GetByteArrayAsync(faviconUrl);
