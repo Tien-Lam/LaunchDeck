@@ -78,6 +78,9 @@ class Program
                 case "extract-store-icon":
                     response = HandleExtractStoreIcon(message);
                     break;
+                case "dismiss-overlay":
+                    response = HandleDismissOverlay();
+                    break;
                 default:
                     response = new ValueSet { ["status"] = "error", ["error"] = $"Unknown action: {action}" };
                     break;
@@ -179,6 +182,12 @@ class Program
         if (success && data != null)
             response["iconData"] = Convert.ToBase64String(data);
         return response;
+    }
+
+    private static ValueSet HandleDismissOverlay()
+    {
+        Task.Delay(200).ContinueWith(_ => NativeMethods.SendWinG());
+        return new ValueSet { ["status"] = "ok" };
     }
 
     private static ValueSet HandleOpenEditor(ValueSet message)
