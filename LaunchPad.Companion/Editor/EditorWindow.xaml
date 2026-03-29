@@ -43,9 +43,13 @@
                 BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
                 BorderThickness="0,0,0,1">
             <StackPanel Orientation="Horizontal">
-                <Button x:Name="AddButton" Content="+ Add ▾"
-                        Style="{DynamicResource AccentButtonStyle}"
-                        Click="OnAddButtonClick" Margin="0,0,4,0"/>
+                <Menu VerticalAlignment="Center" Margin="0,0,4,0">
+                    <MenuItem Header="+ Add">
+                        <MenuItem Header="EXE Application" Click="OnAddExeClick"/>
+                        <MenuItem Header="URL" Click="OnAddUrlClick"/>
+                        <MenuItem Header="Store App" Click="OnAddStoreClick"/>
+                    </MenuItem>
+                </Menu>
                 <Separator Margin="4,0"/>
                 <Button x:Name="MoveUpButton" Content="&#x25B2;"
                         Click="OnMoveUpClick" Margin="4,0,2,0" Padding="8,4"/>
@@ -64,28 +68,6 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-
-            <!-- Add menu dropdown (overlays content when visible) -->
-            <Border x:Name="AddMenu" Visibility="Collapsed"
-                    Grid.ColumnSpan="3"
-                    VerticalAlignment="Top" HorizontalAlignment="Left"
-                    Margin="8,0,0,0" Panel.ZIndex="10"
-                    CornerRadius="4" Padding="2"
-                    Background="{DynamicResource SystemFillColorSolidNeutralBackgroundBrush}"
-                    BorderBrush="{DynamicResource ControlElevationBorderBrush}"
-                    BorderThickness="1">
-                <StackPanel>
-                    <Button Content="EXE Application" Click="OnAddExeClick"
-                            HorizontalContentAlignment="Left" Padding="12,6"
-                            BorderThickness="0" Background="Transparent"/>
-                    <Button Content="URL" Click="OnAddUrlClick"
-                            HorizontalContentAlignment="Left" Padding="12,6"
-                            BorderThickness="0" Background="Transparent"/>
-                    <Button Content="Store App" Click="OnAddStoreClick"
-                            HorizontalContentAlignment="Left" Padding="12,6"
-                            BorderThickness="0" Background="Transparent"/>
-                </StackPanel>
-            </Border>
 
             <!-- Left: Item list -->
             <ListBox x:Name="ItemList" Grid.Column="0"
