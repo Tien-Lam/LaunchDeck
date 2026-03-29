@@ -71,8 +71,8 @@
                     VerticalAlignment="Top" HorizontalAlignment="Left"
                     Margin="8,0,0,0" Panel.ZIndex="10"
                     CornerRadius="4" Padding="2"
-                    Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
-                    BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
+                    Background="#2B2B2B"
+                    BorderBrush="#444444"
                     BorderThickness="1">
                 <StackPanel>
                     <Button Content="EXE Application" Click="OnAddExeClick"
