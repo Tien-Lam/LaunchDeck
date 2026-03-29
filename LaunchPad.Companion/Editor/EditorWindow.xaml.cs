@@ -67,7 +67,29 @@ public partial class EditorWindow : Window
             var (success, path) = IconExtractor.ExtractFromExe(item.Path, cacheDir);
             if (success) return path;
         }
+        else if (item.Type == LaunchItemType.Store)
+        {
+            var aumid = ExtractAumidFromPath(item.Path);
+            if (aumid != null)
+            {
+                var (success, data) = IconExtractor.ExtractStoreAppIcon(aumid);
+                if (success && data != null)
+                {
+                    var cachePath = Path.Combine(cacheDir, IconExtractor.GetCacheFileName(aumid));
+                    File.WriteAllBytes(cachePath, data);
+                    return cachePath;
+                }
+            }
+        }
 
+        return null;
+    }
+
+    private static string? ExtractAumidFromPath(string path)
+    {
+        const string prefix = @"shell:AppsFolder\";
+        if (path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            return path[prefix.Length..];
         return null;
     }
 
@@ -126,6 +148,19 @@ public partial class EditorWindow : Window
         SyncFormToItem();
         _model.AddUrl();
         RefreshList(_model.SelectedIndex);
+    }
+
+    private void OnAddStoreClick(object sender, RoutedEventArgs e)
+    {
+        var picker = new StoreAppPickerWindow { Owner = this };
+        if (picker.ShowDialog() == true && picker.SelectedApp != null)
+        {
+            var app = picker.SelectedApp;
+            var path = $@"shell:AppsFolder\{app.Aumid}";
+            SyncFormToItem();
+            _model.AddStore(app.Name, path);
+            RefreshList(_model.SelectedIndex);
+        }
     }
 
     private void OnRemoveClick(object sender, RoutedEventArgs e)
