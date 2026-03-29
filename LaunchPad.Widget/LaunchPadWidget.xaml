@@ -16,6 +16,7 @@
         <SolidColorBrush x:Key="ButtonBorderBrush" Color="#1FFFFFFF"/>
         <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#1FFFFFFF"/>
         <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#14FFFFFF"/>
+        <SolidColorBrush x:Key="TileFocusBorder" Color="#60FFFFFF"/>
         <SolidColorBrush x:Key="LaunchSuccessBrush" Color="#4D107C10"/>
         <SolidColorBrush x:Key="LaunchFailureBrush" Color="#4DC42B1C"/>
     </Page.Resources>
@@ -28,19 +29,19 @@
                       Visibility="Visible">
             <GridView x:Name="ItemsGrid"
                       ItemsSource="{x:Bind Items}"
-                      SelectionMode="None"
+                      SelectionMode="Single"
                       IsItemClickEnabled="True"
                       ItemClick="OnItemClick"
                       HorizontalAlignment="Center"
                       XYFocusKeyboardNavigation="Enabled"
-                      SingleSelectionFollowsFocus="True">
+                      SingleSelectionFollowsFocus="True"
+                      IsTabStop="True"
+                      TabNavigation="Once">
                 <GridView.ItemContainerStyle>
                     <Style TargetType="GridViewItem">
                         <Setter Property="IsTabStop" Value="True"/>
-                        <Setter Property="UseSystemFocusVisuals" Value="True"/>
-                        <Setter Property="FocusVisualPrimaryBrush" Value="White"/>
-                        <Setter Property="FocusVisualPrimaryThickness" Value="2"/>
-                        <Setter Property="FocusVisualMargin" Value="0"/>
+                        <Setter Property="UseSystemFocusVisuals" Value="False"/>
+                        <Setter Property="FocusVisualPrimaryBrush" Value="Transparent"/>
                         <Setter Property="Margin" Value="0"/>
                         <Setter Property="Padding" Value="0"/>
                         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -63,10 +64,21 @@
                               PointerExited="OnTilePointerExited"
                               PointerPressed="OnTilePointerPressed"
                               PointerReleased="OnTilePointerReleased"
+                              GotFocus="OnTileGotFocus"
+                              LostFocus="OnTileLostFocus"
                               RenderTransformOrigin="0.5,0.5">
                             <Grid.RenderTransform>
                                 <CompositeTransform/>
                             </Grid.RenderTransform>
+
+                            <!-- Focus/selection indicator -->
+                            <Border x:Name="FocusBorder"
+                                    CornerRadius="8"
+                                    BorderBrush="{StaticResource TileFocusBorder}"
+                                    BorderThickness="2"
+                                    Opacity="0"
+                                    IsHitTestVisible="False"
+                                    Margin="-2"/>
 
                             <Border x:Name="FeedbackOverlay"
                                     CornerRadius="8"

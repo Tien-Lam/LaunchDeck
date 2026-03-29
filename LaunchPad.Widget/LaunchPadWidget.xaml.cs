@@ -146,13 +146,14 @@ public sealed partial class LaunchPadWidget : Page
 
         LoadingState.Visibility = Visibility.Collapsed;
 
-        // Set initial focus to first tile for controller navigation
+        // Select and focus first tile for controller/keyboard navigation
         if (Items.Count > 0)
         {
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Low, () =>
             {
+                ItemsGrid.SelectedIndex = 0;
                 var firstContainer = ItemsGrid.ContainerFromIndex(0) as GridViewItem;
-                firstContainer?.Focus(FocusState.Programmatic);
+                firstContainer?.Focus(FocusState.Keyboard);
             });
         }
     }
@@ -349,6 +350,26 @@ public sealed partial class LaunchPadWidget : Page
         {
             AnimateTileBackground(grid, "#383838", TimeSpan.FromMilliseconds(100));
             AnimateTileScale(grid, 1.0, TimeSpan.FromMilliseconds(100));
+        }
+    }
+
+    private void OnTileGotFocus(object sender, RoutedEventArgs e)
+    {
+        if (sender is Grid grid)
+        {
+            var border = FindChild<Border>(grid, "FocusBorder");
+            if (border != null) border.Opacity = 1;
+            AnimateTileBackground(grid, "#383838", TimeSpan.FromMilliseconds(100));
+        }
+    }
+
+    private void OnTileLostFocus(object sender, RoutedEventArgs e)
+    {
+        if (sender is Grid grid)
+        {
+            var border = FindChild<Border>(grid, "FocusBorder");
+            if (border != null) border.Opacity = 0;
+            AnimateTileBackground(grid, "#2D2D2D", TimeSpan.FromMilliseconds(100));
         }
     }
 
