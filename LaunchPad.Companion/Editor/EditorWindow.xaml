@@ -43,12 +43,17 @@
                 BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
                 BorderThickness="0,0,0,1">
             <StackPanel Orientation="Horizontal">
-                <Button Content="+ Add EXE" Style="{DynamicResource AccentButtonStyle}"
-                        Click="OnAddExeClick" Margin="0,0,4,0"/>
-                <Button Content="+ Add URL" Style="{DynamicResource AccentButtonStyle}"
-                        Click="OnAddUrlClick" Margin="0,0,4,0"/>
-                <Button Content="+ Add Store" Style="{DynamicResource AccentButtonStyle}"
-                        Click="OnAddStoreClick" Margin="0,0,4,0"/>
+                <Button x:Name="AddButton" Content="+ Add ▾"
+                        Style="{DynamicResource AccentButtonStyle}"
+                        Click="OnAddButtonClick" Margin="0,0,4,0">
+                    <Button.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="EXE Application" Click="OnAddExeClick"/>
+                            <MenuItem Header="URL" Click="OnAddUrlClick"/>
+                            <MenuItem Header="Store App" Click="OnAddStoreClick"/>
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                </Button>
                 <Separator Margin="4,0"/>
                 <Button x:Name="MoveUpButton" Content="&#x25B2;"
                         Click="OnMoveUpClick" Margin="4,0,2,0" Padding="8,4"/>

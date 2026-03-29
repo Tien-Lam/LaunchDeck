@@ -138,6 +138,15 @@ public partial class EditorWindow : Window
         ShowItemInForm(ItemList.SelectedIndex);
     }
 
+    private void OnAddButtonClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.Button button && button.ContextMenu != null)
+        {
+            button.ContextMenu.PlacementTarget = button;
+            button.ContextMenu.IsOpen = true;
+        }
+    }
+
     private void OnAddExeClick(object sender, RoutedEventArgs e)
     {
         var exePath = ExePicker.ShowPickerDialog();
