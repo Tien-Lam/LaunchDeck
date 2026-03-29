@@ -246,17 +246,30 @@ public sealed partial class LaunchPadWidget : Page
                     success = await CompanionClient.LaunchAsync(item.Type, item.Path, item.Args);
                 }
             }
+            else if (item.Type == "exe")
+            {
+                // Try LaunchUriAsync with file: URI — handles Game Bar dismiss
+                // Falls back to companion Process.Start if it fails (e.g. exe with args)
+                if (widget != null && string.IsNullOrEmpty(item.Args))
+                {
+                    try
+                    {
+                        var fileUri = new Uri(item.Path);
+                        success = await widget.LaunchUriAsync(fileUri);
+                    }
+                    catch
+                    {
+                        success = await CompanionClient.LaunchAsync(item.Type, item.Path, item.Args);
+                    }
+                }
+                else
+                {
+                    success = await CompanionClient.LaunchAsync(item.Type, item.Path, item.Args);
+                }
+            }
             else
             {
-                // EXE needs companion for Process.Start (UWP sandbox)
                 success = await CompanionClient.LaunchAsync(item.Type, item.Path, item.Args);
-
-                // Close widget to dismiss Game Bar overlay (LaunchUriAsync does this
-                // automatically for URL/Store, but EXE goes through companion)
-                if (success && widget != null && !widget.Pinned)
-                {
-                    try { widget.Close(); } catch { }
-                }
             }
 
             if (sender is GridView gridView)
