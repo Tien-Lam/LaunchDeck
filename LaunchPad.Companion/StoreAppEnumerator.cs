@@ -70,6 +70,8 @@ public static class StoreAppEnumerator
         }
 
         return apps
+            .GroupBy(a => GetPackageFamilyName(a.Aumid))
+            .Select(g => g.First())
             .OrderBy(a => a.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
     }
