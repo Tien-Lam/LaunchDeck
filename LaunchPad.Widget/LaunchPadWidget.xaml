@@ -105,6 +105,15 @@
                 Click="OnEditClick"
                 ToolTipService.ToolTip="Edit configuration" />
 
+        <!-- Loading state -->
+        <TextBlock x:Name="LoadingState"
+                   Text="Loading..."
+                   Visibility="Collapsed"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   FontSize="14"
+                   Foreground="#C5FFFFFF" />
+
         <!-- Empty/error state -->
         <StackPanel x:Name="EmptyState"
                     Visibility="Collapsed"

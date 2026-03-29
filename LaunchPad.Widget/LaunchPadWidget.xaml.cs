@@ -123,8 +123,11 @@ public sealed partial class LaunchPadWidget : Page
 
         ItemsScrollViewer.Visibility = Visibility.Visible;
         EmptyState.Visibility = Visibility.Collapsed;
+        LoadingState.Visibility = Visibility.Visible;
 
         await LoadIconsAsync();
+
+        LoadingState.Visibility = Visibility.Collapsed;
 
         // Set initial focus to first tile for controller navigation
         if (Items.Count > 0)
@@ -216,6 +219,7 @@ public sealed partial class LaunchPadWidget : Page
     private void ShowEmptyState(string title, string message)
     {
         ItemsScrollViewer.Visibility = Visibility.Collapsed;
+        LoadingState.Visibility = Visibility.Collapsed;
         EmptyState.Visibility = Visibility.Visible;
         EmptyStateTitle.Text = title;
         EmptyStateMessage.Text = message;
