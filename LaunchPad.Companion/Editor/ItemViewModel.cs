@@ -43,7 +43,7 @@ public class ItemViewModel : INotifyPropertyChanged
     public string Icon
     {
         get => _config.Icon ?? "";
-        set { _config.Icon = string.IsNullOrWhiteSpace(value) ? null : value; OnPropertyChanged(); }
+        set { _config.Icon = string.IsNullOrWhiteSpace(value) ? null : value; OnPropertyChanged(); LoadIconAsync(); }
     }
 
     public bool IsExe => _config.Type == LaunchItemType.Exe;

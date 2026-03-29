@@ -163,16 +163,57 @@ A circular floating action button for opening the config editor:
 
 ---
 
+## Config Editor
+
+The config editor (`EditorWindow`) is a WPF window using MVVM architecture with a WinUI 3 card-based design.
+
+### Architecture
+
+- **EditorViewModel** — main view model with `ObservableCollection<ItemViewModel>`, commands for add/edit/delete/move/save, and overlay dialog state
+- **ItemViewModel** — wraps `LaunchItemConfig` with `INotifyPropertyChanged` and async icon loading
+- **EditorModel** — data layer (load, save, add, remove, move, validate) — unchanged from pre-redesign, fully tested
+- **EditorTheme.xaml** — shared resource dictionary with all colors, brushes, and styles (merged by both editor and picker windows)
+
+### Layout
+
+Single scrollable page with:
+- Page title and subtitle
+- Section header "Items"
+- Vertical stack of card-style item rows (`ItemsControl` bound to `ObservableCollection`)
+- Each card shows: 32x32 icon, name, path, and icon buttons (move up/down, edit, delete)
+- "+ Add item" menu (EXE Application / URL / Store App)
+- Item count and "Save and Refresh" button at the bottom
+
+### Edit Dialog
+
+Clicking edit on a card opens an overlay dialog within the same window:
+- Semi-transparent backdrop dims the item list
+- Centered card with form fields: Name, Type (read-only), Path (with Browse for EXE), Arguments (EXE only), Custom Icon (with Browse)
+- Save commits changes to the item; Cancel or backdrop click discards
+- Editing the custom icon path triggers an async icon reload on the card
+
+### Validation
+
+On save, `EditorModel.Validate()` checks for empty names, empty paths, URLs without `http://`/`https://` scheme, and Store paths without `shell:AppsFolder\` prefix. If issues are found, a warning dialog shows them with a "Save anyway?" option.
+
+### Theme
+
+All colors and styles are defined in `EditorTheme.xaml`:
+- `PageBackground` (`#202020`), `CardBackground` (`#2D2D2D`), `CardBorder` (`#15FFFFFF`)
+- `TextPrimary` (white), `TextSecondary` (`#99FFFFFF`), `TextTertiary` (`#66FFFFFF`)
+- Styles: `SettingsCard`, `DialogCard`, `IconButton`, `FieldLabel`, `PageTitle`, `SectionHeader`
+
 ## Store App Picker
 
 The editor includes a "Select Store App" picker dialog (`StoreAppPickerWindow`) for adding Store/UWP apps.
 
-- Opened via the `+ Add Store` toolbar button
+- Opened via the "+ Add item" menu → "Store App"
 - Lists all installed Store/UWP apps using `PackageManager.FindPackagesForUser`
 - Each entry shows a 32x32 icon (from the package manifest) and app name
 - Search box filters by app name (case-insensitive substring match)
 - Selection via double-click or OK button
 - Selected app is added with `Type = Store` and `Path = shell:AppsFolder\{AUMID}`
+- Uses the same `EditorTheme.xaml` for consistent visuals
 
 ---
 
