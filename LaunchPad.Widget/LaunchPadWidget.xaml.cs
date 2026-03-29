@@ -250,6 +250,13 @@ public sealed partial class LaunchPadWidget : Page
             {
                 // EXE needs companion for Process.Start (UWP sandbox)
                 success = await CompanionClient.LaunchAsync(item.Type, item.Path, item.Args);
+
+                // Close widget to dismiss Game Bar overlay (LaunchUriAsync does this
+                // automatically for URL/Store, but EXE goes through companion)
+                if (success && widget != null && !widget.Pinned)
+                {
+                    try { widget.Close(); } catch { }
+                }
             }
 
             if (sender is GridView gridView)
