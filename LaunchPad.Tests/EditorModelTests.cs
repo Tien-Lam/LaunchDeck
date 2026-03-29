@@ -242,4 +242,96 @@ public class EditorModelTests
             File.Delete(tempFile);
         }
     }
+
+    [Fact]
+    public void Validate_ValidItems_ReturnsEmpty()
+    {
+        var model = new EditorModel();
+        model.AddExe(@"C:\app.exe", "My App");
+        model.AddUrl();
+        model.Items[1].Path = "https://example.com";
+        model.Items[1].Name = "Example";
+        model.AddStore("Spotify", @"shell:AppsFolder\SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify");
+
+        var errors = model.Validate();
+
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void Validate_EmptyName_ReturnsError()
+    {
+        var model = new EditorModel();
+        model.AddExe(@"C:\app.exe", "");
+
+        var errors = model.Validate();
+
+        Assert.Single(errors);
+        Assert.Contains("name", errors[0], StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Validate_EmptyPath_ReturnsError()
+    {
+        var model = new EditorModel();
+        model.AddExe("", "My App");
+
+        var errors = model.Validate();
+
+        Assert.Single(errors);
+        Assert.Contains("path", errors[0], StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Validate_UrlMissingScheme_ReturnsError()
+    {
+        var model = new EditorModel();
+        model.AddUrl();
+        model.Items[0].Name = "Bad URL";
+        model.Items[0].Path = "example.com";
+
+        var errors = model.Validate();
+
+        Assert.Single(errors);
+        Assert.Contains("http", errors[0], StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Validate_UrlWithScheme_NoError()
+    {
+        var model = new EditorModel();
+        model.AddUrl();
+        model.Items[0].Name = "Good URL";
+        model.Items[0].Path = "https://example.com";
+
+        var errors = model.Validate();
+
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void Validate_StoreMissingPrefix_ReturnsError()
+    {
+        var model = new EditorModel();
+        model.AddStore("Spotify", "spotify:");
+
+        var errors = model.Validate();
+
+        Assert.Single(errors);
+        Assert.Contains("shell:AppsFolder", errors[0]);
+    }
+
+    [Fact]
+    public void Validate_MultipleErrors_ReturnsAll()
+    {
+        var model = new EditorModel();
+        model.AddExe("", "");
+        model.AddUrl();
+        model.Items[1].Name = "";
+        model.Items[1].Path = "not-a-url";
+
+        var errors = model.Validate();
+
+        Assert.True(errors.Count >= 3);
+    }
 }

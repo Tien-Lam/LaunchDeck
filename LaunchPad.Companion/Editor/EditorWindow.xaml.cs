@@ -289,6 +289,18 @@ public partial class EditorWindow : Window
     private void OnSaveClick(object sender, RoutedEventArgs e)
     {
         SyncFormToItem();
+
+        var errors = _model.Validate();
+        if (errors.Count > 0)
+        {
+            System.Windows.MessageBox.Show(
+                string.Join("\n", errors),
+                "Validation errors",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+            return;
+        }
+
         _model.Save(_configPath, _onSaved);
     }
 }

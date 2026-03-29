@@ -73,6 +73,39 @@ public class EditorModel
         return true;
     }
 
+    public List<string> Validate()
+    {
+        var errors = new List<string>();
+        for (int i = 0; i < Items.Count; i++)
+        {
+            var item = Items[i];
+            var label = $"Item {i + 1} '{item.Name}'";
+
+            if (string.IsNullOrWhiteSpace(item.Name))
+                errors.Add($"Item {i + 1} has an empty name.");
+
+            if (string.IsNullOrWhiteSpace(item.Path))
+            {
+                errors.Add($"{label} has an empty path.");
+                continue;
+            }
+
+            if (item.Type == LaunchItemType.Url &&
+                !item.Path.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+                !item.Path.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                errors.Add($"{label} URL must start with http:// or https://");
+            }
+
+            if (item.Type == LaunchItemType.Store &&
+                !item.Path.StartsWith(@"shell:AppsFolder\", StringComparison.OrdinalIgnoreCase))
+            {
+                errors.Add($"{label} Store path must start with shell:AppsFolder\\");
+            }
+        }
+        return errors;
+    }
+
     public void Save(string configPath, Action? onSaved = null)
     {
         var config = new LaunchPadConfig { Items = Items };
