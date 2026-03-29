@@ -320,17 +320,20 @@ public sealed partial class LaunchPadWidget : Page
         }
     }
 
+    private Windows.UI.Color GetResourceColor(string key) =>
+        ((SolidColorBrush)Resources[key]).Color;
+
     private void OnTilePointerEntered(object sender, PointerRoutedEventArgs e)
     {
         if (sender is Grid grid)
-            AnimateTileBackground(grid, "#383838", TimeSpan.FromMilliseconds(150));
+            AnimateTileBackground(grid, GetResourceColor("TileBackgroundHover"), TimeSpan.FromMilliseconds(150));
     }
 
     private void OnTilePointerExited(object sender, PointerRoutedEventArgs e)
     {
         if (sender is Grid grid)
         {
-            AnimateTileBackground(grid, "#2D2D2D", TimeSpan.FromMilliseconds(150));
+            AnimateTileBackground(grid, GetResourceColor("TileBackground"), TimeSpan.FromMilliseconds(150));
             AnimateTileScale(grid, 1.0, TimeSpan.FromMilliseconds(100));
         }
     }
@@ -339,7 +342,7 @@ public sealed partial class LaunchPadWidget : Page
     {
         if (sender is Grid grid)
         {
-            AnimateTileBackground(grid, "#252525", TimeSpan.FromMilliseconds(100));
+            AnimateTileBackground(grid, GetResourceColor("TileBackgroundPressed"), TimeSpan.FromMilliseconds(100));
             AnimateTileScale(grid, 0.95, TimeSpan.FromMilliseconds(100));
         }
     }
@@ -348,7 +351,7 @@ public sealed partial class LaunchPadWidget : Page
     {
         if (sender is Grid grid)
         {
-            AnimateTileBackground(grid, "#383838", TimeSpan.FromMilliseconds(100));
+            AnimateTileBackground(grid, GetResourceColor("TileBackgroundHover"), TimeSpan.FromMilliseconds(100));
             AnimateTileScale(grid, 1.0, TimeSpan.FromMilliseconds(100));
         }
     }
@@ -359,7 +362,7 @@ public sealed partial class LaunchPadWidget : Page
         {
             var border = FindChild<Border>(grid, "FocusBorder");
             if (border != null) border.Opacity = 1;
-            AnimateTileBackground(grid, "#383838", TimeSpan.FromMilliseconds(100));
+            AnimateTileBackground(grid, GetResourceColor("TileBackgroundHover"), TimeSpan.FromMilliseconds(100));
         }
     }
 
@@ -369,7 +372,7 @@ public sealed partial class LaunchPadWidget : Page
         {
             var border = FindChild<Border>(grid, "FocusBorder");
             if (border != null) border.Opacity = 0;
-            AnimateTileBackground(grid, "#2D2D2D", TimeSpan.FromMilliseconds(100));
+            AnimateTileBackground(grid, GetResourceColor("TileBackground"), TimeSpan.FromMilliseconds(100));
         }
     }
 
@@ -386,9 +389,8 @@ public sealed partial class LaunchPadWidget : Page
         }
     }
 
-    private static void AnimateTileBackground(Grid grid, string colorHex, TimeSpan duration)
+    private static void AnimateTileBackground(Grid grid, Windows.UI.Color color, TimeSpan duration)
     {
-        var color = ParseHexColor(colorHex);
         var animation = new ColorAnimation
         {
             To = color,
@@ -417,15 +419,6 @@ public sealed partial class LaunchPadWidget : Page
             sb.Children.Add(scaleY);
             sb.Begin();
         }
-    }
-
-    private static Windows.UI.Color ParseHexColor(string hex)
-    {
-        hex = hex.TrimStart('#');
-        byte r = Convert.ToByte(hex.Substring(0, 2), 16);
-        byte g = Convert.ToByte(hex.Substring(2, 2), 16);
-        byte b = Convert.ToByte(hex.Substring(4, 2), 16);
-        return Windows.UI.Color.FromArgb(255, r, g, b);
     }
 
     private static T? FindChild<T>(DependencyObject parent, string? name = null) where T : DependencyObject
