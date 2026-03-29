@@ -50,7 +50,6 @@
     </Compile>
     <Compile Include="Models\LaunchItem.cs" />
     <Compile Include="Services\CompanionClient.cs" />
-    <Compile Include="Services\WidgetLog.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
 

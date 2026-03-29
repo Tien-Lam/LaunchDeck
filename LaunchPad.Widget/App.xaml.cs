@@ -7,7 +7,6 @@ using Windows.ApplicationModel.Background;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Microsoft.Gaming.XboxGameBar;
-using LaunchPad.Widget.Services;
 
 namespace LaunchPad.Widget;
 
@@ -34,18 +33,12 @@ sealed partial class App : Application
 
     protected override void OnActivated(IActivatedEventArgs args)
     {
-        WidgetLog.Write($"OnActivated: Kind={args.Kind}");
-
         if (args.Kind == ActivationKind.Protocol)
         {
             var protocolArgs = args as IProtocolActivatedEventArgs;
-            WidgetLog.Write($"OnActivated: Scheme={protocolArgs?.Uri.Scheme}, Uri={protocolArgs?.Uri}");
-
             if (protocolArgs?.Uri.Scheme == "ms-gamebarwidget")
             {
                 var widgetArgs = args as XboxGameBarWidgetActivatedEventArgs;
-                WidgetLog.Write($"OnActivated: IsLaunchActivation={widgetArgs?.IsLaunchActivation}, AppExtensionId={widgetArgs?.AppExtensionId}");
-
                 if (widgetArgs != null)
                 {
                     var rootFrame = new Frame();
@@ -59,7 +52,6 @@ sealed partial class App : Application
 
                     rootFrame.Navigate(typeof(LaunchPadWidget));
                     Window.Current.Activate();
-                    WidgetLog.Write("OnActivated: Widget created and page navigated");
                 }
             }
         }
@@ -68,27 +60,23 @@ sealed partial class App : Application
     protected override void OnBackgroundActivated(BackgroundActivatedEventArgs args)
     {
         base.OnBackgroundActivated(args);
-        WidgetLog.Write($"OnBackgroundActivated: IsAppService={args.TaskInstance.TriggerDetails is AppServiceTriggerDetails}");
 
         if (args.TaskInstance.TriggerDetails is AppServiceTriggerDetails details)
         {
             _appServiceDeferral = args.TaskInstance.GetDeferral();
             _companionConnection = details.AppServiceConnection;
             CompanionConnection = _companionConnection;
-            WidgetLog.Write("OnBackgroundActivated: CompanionConnection set");
 
             _companionConnection.RequestReceived += Services.CompanionClient.OnCompanionMessage;
             _companionConnection.ServiceClosed += (_, _) =>
             {
-                WidgetLog.Write("ServiceClosed fired");
                 CompanionConnection = null;
                 TryRelaunchCompanion();
             };
 
             args.TaskInstance.Canceled += (_, _) =>
             {
-                WidgetLog.Write("BackgroundTask Canceled fired");
-                // Dispose the connection to trigger ServiceClosed on the companion side,
+                // Dispose connection to trigger ServiceClosed on the companion side,
                 // so it releases the mutex and exits instead of becoming a zombie
                 try { _companionConnection?.Dispose(); }
                 catch { }

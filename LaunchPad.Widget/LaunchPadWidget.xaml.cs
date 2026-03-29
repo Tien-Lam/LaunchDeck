@@ -38,40 +38,30 @@ public sealed partial class LaunchPadWidget : Page
 
     private async Task EnsureCompanionAsync()
     {
-        Services.WidgetLog.Write($"EnsureCompanion: start, connection={App.CompanionConnection != null}");
-
         for (int attempt = 0; attempt < 3; attempt++)
         {
-            Services.WidgetLog.Write($"EnsureCompanion: attempt {attempt + 1}");
             try
             {
                 await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync();
-                Services.WidgetLog.Write("EnsureCompanion: LaunchFullTrust succeeded");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Services.WidgetLog.Write($"EnsureCompanion: LaunchFullTrust exception: {ex.Message}");
+                // Companion may already be running
             }
 
             for (int i = 0; i < 50 && App.CompanionConnection == null; i++)
                 await Task.Delay(100);
 
-            Services.WidgetLog.Write($"EnsureCompanion: after wait, connection={App.CompanionConnection != null}");
             if (App.CompanionConnection != null) break;
 
             await Task.Delay(1000);
         }
-
-        Services.WidgetLog.Write($"EnsureCompanion: done, connection={App.CompanionConnection != null}");
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        Services.WidgetLog.Write("OnLoaded: start");
         await EnsureCompanionAsync();
-
         await LoadConfigAsync();
-        Services.WidgetLog.Write($"OnLoaded: LoadConfigAsync done, items={Items.Count}");
 
         if (!_configUpdatedSubscribed)
         {

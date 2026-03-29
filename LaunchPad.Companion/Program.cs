@@ -15,33 +15,10 @@ class Program
 
     static async Task Main()
     {
-        var logPath = System.IO.Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "LaunchPad", "companion.log");
-        void Log(string msg)
-        {
-            try
-            {
-                var dir = System.IO.Path.GetDirectoryName(logPath);
-                if (dir != null) System.IO.Directory.CreateDirectory(dir);
-                System.IO.File.AppendAllText(logPath, $"[{DateTime.Now:HH:mm:ss.fff}] {msg}\n");
-            }
-            catch { }
-        }
-
-        Log("Main: start");
-
-        // Acquire mutex with timeout — if previous instance is a zombie with a dead
-        // connection, don't wait forever. Proceed anyway and let App Service sort it out.
+        // Acquire mutex with timeout — if a previous instance is stuck with a dead
+        // connection (zombie), proceed anyway and let App Service sort it out.
         using var mutex = new Mutex(false, "Local\\LaunchPadCompanion");
-        if (!mutex.WaitOne(500))
-        {
-            Log("Main: mutex not acquired after 500ms, proceeding anyway");
-        }
-        else
-        {
-            Log("Main: mutex acquired");
-        }
+        mutex.WaitOne(500);
 
         _connection = new AppServiceConnection
         {
@@ -49,20 +26,13 @@ class Program
             PackageFamilyName = Package.Current.Id.FamilyName
         };
         _connection.RequestReceived += OnRequestReceived;
-        _connection.ServiceClosed += (_, _) =>
-        {
-            Log("ServiceClosed fired, signaling exit");
-            ExitEvent.Set();
-        };
+        _connection.ServiceClosed += (_, _) => ExitEvent.Set();
 
         var status = await _connection.OpenAsync();
-        Log($"Main: OpenAsync returned {status}");
         if (status != AppServiceConnectionStatus.Success)
             return;
 
-        Log("Main: waiting on ExitEvent");
         ExitEvent.WaitOne();
-        Log("Main: exiting");
     }
 
     public static async void NotifyConfigUpdated()
