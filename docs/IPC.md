@@ -239,6 +239,48 @@ Loads a custom icon image file from disk and returns it as base64-encoded PNG da
 
 ---
 
+### `extract-store-icon`
+
+Extracts the icon from an installed Store/UWP app package by parsing its `AppxManifest.xml` and reading the logo PNG. Handles scale qualifiers (`.targetsize-48`, `.scale-200`, etc.) to find the best available icon.
+
+**Request:**
+
+| Key      | Type   | Required | Description                                           |
+|----------|--------|----------|-------------------------------------------------------|
+| `action` | string | yes      | `"extract-store-icon"`                                |
+| `aumid`  | string | yes      | Application User Model ID (e.g., `PackageFamily!AppId`) |
+
+**Response:**
+
+| Key        | Type   | Condition  | Description                              |
+|------------|--------|------------|------------------------------------------|
+| `status`   | string | always     | `"ok"` or `"error"`                      |
+| `iconData` | string | on success | Base64-encoded PNG image data            |
+
+The AUMID is extracted from the config path by stripping the `shell:AppsFolder\` prefix.
+
+**Example request:**
+
+```
+ValueSet {
+    ["action"] = "extract-store-icon",
+    ["aumid"]  = "SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify"
+}
+```
+
+**Example success response:**
+
+```
+ValueSet {
+    ["status"]   = "ok",
+    ["iconData"] = "iVBORw0KGgo..."
+}
+```
+
+**Widget client:** `CompanionClient.ExtractStoreIconAsync(string aumid)` returns `byte[]?` (PNG data on success, `null` on failure).
+
+---
+
 ### `load-config`
 
 Loads the LaunchPad configuration from a JSON file on disk. The default path is `%LOCALAPPDATA%\LaunchPad\config.json` (with UWP virtualization stripped).

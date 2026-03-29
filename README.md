@@ -1,14 +1,14 @@
 # LaunchPad
 
-An Xbox Game Bar widget that launches apps and URLs from a configurable tile grid overlay.
+An Xbox Game Bar widget that launches apps, URLs, and Store apps from a configurable tile grid overlay.
 
 <!-- TODO: Add screenshot here -->
 
 ## Features
 
-- Launch EXEs and URLs from a dark-themed tile grid
-- Automatic icon extraction for EXEs and favicon fetching for URLs
-- Built-in config editor (WPF) for adding, removing, editing, and reordering items
+- Launch EXEs, URLs, and Microsoft Store apps from a dark-themed tile grid
+- Automatic icon extraction for EXEs, favicons for URLs, and package icons for Store apps
+- Built-in config editor with Store app picker — browse installed apps and add them with one click
 - Runs as a Game Bar widget — open with Win+G while gaming
 
 ## Architecture

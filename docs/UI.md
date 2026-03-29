@@ -163,6 +163,19 @@ A circular floating action button for opening the config editor:
 
 ---
 
+## Store App Picker
+
+The editor includes a "Select Store App" picker dialog (`StoreAppPickerWindow`) for adding Store/UWP apps.
+
+- Opened via the `+ Add Store` toolbar button
+- Lists all installed Store/UWP apps using `PackageManager.FindPackagesForUser`
+- Each entry shows a 32x32 icon (from the package manifest) and app name
+- Search box filters by app name (case-insensitive substring match)
+- Selection via double-click or OK button
+- Selected app is added with `Type = Store` and `Path = shell:AppsFolder\{AUMID}`
+
+---
+
 ## Empty and Error States
 
 The `EmptyState` StackPanel is shown when the grid cannot display tiles. It is centered both vertically and horizontally with `Spacing="8"` and `Padding="16"`.
