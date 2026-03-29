@@ -39,18 +39,30 @@ sealed partial class App : Application
             if (protocolArgs?.Uri.Scheme == "ms-gamebarwidget")
             {
                 var widgetArgs = args as XboxGameBarWidgetActivatedEventArgs;
-                if (widgetArgs != null && widgetArgs.IsLaunchActivation)
+                if (widgetArgs != null)
                 {
-                    var rootFrame = new Frame();
-                    Window.Current.Content = rootFrame;
+                    if (widgetArgs.IsLaunchActivation)
+                    {
+                        var rootFrame = new Frame();
+                        Window.Current.Content = rootFrame;
 
-                    _widget = new XboxGameBarWidget(
-                        widgetArgs,
-                        Window.Current.CoreWindow,
-                        rootFrame);
-                    Widget = _widget;
+                        _widget = new XboxGameBarWidget(
+                            widgetArgs,
+                            Window.Current.CoreWindow,
+                            rootFrame);
+                        Widget = _widget;
 
-                    rootFrame.Navigate(typeof(LaunchPadWidget));
+                        rootFrame.Navigate(typeof(LaunchPadWidget));
+                    }
+                    else
+                    {
+                        // Re-activation after close/re-add — refresh the existing page
+                        if (Window.Current.Content is Frame frame &&
+                            frame.Content is LaunchPadWidget widget)
+                        {
+                            widget.ReloadAsync();
+                        }
+                    }
                     Window.Current.Activate();
                 }
             }

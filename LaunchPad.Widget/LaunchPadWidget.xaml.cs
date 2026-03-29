@@ -28,7 +28,15 @@ public sealed partial class LaunchPadWidget : Page
         this.Loaded += OnLoaded;
     }
 
-    private async void OnLoaded(object sender, RoutedEventArgs e)
+    public async void ReloadAsync()
+    {
+        // Re-establish companion connection and reload config
+        // Called on widget re-activation (close then re-add from Game Bar)
+        await EnsureCompanionAsync();
+        await LoadConfigAsync();
+    }
+
+    private async Task EnsureCompanionAsync()
     {
         // Launch companion — retry if first attempt fails (e.g. after widget close/re-add
         // the old companion may still be exiting and holding the mutex briefly)
@@ -52,6 +60,11 @@ public sealed partial class LaunchPadWidget : Page
             // Connection didn't come up — wait a bit for old process to release mutex
             await Task.Delay(1000);
         }
+    }
+
+    private async void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        await EnsureCompanionAsync();
 
         await LoadConfigAsync();
 
