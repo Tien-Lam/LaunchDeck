@@ -15,9 +15,28 @@ class Program
 
     static async Task Main()
     {
+        var logPath = System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "LaunchPad", "companion.log");
+        void Log(string msg)
+        {
+            try
+            {
+                var dir = System.IO.Path.GetDirectoryName(logPath);
+                if (dir != null) System.IO.Directory.CreateDirectory(dir);
+                System.IO.File.AppendAllText(logPath, $"[{DateTime.Now:HH:mm:ss.fff}] {msg}\n");
+            }
+            catch { }
+        }
+
+        Log("Main: start");
         using var mutex = new Mutex(true, "Local\\LaunchPadCompanion", out bool created);
         if (!created)
+        {
+            Log("Main: mutex already held, exiting");
             return;
+        }
+        Log("Main: mutex acquired");
 
         _connection = new AppServiceConnection
         {
@@ -25,13 +44,20 @@ class Program
             PackageFamilyName = Package.Current.Id.FamilyName
         };
         _connection.RequestReceived += OnRequestReceived;
-        _connection.ServiceClosed += (_, _) => ExitEvent.Set();
+        _connection.ServiceClosed += (_, _) =>
+        {
+            Log("ServiceClosed fired, signaling exit");
+            ExitEvent.Set();
+        };
 
         var status = await _connection.OpenAsync();
+        Log($"Main: OpenAsync returned {status}");
         if (status != AppServiceConnectionStatus.Success)
             return;
 
+        Log("Main: waiting on ExitEvent");
         ExitEvent.WaitOne();
+        Log("Main: exiting");
     }
 
     public static async void NotifyConfigUpdated()
