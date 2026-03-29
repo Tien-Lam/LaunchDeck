@@ -8,16 +8,16 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/PresentationFramework.Fluent;component/Themes/Fluent.xaml" />
+                <ResourceDictionary Source="EditorTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
 
-    <Grid Background="#202020">
+    <Grid Background="{StaticResource PageBackground}">
         <DockPanel Margin="24,20">
             <!-- Page header -->
-            <TextBlock Text="Select Store App" FontSize="20" FontWeight="SemiBold"
-                       Foreground="White" DockPanel.Dock="Top" Margin="0,0,0,12"/>
+            <TextBlock Text="Select Store App" Style="{StaticResource PageTitle}"
+                       DockPanel.Dock="Top" Margin="0,0,0,12"/>
 
             <!-- Search box -->
             <TextBox x:Name="SearchBox"
@@ -40,7 +40,7 @@
                        DockPanel.Dock="Top"
                        HorizontalAlignment="Center"
                        Margin="0,20,0,0"
-                       Foreground="#99FFFFFF"/>
+                       Foreground="{StaticResource TextSecondary}"/>
 
             <!-- App list -->
             <ListBox x:Name="AppList"
@@ -58,15 +58,15 @@
                                        RenderOptions.BitmapScalingMode="HighQuality"/>
                                 <Border CornerRadius="4" Opacity="0.6"
                                         Visibility="{Binding FallbackVisibility}"
-                                        Background="#20FFFFFF">
+                                        Background="{StaticResource FallbackBadge}">
                                     <TextBlock Text="APP" FontSize="10" FontWeight="SemiBold"
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center"
-                                               Foreground="#99FFFFFF"/>
+                                               Foreground="{StaticResource TextSecondary}"/>
                                 </Border>
                             </Grid>
                             <TextBlock Text="{Binding Name}" FontSize="13"
-                                       Foreground="White"
+                                       Foreground="{StaticResource TextPrimary}"
                                        VerticalAlignment="Center"/>
                         </StackPanel>
                     </DataTemplate>

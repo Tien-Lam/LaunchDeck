@@ -9,51 +9,23 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/PresentationFramework.Fluent;component/Themes/Fluent.xaml" />
+                <ResourceDictionary Source="EditorTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-
-            <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-
-            <Style x:Key="SettingsCard" TargetType="Border">
-                <Setter Property="Background" Value="#2D2D2D"/>
-                <Setter Property="CornerRadius" Value="4"/>
-                <Setter Property="BorderBrush" Value="#15FFFFFF"/>
-                <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="Padding" Value="12,10"/>
-                <Setter Property="Margin" Value="0,1"/>
-            </Style>
-
-            <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
-                <Setter Property="FontSize" Value="14"/>
-                <Setter Property="Padding" Value="6"/>
-                <Setter Property="MinWidth" Value="32"/>
-                <Setter Property="MinHeight" Value="32"/>
-                <Setter Property="Background" Value="Transparent"/>
-                <Setter Property="BorderThickness" Value="0"/>
-            </Style>
-
-            <Style x:Key="FieldLabel" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="11"/>
-                <Setter Property="Foreground" Value="#99FFFFFF"/>
-                <Setter Property="Margin" Value="0,0,0,4"/>
-            </Style>
         </ResourceDictionary>
     </Window.Resources>
 
-    <Grid Background="#202020">
+    <Grid Background="{StaticResource PageBackground}">
         <!-- Main scrollable content -->
         <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24,20">
             <StackPanel MaxWidth="480">
                 <!-- Page header -->
-                <TextBlock Text="LaunchPad" FontSize="20" FontWeight="SemiBold"
-                           Foreground="White" Margin="0,0,0,2"/>
+                <TextBlock Text="LaunchPad" Style="{StaticResource PageTitle}"
+                           Margin="0,0,0,2"/>
                 <TextBlock Text="Configure your launch items" FontSize="12"
-                           Foreground="#99FFFFFF" Margin="0,0,0,20"/>
+                           Foreground="{StaticResource TextSecondary}" Margin="0,0,0,20"/>
 
                 <!-- Section header -->
-                <TextBlock Text="Items" FontSize="14" FontWeight="SemiBold"
-                           Foreground="White" Margin="0,0,0,8"/>
+                <TextBlock Text="Items" Style="{StaticResource SectionHeader}"/>
 
                 <!-- Item cards -->
                 <ItemsControl ItemsSource="{Binding Items}">
@@ -74,7 +46,8 @@
                                                 ToolTip="Edit" Click="OnEditClick"
                                                 Tag="{Binding}"/>
                                         <Button Content="&#xE74D;" Style="{StaticResource IconButton}"
-                                                ToolTip="Delete" Foreground="#FF99A4"
+                                                ToolTip="Delete"
+                                                Foreground="{StaticResource DangerForeground}"
                                                 Click="OnDeleteClick" Tag="{Binding}"/>
                                     </StackPanel>
 
@@ -86,22 +59,22 @@
                                                RenderOptions.BitmapScalingMode="HighQuality"/>
                                         <Border CornerRadius="4" Opacity="0.6"
                                                 Visibility="{Binding FallbackVisibility}"
-                                                Background="#20FFFFFF">
+                                                Background="{StaticResource FallbackBadge}">
                                             <TextBlock Text="{Binding FallbackText}"
                                                        FontSize="10" FontWeight="SemiBold"
                                                        HorizontalAlignment="Center"
                                                        VerticalAlignment="Center"
-                                                       Foreground="#99FFFFFF"/>
+                                                       Foreground="{StaticResource TextSecondary}"/>
                                         </Border>
                                     </Grid>
 
                                     <!-- Name + path (center) -->
                                     <StackPanel VerticalAlignment="Center">
                                         <TextBlock Text="{Binding Name}" FontSize="14"
-                                                   Foreground="White"
+                                                   Foreground="{StaticResource TextPrimary}"
                                                    TextTrimming="CharacterEllipsis"/>
                                         <TextBlock Text="{Binding Path}" FontSize="12"
-                                                   Foreground="#66FFFFFF"
+                                                   Foreground="{StaticResource TextTertiary}"
                                                    TextTrimming="CharacterEllipsis"/>
                                     </StackPanel>
                                 </DockPanel>
@@ -122,7 +95,8 @@
                 <!-- Bottom bar -->
                 <DockPanel Margin="0,16,0,0">
                     <TextBlock Text="{Binding ItemCountText}" FontSize="11"
-                               Foreground="#66FFFFFF" VerticalAlignment="Center"/>
+                               Foreground="{StaticResource TextTertiary}"
+                               VerticalAlignment="Center"/>
                     <Button Content="Save and Refresh"
                             Style="{DynamicResource AccentButtonStyle}"
                             HorizontalAlignment="Right" DockPanel.Dock="Right"
@@ -133,25 +107,23 @@
 
         <!-- Edit dialog overlay -->
         <Grid Visibility="{Binding DialogVisibility}">
-            <!-- Dim backdrop -->
-            <Rectangle Fill="#80000000" MouseDown="OnBackdropClick"/>
+            <Rectangle Fill="{StaticResource BackdropOverlay}" MouseDown="OnBackdropClick"/>
 
-            <!-- Dialog card -->
-            <Border Background="#2D2D2D" CornerRadius="8"
-                    BorderBrush="#15FFFFFF" BorderThickness="1"
-                    MaxWidth="450" Padding="24"
+            <Border Style="{StaticResource DialogCard}"
+                    MaxWidth="450"
                     VerticalAlignment="Center" HorizontalAlignment="Stretch"
                     Margin="36,24">
                 <StackPanel>
                     <TextBlock Text="Edit Item" FontSize="18" FontWeight="SemiBold"
-                               Foreground="White" Margin="0,0,0,16"/>
+                               Foreground="{StaticResource TextPrimary}" Margin="0,0,0,16"/>
 
                     <TextBlock Text="NAME" Style="{StaticResource FieldLabel}"/>
                     <TextBox Text="{Binding EditName, UpdateSourceTrigger=PropertyChanged}"
                              Margin="0,0,0,12"/>
 
                     <TextBlock Text="TYPE" Style="{StaticResource FieldLabel}"/>
-                    <TextBlock Text="{Binding EditTypeLabel}" Foreground="#66FFFFFF"
+                    <TextBlock Text="{Binding EditTypeLabel}"
+                               Foreground="{StaticResource TextTertiary}"
                                FontSize="13" Margin="0,0,0,12" Padding="6,5"/>
 
                     <TextBlock Text="PATH" Style="{StaticResource FieldLabel}"/>
