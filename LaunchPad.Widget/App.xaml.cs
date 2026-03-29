@@ -85,12 +85,17 @@ sealed partial class App : Application
 
     private async void TryRelaunchCompanion()
     {
-        await Task.Delay(1000);
-        try
+        int[] delays = { 1000, 2000, 4000 };
+        foreach (var delay in delays)
         {
-            await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync();
+            await Task.Delay(delay);
+            if (CompanionConnection != null) return;
+            try
+            {
+                await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync();
+            }
+            catch { }
         }
-        catch { }
     }
 
     private void OnSuspending(object sender, SuspendingEventArgs e)
