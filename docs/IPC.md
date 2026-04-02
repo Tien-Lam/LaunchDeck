@@ -316,7 +316,7 @@ ValueSet { ["action"] = "load-config" }
 ```
 ValueSet {
     ["action"]     = "load-config",
-    ["configPath"] = "D:\\configs\\launchpad.json"
+    ["configPath"] = "D:\\configs\\launchdeck.json"
 }
 ```
 
