@@ -109,7 +109,16 @@ public class EditorModel
     public void Save(string configPath, Action? onSaved = null)
     {
         var config = new LaunchDeckConfig { Items = Items };
-        ConfigLoader.Save(configPath, config);
+        Log.Write($"EditorModel.Save: path={configPath} items={Items.Count}");
+        try
+        {
+            ConfigLoader.Save(configPath, config);
+        }
+        catch (Exception ex)
+        {
+            Log.Write($"EditorModel.Save: FAILED — {ex.Message}");
+            throw;
+        }
         onSaved?.Invoke();
     }
 }

@@ -10,6 +10,20 @@ namespace LaunchDeck.Widget.Services;
 public static class CompanionClient
 {
     public static event Action? ConfigUpdated;
+    public static event Action? CompanionConnected;
+
+    public static void RaiseCompanionConnected() => CompanionConnected?.Invoke();
+
+    public static async void RemoteLog(string message)
+    {
+        try
+        {
+            var connection = App.CompanionConnection;
+            if (connection == null) return;
+            await connection.SendMessageAsync(new ValueSet { ["action"] = "log", ["message"] = message });
+        }
+        catch { }
+    }
 
     public static async Task<(ConfigLoadStatus Status, LaunchDeckConfig? Config, string? ConfigPath, string? Error)> LoadConfigAsync()
     {
@@ -17,28 +31,39 @@ public static class CompanionClient
         if (connection == null)
             return (ConfigLoadStatus.FileNotFound, null, null, "Companion not connected");
 
-        var request = new ValueSet { ["action"] = "load-config" };
+        var configPath = ConfigLoader.GetDefaultConfigPath();
+        var request = new ValueSet { ["action"] = "load-config", ["configPath"] = configPath };
         var response = await connection.SendMessageAsync(request);
         if (response.Status != AppServiceResponseStatus.Success)
+        {
+            RemoteLog($"widget: load-config AppService error: {response.Status}");
             return (ConfigLoadStatus.FileNotFound, null, null, "App Service error");
+        }
 
         var msg = response.Message;
         var status = msg["status"] as string;
-        var configPath = msg.ContainsKey("configPath") ? msg["configPath"] as string : null;
+        var responsePath = msg.ContainsKey("configPath") ? msg["configPath"] as string : null;
 
         if (status == "success" && msg.ContainsKey("json"))
         {
             var json = msg["json"] as string ?? "";
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var config = JsonSerializer.Deserialize<LaunchDeckConfig>(json, options);
-            return (ConfigLoadStatus.Success, config, configPath, null);
+            try
+            {
+                var config = ParseConfig(json);
+                return (ConfigLoadStatus.Success, config, responsePath, null);
+            }
+            catch (Exception ex)
+            {
+                RemoteLog($"widget: PARSE FAILED — {ex.GetType().Name}: {ex.Message}");
+                return (ConfigLoadStatus.ParseError, null, responsePath, $"Widget parse error: {ex.Message}");
+            }
         }
 
         if (status == "filenotfound")
-            return (ConfigLoadStatus.FileNotFound, null, configPath, null);
+            return (ConfigLoadStatus.FileNotFound, null, responsePath, null);
 
         var error = msg.ContainsKey("error") ? msg["error"] as string : null;
-        return (ConfigLoadStatus.ParseError, null, configPath, error);
+        return (ConfigLoadStatus.ParseError, null, responsePath, error);
     }
 
     public static async Task<bool> LaunchAsync(string type, string path, string? args = null)
@@ -156,6 +181,42 @@ public static class CompanionClient
         if (response.Status != AppServiceResponseStatus.Success) return false;
 
         return response.Message["status"] as string == "ok";
+    }
+
+    private static LaunchDeckConfig ParseConfig(string json)
+    {
+        var config = new LaunchDeckConfig();
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+
+        if (root.TryGetProperty("items", out var itemsEl) ||
+            root.TryGetProperty("Items", out itemsEl))
+        {
+            foreach (var itemEl in itemsEl.EnumerateArray())
+            {
+                var item = new LaunchItemConfig();
+
+                if (itemEl.TryGetProperty("name", out var v) || itemEl.TryGetProperty("Name", out v))
+                    item.Name = v.GetString() ?? "";
+                if (itemEl.TryGetProperty("path", out v) || itemEl.TryGetProperty("Path", out v))
+                    item.Path = v.GetString() ?? "";
+                if (itemEl.TryGetProperty("args", out v) || itemEl.TryGetProperty("Args", out v))
+                    item.Args = v.ValueKind == JsonValueKind.Null ? null : v.GetString();
+                if (itemEl.TryGetProperty("icon", out v) || itemEl.TryGetProperty("Icon", out v))
+                    item.Icon = v.ValueKind == JsonValueKind.Null ? null : v.GetString();
+
+                if (itemEl.TryGetProperty("type", out v) || itemEl.TryGetProperty("Type", out v))
+                {
+                    var typeStr = v.GetString() ?? "";
+                    if (Enum.TryParse<LaunchItemType>(typeStr, true, out var parsed))
+                        item.Type = parsed;
+                }
+
+                config.Items.Add(item);
+            }
+        }
+
+        return config;
     }
 
     public static async void OnCompanionMessage(AppServiceConnection sender, AppServiceRequestReceivedEventArgs args)

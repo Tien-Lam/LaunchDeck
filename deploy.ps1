@@ -25,16 +25,21 @@ if ($procs) {
 
 # Build full solution (produces .msix)
 Write-Host "Building solution..." -ForegroundColor Cyan
-& $msbuild LaunchDeck.sln -p:Configuration=Debug -p:Platform=x64 -restore -v:minimal
+& $msbuild LaunchDeck.sln -p:Configuration=Debug -p:Platform=x64 -p:AppxBundle=Never -restore -v:minimal
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Build failed"
     exit 1
 }
 
-# Find MSIX or MSIXBUNDLE in output
-$pkg = Get-ChildItem -Path "$PSScriptRoot\LaunchDeck.Package\AppPackages" -Recurse -Include '*.msix','*.msixbundle' |
-    Where-Object { $_.Name -match 'Debug' } |
+# Find MSIX in output (prefer .msix over .msixbundle for loose-file registration)
+$pkg = Get-ChildItem -Path "$PSScriptRoot\LaunchDeck.Package\AppPackages" -Recurse -Include '*.msix' |
+    Where-Object { $_.Name -match 'Debug' -and $_.Extension -eq '.msix' } |
     Select-Object -First 1
+if (-not $pkg) {
+    $pkg = Get-ChildItem -Path "$PSScriptRoot\LaunchDeck.Package\AppPackages" -Recurse -Include '*.msixbundle' |
+        Where-Object { $_.Name -match 'Debug' } |
+        Select-Object -First 1
+}
 $layoutDir = Join-Path $PSScriptRoot 'LaunchDeck.Package\bin\x64\Debug\AppX'
 
 if (-not $pkg) {

@@ -15,6 +15,8 @@ class Program
 
     static async Task Main()
     {
+        Log.Write($"Companion starting. PFN={Package.Current.Id.FamilyName} ConfigPath={ConfigLoader.GetDefaultConfigPath()}");
+
         // Acquire mutex with timeout — if a previous instance is stuck with a dead
         // connection (zombie), proceed anyway and let App Service sort it out.
         using var mutex = new Mutex(false, "Local\\LaunchDeckCompanion");
@@ -26,9 +28,10 @@ class Program
             PackageFamilyName = Package.Current.Id.FamilyName
         };
         _connection.RequestReceived += OnRequestReceived;
-        _connection.ServiceClosed += (_, _) => ExitEvent.Set();
+        _connection.ServiceClosed += (_, _) => { Log.Write("ServiceClosed — exiting"); ExitEvent.Set(); };
 
         var status = await _connection.OpenAsync();
+        Log.Write($"AppService.OpenAsync → {status}");
         if (status != AppServiceConnectionStatus.Success)
             return;
 
@@ -78,6 +81,11 @@ class Program
                     break;
                 case "extract-store-icon":
                     response = HandleExtractStoreIcon(message);
+                    break;
+                case "log":
+                    var logMsg = message.ContainsKey("message") ? message["message"] as string : "";
+                    Log.Write(logMsg ?? "");
+                    response = new ValueSet { ["status"] = "ok" };
                     break;
                 default:
                     response = new ValueSet { ["status"] = "error", ["error"] = $"Unknown action: {action}" };
@@ -139,11 +147,11 @@ class Program
 
     private static ValueSet HandleLoadConfig(ValueSet message)
     {
-        var configPath = message.ContainsKey("configPath")
-            ? message["configPath"] as string ?? ConfigLoader.GetDefaultConfigPath()
-            : ConfigLoader.GetDefaultConfigPath();
+        var requestedPath = message.ContainsKey("configPath") ? message["configPath"] as string : null;
+        var configPath = requestedPath ?? ConfigLoader.GetDefaultConfigPath();
 
         var result = ConfigLoader.Load(configPath);
+        Log.Write($"load-config: path={configPath} status={result.Status} items={result.Config?.Items.Count ?? 0}");
 
         var response = new ValueSet
         {
@@ -153,8 +161,9 @@ class Program
 
         if (result.Status == ConfigLoadStatus.Success && result.Config != null)
         {
-            var options = new System.Text.Json.JsonSerializerOptions { WriteIndented = false };
-            response["json"] = System.Text.Json.JsonSerializer.Serialize(result.Config, options);
+            var json = System.Text.Json.JsonSerializer.Serialize(result.Config,
+                new System.Text.Json.JsonSerializerOptions { WriteIndented = false });
+            response["json"] = json;
         }
 
         if (result.ErrorMessage != null)
@@ -191,6 +200,7 @@ class Program
             ? message["configPath"] as string ?? ConfigLoader.GetDefaultConfigPath()
             : ConfigLoader.GetDefaultConfigPath();
 
+        Log.Write($"open-editor: configPath={configPath}");
         EditorManager.OpenEditor(configPath, NotifyConfigUpdated);
         return new ValueSet { ["status"] = "ok" };
     }

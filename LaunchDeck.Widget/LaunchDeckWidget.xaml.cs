@@ -49,7 +49,7 @@ public sealed partial class LaunchDeckWidget : Page
                 // Companion may already be running
             }
 
-            for (int i = 0; i < 50 && App.CompanionConnection == null; i++)
+            for (int i = 0; i < 100 && App.CompanionConnection == null; i++)
                 await Task.Delay(100);
 
             if (App.CompanionConnection != null) break;
@@ -73,13 +73,32 @@ public sealed partial class LaunchDeckWidget : Page
                     await LoadConfigAsync();
                 });
             };
+            CompanionClient.CompanionConnected += async () =>
+            {
+                await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
+                {
+                    await LoadConfigAsync();
+                });
+            };
         }
 
-        // Honor Game Bar opacity setting for compact/pinned mode
-        // Apply to background only — not page Opacity, which washes out text and icons
         var widget = App.Widget;
         if (widget != null)
         {
+            // Reload config when Game Bar overlay becomes visible
+            // Catches saves that were missed while the widget was suspended
+            widget.VisibleChanged += async (s, a) =>
+            {
+                if (s.Visible)
+                {
+                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
+                    {
+                        await LoadConfigAsync();
+                    });
+                }
+            };
+
+            // Honor Game Bar opacity setting for compact/pinned mode
             try
             {
                 ApplyBackgroundOpacity(widget.RequestedOpacity / 100.0);
@@ -100,8 +119,17 @@ public sealed partial class LaunchDeckWidget : Page
 
     private async Task LoadConfigAsync()
     {
-        var (status, config, configPath, error) = await CompanionClient.LoadConfigAsync();
-        var displayPath = configPath ?? ConfigLoader.GetDefaultConfigPath();
+        (ConfigLoadStatus status, LaunchDeckConfig? config, string? configPath, string? error) result;
+        try
+        {
+            result = await CompanionClient.LoadConfigAsync();
+        }
+        catch (Exception ex)
+        {
+            ShowEmptyState("Load error", ex.Message);
+            return;
+        }
+        var (status, config, configPath, error) = result;
 
         if (status == ConfigLoadStatus.FileNotFound)
         {

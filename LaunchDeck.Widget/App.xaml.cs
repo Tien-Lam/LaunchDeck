@@ -67,6 +67,8 @@ sealed partial class App : Application
             _companionConnection = details.AppServiceConnection;
             CompanionConnection = _companionConnection;
 
+            Services.CompanionClient.RaiseCompanionConnected();
+
             _companionConnection.RequestReceived += Services.CompanionClient.OnCompanionMessage;
             _companionConnection.ServiceClosed += (_, _) =>
             {
