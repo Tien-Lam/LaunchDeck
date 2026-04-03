@@ -3,8 +3,8 @@
 .SYNOPSIS
     Uninstalls LaunchDeck Game Bar widget and cleans up all data.
 .DESCRIPTION
-    Removes the MSIX package, developer certificate, config file,
-    and cached icons. Requires administrator privileges.
+    Removes the MSIX package, developer certificates, config file,
+    cached icons, and companion log. Requires administrator privileges.
 #>
 
 $ErrorActionPreference = 'SilentlyContinue'
@@ -13,24 +13,23 @@ Write-Host "Removing LaunchDeck package..." -ForegroundColor Cyan
 Get-AppxPackage *LaunchDeck* | Remove-AppxPackage
 Write-Host "Package removed." -ForegroundColor Green
 
-Write-Host "Removing developer certificate..." -ForegroundColor Cyan
-$certs = Get-ChildItem "Cert:\LocalMachine\TrustedPeople" | Where-Object { $_.Subject -eq "CN=Developer" -and $_.FriendlyName -like "*LaunchDeck*" }
-if ($certs) {
-    $certs | Remove-Item
-    Write-Host "Certificate removed." -ForegroundColor Green
-} else {
-    # Fall back to matching just CN=Developer if FriendlyName wasn't set
-    $certs = Get-ChildItem "Cert:\LocalMachine\TrustedPeople" | Where-Object { $_.Subject -eq "CN=Developer" }
-    if ($certs) {
-        Write-Host "Found $($certs.Count) certificate(s) with CN=Developer."
-        $confirm = Read-Host "Remove all? (y/n)"
-        if ($confirm -eq 'y') {
+Write-Host "Removing developer certificates..." -ForegroundColor Cyan
+$stores = @('Cert:\LocalMachine\TrustedPeople', 'Cert:\LocalMachine\Root', 'Cert:\CurrentUser\My')
+$subjects = @('CN=Developer', 'CN=E37AAF35-F870-4E74-8486-74BED9927C48')
+$removed = 0
+foreach ($store in $stores) {
+    foreach ($subject in $subjects) {
+        $certs = Get-ChildItem $store | Where-Object { $_.Subject -eq $subject }
+        if ($certs) {
             $certs | Remove-Item
-            Write-Host "Certificate(s) removed." -ForegroundColor Green
+            $removed += $certs.Count
         }
-    } else {
-        Write-Host "No certificate found." -ForegroundColor Yellow
     }
+}
+if ($removed -gt 0) {
+    Write-Host "$removed certificate(s) removed." -ForegroundColor Green
+} else {
+    Write-Host "No certificates found." -ForegroundColor Yellow
 }
 
 Write-Host "Removing config and cached data..." -ForegroundColor Cyan
