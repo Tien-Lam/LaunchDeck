@@ -83,8 +83,7 @@ class Program
                     response = HandleExtractStoreIcon(message);
                     break;
                 case "log":
-                    var logMsg = message.ContainsKey("message") ? message["message"] as string : "";
-                    Log.Write(logMsg ?? "");
+                    Log.Write(message.ContainsKey("message") ? message["message"] as string ?? "" : "");
                     response = new ValueSet { ["status"] = "ok" };
                     break;
                 default:

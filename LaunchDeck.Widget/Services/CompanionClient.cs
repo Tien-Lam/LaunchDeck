@@ -189,8 +189,9 @@ public static class CompanionClient
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
 
-        if (root.TryGetProperty("items", out var itemsEl) ||
-            root.TryGetProperty("Items", out itemsEl))
+        if ((root.TryGetProperty("items", out var itemsEl) ||
+             root.TryGetProperty("Items", out itemsEl)) &&
+            itemsEl.ValueKind == JsonValueKind.Array)
         {
             foreach (var itemEl in itemsEl.EnumerateArray())
             {

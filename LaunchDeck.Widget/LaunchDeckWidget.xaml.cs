@@ -1,6 +1,5 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
@@ -19,7 +18,7 @@ namespace LaunchDeck.Widget;
 
 public sealed partial class LaunchDeckWidget : Page
 {
-    private bool _configUpdatedSubscribed;
+    private bool _eventsSubscribed;
     public ObservableCollection<LaunchItem> Items { get; } = new();
 
     public LaunchDeckWidget()
@@ -63,9 +62,9 @@ public sealed partial class LaunchDeckWidget : Page
         await EnsureCompanionAsync();
         await LoadConfigAsync();
 
-        if (!_configUpdatedSubscribed)
+        if (!_eventsSubscribed)
         {
-            _configUpdatedSubscribed = true;
+            _eventsSubscribed = true;
             CompanionClient.ConfigUpdated += async () =>
             {
                 await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
@@ -80,39 +79,39 @@ public sealed partial class LaunchDeckWidget : Page
                     await LoadConfigAsync();
                 });
             };
-        }
 
-        var widget = App.Widget;
-        if (widget != null)
-        {
-            // Reload config when Game Bar overlay becomes visible
-            // Catches saves that were missed while the widget was suspended
-            widget.VisibleChanged += async (s, a) =>
+            var widget = App.Widget;
+            if (widget != null)
             {
-                if (s.Visible)
+                // Reload config when Game Bar overlay becomes visible
+                // Catches saves that were missed while the widget was suspended
+                widget.VisibleChanged += async (s, a) =>
                 {
-                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
+                    if (s.Visible)
                     {
-                        await LoadConfigAsync();
-                    });
-                }
-            };
-
-            // Honor Game Bar opacity setting for compact/pinned mode
-            try
-            {
-                ApplyBackgroundOpacity(widget.RequestedOpacity / 100.0);
-                widget.RequestedOpacityChanged += (opacitySender, args) =>
-                {
-                    _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
-                    {
-                        ApplyBackgroundOpacity(opacitySender.RequestedOpacity / 100.0);
-                    });
+                        await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
+                        {
+                            await LoadConfigAsync();
+                        });
+                    }
                 };
-            }
-            catch
-            {
-                // RequestedOpacity may not be available in all Game Bar versions
+
+                // Honor Game Bar opacity setting for compact/pinned mode
+                try
+                {
+                    ApplyBackgroundOpacity(widget.RequestedOpacity / 100.0);
+                    widget.RequestedOpacityChanged += (opacitySender, args) =>
+                    {
+                        _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                        {
+                            ApplyBackgroundOpacity(opacitySender.RequestedOpacity / 100.0);
+                        });
+                    };
+                }
+                catch
+                {
+                    // RequestedOpacity may not be available in all Game Bar versions
+                }
             }
         }
     }

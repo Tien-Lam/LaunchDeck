@@ -38,28 +38,32 @@ public static class EditorManager
 
     public static void OpenEditor(string configPath, Action? onSaved)
     {
+        System.Windows.Threading.Dispatcher dispatcher;
         lock (Lock)
         {
             EnsureStaThread();
-
-            _dispatcher!.Invoke(() =>
-            {
-                if (_editorWindow != null)
-                {
-                    Log.Write("EditorManager: editor already open, no-op");
-                    return;
-                }
-
-                Log.Write("EditorManager: creating new window");
-                _editorWindow = new Editor.EditorWindow(configPath, onSaved);
-                _editorWindow.Closed += (_, _) =>
-                {
-                    Log.Write("EditorManager: window closed");
-                    lock (Lock)
-                        _editorWindow = null;
-                };
-                _editorWindow.Show();
-            });
+            dispatcher = _dispatcher!;
         }
+
+        // Invoke outside the lock to avoid deadlock: Closed handler acquires Lock
+        // on the STA thread, so holding Lock here while blocking on Invoke would deadlock.
+        dispatcher.Invoke(() =>
+        {
+            if (_editorWindow != null)
+            {
+                Log.Write("EditorManager: editor already open, no-op");
+                return;
+            }
+
+            Log.Write("EditorManager: creating new window");
+            _editorWindow = new Editor.EditorWindow(configPath, onSaved);
+            _editorWindow.Closed += (_, _) =>
+            {
+                Log.Write("EditorManager: window closed");
+                lock (Lock)
+                    _editorWindow = null;
+            };
+            _editorWindow.Show();
+        });
     }
 }
