@@ -140,6 +140,7 @@ public class EditorViewModel : INotifyPropertyChanged
         var vm = new ItemViewModel(_model.Items[_model.Items.Count - 1]);
         Items.Add(vm);
         OnPropertyChanged(nameof(ItemCountText));
+        Edit(vm);
     }
 
     public void AddUrl()
