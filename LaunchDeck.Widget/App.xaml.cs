@@ -36,6 +36,7 @@ sealed partial class App : Application
         if (args.Kind == ActivationKind.Protocol)
         {
             var protocolArgs = args as IProtocolActivatedEventArgs;
+
             if (protocolArgs?.Uri.Scheme == "ms-gamebarwidget")
             {
                 var widgetArgs = args as XboxGameBarWidgetActivatedEventArgs;
@@ -56,6 +57,7 @@ sealed partial class App : Application
             }
         }
     }
+
 
     protected override void OnBackgroundActivated(BackgroundActivatedEventArgs args)
     {
