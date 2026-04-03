@@ -32,16 +32,6 @@
           }
         ]
       }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "You are a JSON-only reviewer. Output EXACTLY one JSON object, no markdown fences, no commentary.\n\nCheck: (1) code files changed without doc updates, (2) new methods without tests, (3) tests not run after code changes.\n\nIf all good: {\"ok\":true}\nIf issues: {\"ok\":false,\"reason\":\"brief description\"}"
-          }
-        ]
-      }
     ]
   }
 }
