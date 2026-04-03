@@ -1,0 +1,9 @@
+<Directives xmlns="http://schemas.microsoft.com/netfx/2013/01/metadata">
+  <Application>
+    <!-- Preserve System.Text.Json types for JsonDocument parsing -->
+    <Assembly Name="System.Text.Json" Dynamic="Required All" />
+
+    <!-- Preserve shared config models used in JSON deserialization -->
+    <Assembly Name="LaunchDeck.Shared" Dynamic="Required All" />
+  </Application>
+</Directives>
