@@ -38,7 +38,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Review what Claude did in this conversation turn. Check:\n\n1. Docs: Were code files (.cs, .xaml, .ps1) modified without updating corresponding docs (docs/*.md, README.md)?\n2. Tests: Were new methods or logic branches added without tests?\n3. Dead code: Were methods, classes, or imports left unused after refactoring?\n4. Build: Were tests actually run after the last code change and before the last commit?\n\nYou MUST respond with valid JSON. If issues were found: {\"decision\": \"block\", \"reason\": \"description of what was missed\"}\nIf everything looks good: {\"decision\": \"approve\"}"
+            "prompt": "Review what Claude did in this conversation turn. Check:\n\n1. Docs: Were code files (.cs, .xaml, .ps1) modified without updating corresponding docs (docs/*.md, README.md)?\n2. Tests: Were new methods or logic branches added without tests?\n3. Dead code: Were methods, classes, or imports left unused after refactoring?\n4. Build: Were tests actually run after the last code change and before the last commit?\n\nYou MUST respond with ONLY valid JSON, no other text. If issues were found: {\"ok\": false, \"reason\": \"description of what was missed\"}\nIf everything looks good: {\"ok\": true}"
           }
         ]
       }
