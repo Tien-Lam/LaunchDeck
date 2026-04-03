@@ -1,0 +1,41 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git commit*)",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-commit.sh\"",
+            "timeout": 120,
+            "statusMessage": "Building and testing..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/check-docs.sh\"",
+            "timeout": 10,
+            "statusMessage": "Checking doc coverage..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Review what Claude did in this conversation. Check: (1) Were code files (.cs, .xaml) modified without updating corresponding docs (docs/*.md, README.md)? (2) Were tests run after code changes? (3) Were new testable functions added without tests? If anything was missed, respond with a brief description. If everything looks good, respond with nothing."
+          }
+        ]
+      }
+    ]
+  }
+}
