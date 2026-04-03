@@ -10,6 +10,12 @@
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-commit.sh\"",
             "timeout": 120,
             "statusMessage": "Building and testing..."
+          },
+          {
+            "type": "agent",
+            "if": "Bash(git commit*)",
+            "prompt": "Review the staged git diff for this commit. Check for: (1) bugs, logic errors, or edge cases, (2) security issues (injection, secrets, unsafe input handling), (3) unnecessary complexity that could be simplified, (4) unused imports or dead code. If you find issues, respond with a clear description. If the code looks good, respond with nothing.",
+            "statusMessage": "Code review..."
           }
         ]
       }
@@ -32,7 +38,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Review what Claude did in this conversation. Check: (1) Were code files (.cs, .xaml) modified without updating corresponding docs (docs/*.md, README.md)? (2) Were tests run after code changes? (3) Were new testable functions added without tests? If anything was missed, respond with a brief description. If everything looks good, respond with nothing."
+            "prompt": "Review what Claude did in this conversation. Check: (1) Were code files (.cs, .xaml) modified without updating corresponding docs (docs/*.md, README.md)? (2) Were tests run after code changes? (3) Were new testable functions added without tests? (4) Could any recently written code be simplified for clarity or efficiency? If anything was missed or can be improved, respond with a brief description. If everything looks good, respond with nothing."
           }
         ]
       }
