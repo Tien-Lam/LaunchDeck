@@ -23,14 +23,17 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      - name: Run tests
-        run: dotnet test LaunchDeck.Tests/ --configuration Release --verbosity normal
+      - name: Build and test
+        run: |
+          dotnet build LaunchDeck.Shared/LaunchDeck.Shared.csproj -warnaserror
+          dotnet build LaunchDeck.Companion/LaunchDeck.Companion.csproj -warnaserror
+          dotnet test LaunchDeck.Tests/ --configuration Release --verbosity normal
 
       - name: Create signing certificate
         run: |
           $cert = New-SelfSignedCertificate `
             -Type Custom `
-            -Subject "CN=Developer" `
+            -Subject "CN=E37AAF35-F870-4E74-8486-74BED9927C48" `
             -KeyUsage DigitalSignature `
             -FriendlyName "LaunchDeck Dev Certificate" `
             -CertStoreLocation "Cert:\CurrentUser\My" `
@@ -58,7 +61,9 @@ jobs:
 
       - name: Find MSIX
         run: |
-          $msix = Get-ChildItem -Path "LaunchDeck.Package\AppPackages" -Recurse -Filter "*.msix" | Select-Object -First 1
+          $msix = Get-ChildItem -Path "LaunchDeck.Package\AppPackages" -Recurse -Filter "*.msix" |
+            Where-Object { $_.Name -notmatch 'Widget' } |
+            Select-Object -First 1
           if (-not $msix) { Write-Error "No MSIX found"; exit 1 }
           Write-Host "Found: $($msix.FullName)"
           echo "MSIX_PATH=$($msix.FullName)" >> $env:GITHUB_ENV
@@ -82,19 +87,17 @@ jobs:
           body: |
             ## Installation
 
-            1. Download `LaunchDeck-${{ github.ref_name }}.zip` and extract it
-            2. Right-click `Install.ps1` → **Run with PowerShell** (as Administrator)
-            3. Open Game Bar (**Win+G**) and enable the LaunchDeck widget from the widget menu
+            **Recommended:** Install from the [Microsoft Store](https://apps.microsoft.com/detail/launchdeck) for automatic updates.
 
-            The install script installs a developer certificate and the MSIX package. The certificate is only needed once — future updates just need the MSIX.
+            **Sideload:** Download the zip, extract, and right-click `Install.ps1` → **Run with PowerShell** (as Administrator). The install script installs a developer certificate and the MSIX package.
 
             ## Uninstall
 
-            Right-click `Uninstall.ps1` → **Run with PowerShell** (as Administrator). This removes the package, certificate, and all saved data.
+            Right-click `Uninstall.ps1` → **Run with PowerShell** (as Administrator).
 
             ## Requirements
 
             - Windows 10 19041+ with Xbox Game Bar
-            - Administrator access (for certificate install/removal)
+            - Administrator access (for certificate install)
           files: |
             LaunchDeck-${{ github.ref_name }}.zip
