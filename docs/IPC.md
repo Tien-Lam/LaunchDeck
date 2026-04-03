@@ -1,6 +1,6 @@
 # IPC Protocol Reference
 
-Inter-process communication protocol between the LaunchDeck UWP widget and the .NET 8 Win32 companion process.
+Inter-process communication protocol between the LaunchDeck UWP widget and the .NET 10 Win32 companion process.
 
 ## Transport
 
@@ -16,7 +16,7 @@ The App Service runs in-process with the widget (background task), giving the co
 
 ### Companion (client) -- Program.cs
 
-1. On startup, the companion acquires a single-instance mutex (`Local\LaunchDeckCompanion`). If already held, the process exits immediately.
+1. On startup, the companion acquires a single-instance mutex (`Local\LaunchDeckCompanion`) with `mutex.WaitOne(500)` (500ms timeout). If the mutex cannot be acquired within the timeout, the process exits.
 2. Creates an `AppServiceConnection` with:
    - `AppServiceName = "com.launchdeck.service"`
    - `PackageFamilyName = Package.Current.Id.FamilyName`
@@ -41,7 +41,7 @@ The connection ends when either:
 - The widget suspends or is closed (companion receives `ServiceClosed`).
 - The system reclaims the background task.
 
-There is no reconnection logic. If the connection drops, `CompanionConnection` becomes `null` and all subsequent `CompanionClient` calls fail gracefully (return default/false/null).
+If the connection drops, the widget calls `TryRelaunchCompanion()` which retries with exponential backoff (1s, 2s, 4s delays between attempts). When the companion reconnects, the widget fires the `CompanionConnected` event, which triggers a config reload so the grid is refreshed automatically.
 
 ## Message Format
 
@@ -139,7 +139,7 @@ ValueSet { ["status"] = "error", ["error"] = "The system cannot find the file sp
 
 ### `extract-icon`
 
-Extracts the associated icon from an EXE file and saves it as a PNG in the icon cache directory (`%LOCALAPPDATA%\LaunchDeck\icons\`). Uses SHA-256 hash of the input path for the cache filename. Returns a cached result if the cache file is newer than the EXE.
+Extracts the associated icon from an EXE file and returns it as base64-encoded PNG data. Uses SHA-256 hash of the input path for cache filenames. Returns a cached result if the cache file is newer than the EXE.
 
 **Request:**
 
@@ -153,7 +153,7 @@ Extracts the associated icon from an EXE file and saves it as a PNG in the icon 
 | Key        | Type   | Condition  | Description                                   |
 |------------|--------|------------|-----------------------------------------------|
 | `status`   | string | always     | `"ok"` or `"error"`                           |
-| `iconPath` | string | on success | Absolute path to the cached PNG icon file     |
+| `iconData` | string | on success | Base64-encoded PNG image data                 |
 
 **Example request:**
 
@@ -169,17 +169,17 @@ ValueSet {
 ```
 ValueSet {
     ["status"]   = "ok",
-    ["iconPath"] = "C:\\Users\\user\\AppData\\Local\\LaunchDeck\\icons\\a1b2c3d4e5f67890.png"
+    ["iconData"] = "iVBORw0KGgo..."
 }
 ```
 
-**Widget client:** `CompanionClient.ExtractIconAsync(string exePath)` returns `string?` (icon path on success, `null` on failure).
+**Widget client:** `CompanionClient.ExtractIconAsync(string exePath)` returns `byte[]?` (PNG data on success, `null` on failure).
 
 ---
 
 ### `fetch-favicon`
 
-Downloads a website's favicon via Google's favicon service (`https://www.google.com/s2/favicons?domain=<host>&sz=64`) and caches it as a PNG. Uses SHA-256 hash of the URL for the cache filename. Returns the cached path immediately if the file already exists.
+Downloads a website's favicon via Google's favicon service (`https://www.google.com/s2/favicons?domain=<host>&sz=64`) and returns it as base64-encoded PNG data. Uses SHA-256 hash of the URL for cache filenames. Returns a cached result immediately if the cache file already exists.
 
 **Request:**
 
@@ -193,7 +193,7 @@ Downloads a website's favicon via Google's favicon service (`https://www.google.
 | Key        | Type   | Condition  | Description                                |
 |------------|--------|------------|--------------------------------------------|
 | `status`   | string | always     | `"ok"` or `"error"`                        |
-| `iconPath` | string | on success | Absolute path to the cached favicon file   |
+| `iconData` | string | on success | Base64-encoded PNG image data              |
 
 **Example request:**
 
@@ -209,11 +209,11 @@ ValueSet {
 ```
 ValueSet {
     ["status"]   = "ok",
-    ["iconPath"] = "C:\\Users\\user\\AppData\\Local\\LaunchDeck\\icons\\9f8e7d6c5b4a3210.png"
+    ["iconData"] = "iVBORw0KGgo..."
 }
 ```
 
-**Widget client:** `CompanionClient.FetchFaviconAsync(string url)` returns `string?` (icon path on success, `null` on failure).
+**Widget client:** `CompanionClient.FetchFaviconAsync(string url)` returns `byte[]?` (PNG data on success, `null` on failure).
 
 ---
 
@@ -431,6 +431,40 @@ The widget handles this by calling `LoadConfigAsync()` to refresh the grid with 
 
 ---
 
+### `log`
+
+Widget sends a log message to the companion, which writes it to `%LOCALAPPDATA%\LaunchDeck\companion.log`.
+
+**Request:**
+
+| Key       | Type   | Required | Description                |
+|-----------|--------|----------|----------------------------|
+| `action`  | string | yes      | `"log"`                    |
+| `message` | string | yes      | The log message to write   |
+
+**Response:**
+
+| Key      | Type   | Condition | Description          |
+|----------|--------|-----------|----------------------|
+| `status` | string | always    | `"ok"` or `"error"`  |
+
+**Example request:**
+
+```
+ValueSet {
+    ["action"]  = "log",
+    ["message"] = "Config loaded with 5 items"
+}
+```
+
+**Example response:**
+
+```
+ValueSet { ["status"] = "ok" }
+```
+
+---
+
 ## Key Flows
 
 ### Startup and Connection
@@ -539,6 +573,7 @@ Widget UI                CompanionClient              Companion
 | `%LOCALAPPDATA%\LaunchDeck\config.json`         | Default configuration file     |
 | `%LOCALAPPDATA%\LaunchDeck\icons\`              | Cached icon PNGs               |
 | `%LOCALAPPDATA%\LaunchDeck\icons\<hash>.png`    | Individual cached icon (SHA-256 hash of source path/URL, first 16 hex chars) |
+| `%LOCALAPPDATA%\LaunchDeck\companion.log`       | Companion process diagnostic log                |
 
 ## Source Files
 
@@ -550,6 +585,8 @@ Widget UI                CompanionClient              Companion
 | `LaunchDeck.Companion/LaunchHandler.cs`            | Process launch logic                |
 | `LaunchDeck.Companion/IconExtractor.cs`            | Icon extraction and favicon fetch   |
 | `LaunchDeck.Companion/ExePicker.cs`                | File picker dialog and config append|
+| `LaunchDeck.Companion/Log.cs`                      | File logger for companion diagnostics |
+| `LaunchDeck.Companion/EditorManager.cs`            | WPF editor window lifecycle management |
 | `LaunchDeck.Shared/ConfigModels.cs`                | Config types, loader, and saver     |
 | `LaunchDeck.Package/Package.appxmanifest`          | App Service declaration             |
 

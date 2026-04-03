@@ -2,7 +2,7 @@
 
 ## Overview
 
-LaunchDeck uses **xUnit 2.9** on **.NET 8** (`net8.0-windows10.0.19041.0`) for automated testing. Tests live in the `LaunchDeck.Tests` project, which references both `LaunchDeck.Shared` and `LaunchDeck.Companion`.
+LaunchDeck uses **xUnit 2.9** on **.NET 10** (`net10.0-windows10.0.19041.0`) for automated testing. Tests live in the `LaunchDeck.Tests` project, which references both `LaunchDeck.Shared` and `LaunchDeck.Companion`.
 
 ## Running Tests
 
@@ -181,6 +181,10 @@ For areas that cannot be automated, follow this procedure:
 - **Icon display:** Verify EXE items show extracted icons and URL items show favicons.
 - **Error handling:** Remove or corrupt `config.json`. Verify the widget shows an appropriate error state rather than crashing.
 - **IPC resilience:** Kill the companion process while the widget is open. Verify the widget handles the disconnection gracefully.
+
+### Debugging
+
+The companion process writes diagnostic logs to `%LOCALAPPDATA%\LaunchDeck\companion.log`. Check this file when troubleshooting IPC failures, icon extraction issues, or launch errors.
 
 ## Code Coverage
 

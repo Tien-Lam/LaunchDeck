@@ -69,7 +69,7 @@ The config file is a single JSON object with one top-level key, `items`, contain
 | Field  | Type     | Required | Default | Description |
 |--------|----------|----------|---------|-------------|
 | `name` | string   | Yes      | `""`    | Display name shown on the widget tile. |
-| `type` | string   | Yes      | --      | One of `"exe"`, `"url"`, `"store"`. Case-insensitive on read (deserialization uses `PropertyNameCaseInsensitive = true`). Serialized as lowercase via `JsonStringEnumConverter`. |
+| `type` | string   | Yes      | --      | One of `"exe"`, `"url"`, `"store"`. Case-insensitive on read (widget-side deserialization uses `JsonDocument` + `TryGetProperty` with case-insensitive matching). Serialized as lowercase via `JsonStringEnumConverter`. |
 | `path` | string   | Yes      | `""`    | Target to launch. Meaning depends on `type` (see below). |
 | `args` | string?  | No       | `null`  | Command-line arguments. Only meaningful for `type: "exe"`. |
 | `icon` | string?  | No       | `null`  | Absolute path to a custom icon image file. When set, bypasses all automatic icon resolution. |
@@ -168,7 +168,7 @@ Cached icons are stored at:
 %LOCALAPPDATA%\LaunchDeck\icons\
 ```
 
-Note: Unlike the config path, the icon cache directory is resolved by the companion process (a desktop .NET 8 app, not UWP), so `Environment.GetFolderPath` returns the real `%LOCALAPPDATA%` without virtualization issues.
+Note: Unlike the config path, the icon cache directory is resolved by the companion process (a desktop .NET 10 app, not UWP), so `Environment.GetFolderPath` returns the real `%LOCALAPPDATA%` without virtualization issues.
 
 Each cached icon is named using a truncated SHA-256 hash of the input (the EXE path or URL):
 
@@ -189,11 +189,11 @@ The cache directory is created automatically on first use by `IconExtractor.GetI
 
 ## How Config Is Loaded
 
-The widget (UWP) cannot read arbitrary filesystem paths due to the UWP sandbox. All config access goes through the companion process (Win32, .NET 8) via Windows App Service IPC.
+The widget (UWP) cannot read arbitrary filesystem paths due to the UWP sandbox. All config access goes through the companion process (Win32, .NET 10) via Windows App Service IPC.
 
 ### Load Sequence
 
-1. **Widget starts** -- `LaunchDeckWidget.OnLoaded` fires and launches the companion via `FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync()`. A 500ms delay follows to let the companion connect its App Service.
+1. **Widget starts** -- `LaunchDeckWidget.OnLoaded` fires and calls `EnsureCompanionAsync()`, which launches the companion via `FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync()` and then polls for the App Service connection with 3 retry attempts (100ms polling x 100 iterations per attempt).
 
 2. **Widget requests config** -- `CompanionClient.LoadConfigAsync()` sends a `ValueSet` message:
    ```
@@ -213,7 +213,15 @@ The widget (UWP) cannot read arbitrary filesystem paths due to the UWP sandbox. 
 
 5. **Widget populates grid** -- `LoadConfigAsync` maps each `LaunchItemConfig` into a `LaunchItem` view model, adds it to the `ObservableCollection<LaunchItem>`, then kicks off `LoadIconsAsync` for icon resolution.
 
-6. **Icon resolution** -- For each item, the widget sends IPC requests (`extract-icon` or `fetch-favicon`) to the companion, which performs the actual I/O and returns the cached icon path. The widget loads the path as a `BitmapImage`.
+6. **Icon resolution** -- For each item, the widget sends IPC requests (`extract-icon` or `fetch-favicon`) to the companion, which performs the actual I/O and returns base64-encoded icon data. The widget decodes the data into a `BitmapImage`.
+
+### Reload Triggers
+
+The widget reloads the config automatically in response to:
+
+- **`CompanionConnected` event** -- fires when the companion (re)connects via App Service, ensuring the grid is populated after startup or reconnection.
+- **`VisibleChanged` event** -- fires when the widget is shown/hidden in Game Bar, so the grid reflects any changes made while the widget was hidden.
+- **`config-updated` push** -- the companion sends this after the editor saves, triggering an immediate reload.
 
 ### Error States in the Widget
 

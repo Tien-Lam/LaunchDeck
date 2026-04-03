@@ -57,6 +57,12 @@ Builds the full solution with MSBuild and registers the package via loose-file d
 ## Uninstall
 
 ```powershell
+.\Uninstall.ps1
+```
+
+Or manually:
+
+```powershell
 # Remove the registered package
 Get-AppxPackage *LaunchDeck* | Remove-AppxPackage
 
@@ -73,7 +79,7 @@ Items are stored in `%LOCALAPPDATA%\LaunchDeck\config.json`. Use the built-in ed
   "items": [
     { "name": "Notepad", "type": "exe", "path": "C:\\Windows\\notepad.exe" },
     { "name": "YouTube", "type": "url", "path": "https://youtube.com" },
-    { "name": "Spotify", "type": "store", "path": "spotify:" }
+    { "name": "Spotify", "type": "store", "path": "shell:AppsFolder\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify" }
   ]
 }
 ```

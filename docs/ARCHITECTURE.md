@@ -32,17 +32,17 @@ UWP apps run in a sandbox. They cannot:
 - Show Win32 file picker dialogs
 - Extract icons from EXE files
 
-The companion is a full-trust .NET 8 Win32 process that does all of this on behalf of the widget via App Service messages.
+The companion is a full-trust .NET 10 Win32 process that does all of this on behalf of the widget via App Service messages.
 
 ## Projects
 
 | Project | Framework | Purpose |
 |---------|-----------|---------|
 | `LaunchDeck.Widget` | UWP (netcore 6.2.14) | Game Bar widget UI |
-| `LaunchDeck.Companion` | .NET 8 (WinExe) | Full-trust helper process |
+| `LaunchDeck.Companion` | .NET 10 (WinExe) | Full-trust helper process |
 | `LaunchDeck.Shared` | .NET Standard 2.0 | Config models, shared by both |
 | `LaunchDeck.Package` | WAPPROJ | MSIX packaging, manifest, assets |
-| `LaunchDeck.Tests` | .NET 8 (xunit) | Unit tests for companion/shared |
+| `LaunchDeck.Tests` | .NET 10 (xunit) | Unit tests for companion/shared |
 
 ## IPC Protocol
 
@@ -57,6 +57,7 @@ All communication uses `ValueSet` messages over `AppServiceConnection`. Every re
 | `extract-icon` | Widget -> Companion | Get icon from EXE | `path` |
 | `fetch-favicon` | Widget -> Companion | Get favicon for URL | `url` |
 | `open-editor` | Widget -> Companion | Open WPF config editor | `configPath` |
+| `log` | Widget -> Companion | Write a log message to `companion.log` | `message` |
 
 ### Response Statuses
 
@@ -73,14 +74,16 @@ All communication uses `ValueSet` messages over `AppServiceConnection`. Every re
 
 ### Companion Lifecycle
 - Launched by widget via `FullTrustProcessLauncher` on load
-- Named mutex (`Local\LaunchDeckCompanion`) prevents duplicate instances
+- Named mutex (`Local\LaunchDeckCompanion`) prevents duplicate instances; uses `mutex.WaitOne(500)` (500ms timeout) rather than immediate exit
+- Logs diagnostics to `%LOCALAPPDATA%\LaunchDeck\companion.log` via `Log.cs`
+- If the connection drops, the widget retries via `TryRelaunchCompanion()` with exponential backoff (1s, 2s, 4s)
 - Exits when App Service connection closes (Game Bar dismisses widget)
 - `OutputType=WinExe` -- no console window
 
 ### Game Bar Integration
 - Widget registered as `microsoft.gameBarUIExtension` in Package.appxmanifest
 - Hardcoded dark theme (`#202020` background, `RequestedTheme="Dark"`) -- subscribes to Game Bar opacity events but not theme events
-- Deploy via VS (F5) -- `Add-AppxPackage` registration doesn't reliably register with Game Bar
+- Deploy via `deploy.ps1` (`Add-AppxPackage -Register`) or VS (F5)
 
 ## Config
 

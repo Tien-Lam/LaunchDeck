@@ -8,8 +8,8 @@ The solution (`LaunchDeck.sln`) contains five projects:
 |---------|------|--------|---------|
 | `LaunchDeck.Shared` | .NET Standard 2.0 class library | `netstandard2.0` | Config models, JSON serialization (System.Text.Json 8.0.5). Referenced by both Widget and Companion. |
 | `LaunchDeck.Widget` | UWP XAML app | UAP 10.0.19041.0+ | Game Bar widget UI. Output type `AppContainerExe`. References Shared. |
-| `LaunchDeck.Companion` | .NET 8 WinExe | `net8.0-windows10.0.19041.0` | Full-trust Win32 companion process. Uses WindowsForms for file dialogs. References Shared. |
-| `LaunchDeck.Tests` | .NET test project | (standard) | Unit tests for Shared and Companion logic. |
+| `LaunchDeck.Companion` | .NET 10 WinExe | `net10.0-windows10.0.19041.0` | Full-trust Win32 companion process. Uses WindowsForms for file dialogs. References Shared. |
+| `LaunchDeck.Tests` | .NET test project | `net10.0-windows10.0.19041.0` | Unit tests for Shared and Companion logic. |
 | `LaunchDeck.Package` | Windows Application Packaging (WAPPROJ) | MSIX | Packages Widget + Companion into a single MSIX bundle for deployment. |
 
 ### Project Dependencies
@@ -18,7 +18,7 @@ The solution (`LaunchDeck.sln`) contains five projects:
 LaunchDeck.Package (WAPPROJ)
   +-- LaunchDeck.Widget (UWP, entry point)
   |     +-- LaunchDeck.Shared (.NET Standard 2.0)
-  +-- LaunchDeck.Companion (.NET 8)
+  +-- LaunchDeck.Companion (.NET 10, net10.0-windows10.0.19041.0)
         +-- LaunchDeck.Shared (.NET Standard 2.0)
 ```
 
@@ -59,7 +59,7 @@ The solution is configured for `Debug|x64` and `Release|x64` platform configurat
 
 - Visual Studio 2022 with the **Universal Windows Platform development** workload
 - Windows SDK 10.0.19041.0 or later (max tested: 10.0.26100.0)
-- .NET 8 SDK (for Companion)
+- .NET 10 SDK (for Companion)
 - NuGet packages:
   - `Microsoft.Gaming.XboxGameBar` 5.8.220627001 (Widget)
   - `Microsoft.NETCore.UniversalWindowsPlatform` 6.2.14 (Widget)
@@ -70,19 +70,26 @@ The solution is configured for `Debug|x64` and `Release|x64` platform configurat
 
 ## Deployment
 
-### Deploy method: Visual Studio F5 ONLY
+### Primary method: `deploy.ps1`
 
-**Use Visual Studio's F5 (Start Debugging) or Deploy command to install the package.** Set `LaunchDeck.Package` as the startup project and deploy.
+The `deploy.ps1` script is the primary deployment method. It kills running LaunchDeck processes, builds the solution with MSBuild (using `AppxBundle=Never`), and registers the package via `Add-AppxPackage -Register` (loose-file registration, no signing needed).
 
-**Do NOT use `Add-AppxPackage` from PowerShell.** Command-line sideloading does not reliably register Game Bar widget extensions. The widget may not appear in Game Bar's widget list even though the package installs successfully. This was discovered through trial and error -- the manifest registers correctly only when deployed through Visual Studio's packaging pipeline.
+```powershell
+.\deploy.ps1
+```
 
-### Steps
+### Alternative: Visual Studio F5
 
-1. Open `LaunchDeck.sln` in Visual Studio 2022.
-2. Set **LaunchDeck.Package** as the startup project.
-3. Select `Debug | x64` configuration.
-4. Press **F5** (or right-click LaunchDeck.Package and select **Deploy**).
-5. Open Game Bar with `Win+G`. The LaunchDeck widget should appear in the widget menu.
+You can also deploy via Visual Studio's F5 (Start Debugging) or Deploy command. Set `LaunchDeck.Package` as the startup project and deploy.
+
+### Steps (deploy.ps1)
+
+1. Run `.\deploy.ps1` from the solution root.
+2. Open Game Bar with `Win+G`. The LaunchDeck widget should appear in the widget menu.
+
+### Uninstall
+
+Run `.\Uninstall.ps1` to remove the registered package and clean up cached data.
 
 ---
 
@@ -102,7 +109,7 @@ LaunchDeck.Package/
     LaunchDeck.Widget.exe
     LaunchDeck.Widget.dll
     (XAML pages, assets, SDK WinMD files)
-  LaunchDeck.Companion/          -- .NET 8 companion binaries
+  LaunchDeck.Companion/          -- .NET 10 companion binaries (net10.0-windows10.0.19041.0)
     LaunchDeck.Companion.exe
     (runtime dependencies)
 ```
@@ -118,7 +125,7 @@ The manifest (`Package.appxmanifest`) declares the following:
 ### Identity
 
 ```xml
-<Identity Name="LaunchDeck" Publisher="CN=Developer" Version="1.0.0.0" />
+<Identity Name="34667TienLongLam.LaunchDeck" Publisher="CN=E37AAF35-..." Version="1.0.0.0" />
 ```
 
 Target: `Windows.Desktop`, minimum SDK `10.0.19041.0`, max tested `10.0.26100.0`.
