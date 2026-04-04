@@ -1,7 +1,8 @@
 #!/bin/bash
 # PostToolUse hook: remind about doc updates when code files change
+export PATH="$PATH:/mingw64/bin"
 INPUT=$(cat)
-FILE_PATH=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('tool_input',{}).get('file_path',''))" 2>/dev/null)
+FILE_PATH=$(echo "$INPUT" | grep -o '"file_path":"[^"]*"' | head -1 | sed 's/"file_path":"//;s/"$//')
 
 # Only check code files, not docs/tests/scripts
 case "$FILE_PATH" in

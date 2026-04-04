@@ -1,6 +1,10 @@
 #!/bin/bash
 # Pre-commit hook: build all projects (warnings as errors) + tests
 # Exit 2 = block the commit, stderr is fed back to Claude
+DOTNET_DIR=$(cygpath "${PROGRAMFILES:-C:\\Program Files}" 2>/dev/null || echo "/c/Program Files")/dotnet
+export PATH="$PATH:$DOTNET_DIR:/mingw64/bin"
+export TEMP="${TEMP:-/tmp}"
+export TMP="${TMP:-/tmp}"
 cd "$CLAUDE_PROJECT_DIR"
 
 # Build all dotnet projects with warnings as errors

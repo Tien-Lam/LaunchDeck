@@ -10,12 +10,6 @@
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-commit.sh\"",
             "timeout": 120,
             "statusMessage": "Building and testing..."
-          },
-          {
-            "type": "agent",
-            "if": "Bash(git commit*)",
-            "prompt": "Run `git diff --cached` to see the staged changes for this commit. Review them for:\n\n1. **Bugs**: logic errors, off-by-one, null derefs, race conditions, edge cases\n2. **Dead code**: unused imports, unreachable branches, methods no longer called anywhere (grep the codebase to verify)\n3. **Security**: injection, secrets, unsafe input handling\n4. **Missing tests**: new public/internal methods or logic branches that have no test coverage — check LaunchDeck.Tests/ for corresponding tests\n5. **Missing docs**: if IPC actions, config schema, UI behavior, or deployment changed, check that docs/*.md was also updated in this commit\n6. **Complexity**: code that could be simplified without losing functionality\n\nGrep the codebase to verify dead code claims. Don't guess — check.\n\nIf you find issues, respond with a clear description. If everything looks good, respond with nothing.",
-            "statusMessage": "Code review..."
           }
         ]
       }
