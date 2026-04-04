@@ -5,7 +5,9 @@
         Title="LaunchDeck — Config Editor"
         Width="520" Height="550"
         MinWidth="400" MinHeight="350"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Closing="OnWindowClosing"
+        Icon="pack://application:,,,/Assets/Icon.png">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -15,19 +17,36 @@
     </Window.Resources>
 
     <Grid Background="{StaticResource PageBackground}">
-        <!-- Main scrollable content -->
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24,20">
-            <StackPanel MaxWidth="480">
-                <!-- Page header -->
+        <!-- Main layout: header top, buttons bottom, items scroll in middle -->
+        <DockPanel Margin="24,20" MaxWidth="480">
+            <!-- Page header (sticky top) -->
+            <StackPanel DockPanel.Dock="Top">
                 <TextBlock Text="LaunchDeck" Style="{StaticResource PageTitle}"
                            Margin="0,0,0,2"/>
                 <TextBlock Text="Configure your launch items" FontSize="12"
-                           Foreground="{StaticResource TextSecondary}" Margin="0,0,0,20"/>
+                           Foreground="{StaticResource TextSecondary}" Margin="0,0,0,12"/>
+            </StackPanel>
 
-                <!-- Section header -->
-                <TextBlock Text="Items" Style="{StaticResource SectionHeader}"/>
+            <!-- Bottom bar (sticky bottom) -->
+            <DockPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                <Button Content="Save and Refresh"
+                        Style="{DynamicResource AccentButtonStyle}"
+                        DockPanel.Dock="Right"
+                        Command="{Binding SaveCommand}"/>
+                <Menu>
+                    <MenuItem Header="+ Add item">
+                        <MenuItem Header="EXE Application" Click="OnAddExeClick"/>
+                        <MenuItem Header="URL" Click="OnAddUrlClick"/>
+                        <MenuItem Header="Store App" Click="OnAddStoreClick"/>
+                    </MenuItem>
+                </Menu>
+            </DockPanel>
 
-                <!-- Item cards -->
+            <!-- Scrollable item cards (fills remaining space) -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          PanningMode="VerticalOnly"
+                          Margin="0,4,0,0">
                 <ItemsControl ItemsSource="{Binding Items}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type editor:ItemViewModel}">
@@ -82,28 +101,8 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-
-                <!-- Add button -->
-                <Menu Margin="0,8,0,0">
-                    <MenuItem Header="+ Add item">
-                        <MenuItem Header="EXE Application" Click="OnAddExeClick"/>
-                        <MenuItem Header="URL" Click="OnAddUrlClick"/>
-                        <MenuItem Header="Store App" Click="OnAddStoreClick"/>
-                    </MenuItem>
-                </Menu>
-
-                <!-- Bottom bar -->
-                <DockPanel Margin="0,16,0,0">
-                    <TextBlock Text="{Binding ItemCountText}" FontSize="11"
-                               Foreground="{StaticResource TextTertiary}"
-                               VerticalAlignment="Center"/>
-                    <Button Content="Save and Refresh"
-                            Style="{DynamicResource AccentButtonStyle}"
-                            HorizontalAlignment="Right" DockPanel.Dock="Right"
-                            Command="{Binding SaveCommand}"/>
-                </DockPanel>
-            </StackPanel>
-        </ScrollViewer>
+            </ScrollViewer>
+        </DockPanel>
 
         <!-- Edit dialog overlay -->
         <Grid Visibility="{Binding DialogVisibility}">
@@ -113,49 +112,53 @@
                     MaxWidth="450"
                     VerticalAlignment="Center" HorizontalAlignment="Stretch"
                     Margin="36,24">
-                <StackPanel>
-                    <TextBlock Text="Edit Item" FontSize="18" FontWeight="SemiBold"
-                               Foreground="{StaticResource TextPrimary}" Margin="0,0,0,16"/>
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              PanningMode="VerticalOnly">
+                    <StackPanel>
+                        <TextBlock Text="Edit Item" FontSize="18" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimary}" Margin="0,0,0,16"/>
 
-                    <TextBlock Text="NAME" Style="{StaticResource FieldLabel}"/>
-                    <TextBox Text="{Binding EditName, UpdateSourceTrigger=PropertyChanged}"
-                             Margin="0,0,0,12"/>
-
-                    <TextBlock Text="TYPE" Style="{StaticResource FieldLabel}"/>
-                    <TextBlock Text="{Binding EditTypeLabel}"
-                               Foreground="{StaticResource TextTertiary}"
-                               FontSize="13" Margin="0,0,0,12" Padding="6,5"/>
-
-                    <TextBlock Text="PATH" Style="{StaticResource FieldLabel}"/>
-                    <DockPanel Margin="0,0,0,12">
-                        <Button Content="Browse" DockPanel.Dock="Right" Margin="4,0,0,0"
-                                Click="OnBrowsePathClick"
-                                Visibility="{Binding EditBrowsePathVisibility}"/>
-                        <TextBox Text="{Binding EditPath, UpdateSourceTrigger=PropertyChanged}"/>
-                    </DockPanel>
-
-                    <StackPanel Visibility="{Binding EditArgsVisibility}">
-                        <TextBlock Text="ARGUMENTS" Style="{StaticResource FieldLabel}"/>
-                        <TextBox Text="{Binding EditArgs, UpdateSourceTrigger=PropertyChanged}"
+                        <TextBlock Text="NAME" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding EditName, UpdateSourceTrigger=PropertyChanged}"
                                  Margin="0,0,0,12"/>
-                    </StackPanel>
 
-                    <TextBlock Text="CUSTOM ICON" Style="{StaticResource FieldLabel}"/>
-                    <DockPanel Margin="0,0,0,16">
-                        <Button Content="Browse" DockPanel.Dock="Right" Margin="4,0,0,0"
-                                Click="OnBrowseIconClick"/>
-                        <TextBox Text="{Binding EditIcon, UpdateSourceTrigger=PropertyChanged}"/>
-                    </DockPanel>
+                        <TextBlock Text="TYPE" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding EditTypeLabel}"
+                                   Foreground="{StaticResource TextTertiary}"
+                                   FontSize="13" Margin="0,0,0,12" Padding="6,5"/>
 
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="Save" Style="{DynamicResource AccentButtonStyle}"
-                                Command="{Binding DialogSaveCommand}"
-                                Margin="0,0,8,0" MinWidth="80"/>
-                        <Button Content="Cancel"
-                                Command="{Binding DialogCancelCommand}"
-                                MinWidth="80"/>
+                        <TextBlock Text="PATH" Style="{StaticResource FieldLabel}"/>
+                        <DockPanel Margin="0,0,0,12">
+                            <Button Content="Browse" DockPanel.Dock="Right" Margin="4,0,0,0"
+                                    Click="OnBrowsePathClick"
+                                    Visibility="{Binding EditBrowsePathVisibility}"/>
+                            <TextBox Text="{Binding EditPath, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DockPanel>
+
+                        <StackPanel Visibility="{Binding EditArgsVisibility}">
+                            <TextBlock Text="ARGUMENTS" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding EditArgs, UpdateSourceTrigger=PropertyChanged}"
+                                     Margin="0,0,0,12"/>
+                        </StackPanel>
+
+                        <TextBlock Text="CUSTOM ICON" Style="{StaticResource FieldLabel}"/>
+                        <DockPanel Margin="0,0,0,16">
+                            <Button Content="Browse" DockPanel.Dock="Right" Margin="4,0,0,0"
+                                    Click="OnBrowseIconClick"/>
+                            <TextBox Text="{Binding EditIcon, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DockPanel>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="Save" Style="{DynamicResource AccentButtonStyle}"
+                                    Command="{Binding DialogSaveCommand}"
+                                    Margin="0,0,8,0" MinWidth="80"/>
+                            <Button Content="Cancel"
+                                    Command="{Binding DialogCancelCommand}"
+                                    MinWidth="80"/>
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
+                </ScrollViewer>
             </Border>
         </Grid>
     </Grid>

@@ -4,7 +4,8 @@
         Title="Select Store App"
         Width="400" Height="500"
         MinWidth="300" MinHeight="300"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        Icon="pack://application:,,,/Assets/Icon.png">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -43,15 +44,28 @@
                        Foreground="{StaticResource TextSecondary}"/>
 
             <!-- App list -->
-            <ListBox x:Name="AppList"
-                     BorderThickness="0"
-                     Background="Transparent"
-                     SelectionChanged="OnSelectionChanged"
-                     MouseDoubleClick="OnListDoubleClick"
-                     Margin="0,4,0,0">
-                <ListBox.ItemTemplate>
+            <ListView x:Name="AppList"
+                      BorderThickness="0"
+                      Background="Transparent"
+                      SelectionChanged="OnSelectionChanged"
+                      MouseDoubleClick="OnListDoubleClick"
+                      VirtualizingPanel.IsVirtualizing="True"
+                      VirtualizingPanel.ScrollUnit="Pixel"
+                      ScrollViewer.PanningMode="VerticalOnly"
+                      ScrollViewer.CanContentScroll="True"
+                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                      KeyboardNavigation.DirectionalNavigation="Contained"
+                      Margin="0,4,0,0">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="Padding" Value="8,6"/>
+                        <Setter Property="Focusable" Value="True"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Horizontal" Margin="4,4">
+                        <StackPanel Orientation="Horizontal" Margin="0,2">
                             <Grid Width="32" Height="32" Margin="0,0,10,0">
                                 <Image Source="{Binding IconPath}" Width="32" Height="32"
                                        Stretch="Uniform"
@@ -70,8 +84,8 @@
                                        VerticalAlignment="Center"/>
                         </StackPanel>
                     </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+                </ListView.ItemTemplate>
+            </ListView>
         </DockPanel>
     </Grid>
 </Window>
