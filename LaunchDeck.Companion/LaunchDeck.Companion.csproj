@@ -12,6 +12,9 @@
     <InternalsVisibleTo Include="LaunchDeck.Tests" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Assets\Icon.png" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\LaunchDeck.Shared\LaunchDeck.Shared.csproj" />
   </ItemGroup>
 </Project>
