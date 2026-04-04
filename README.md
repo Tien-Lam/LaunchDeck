@@ -31,7 +31,7 @@ LaunchDeck.Package/      # MSIX packaging and manifest
 ## Requirements
 
 - Windows 10 19041+ with Xbox Game Bar
-- Visual Studio 2022 with UWP workload and Windows SDK 19041+
+- Visual Studio 2022 with UWP workload and Windows SDK 10.0.26100.0
 - .NET 10 SDK
 
 ## Build
@@ -79,12 +79,14 @@ Items are stored in `%LOCALAPPDATA%\LaunchDeck\config.json`. Use the built-in ed
   "items": [
     { "name": "Notepad", "type": "exe", "path": "C:\\Windows\\notepad.exe" },
     { "name": "YouTube", "type": "url", "path": "https://youtube.com" },
-    { "name": "Spotify", "type": "store", "path": "shell:AppsFolder\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify" }
+    { "name": "Spotify", "type": "store", "path": "shell:AppsFolder\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify" },
+    { "name": "Dev Server", "type": "exe", "path": "C:\\tools\\server.exe", "args": "--port 8080" },
+    { "name": "Discord", "type": "exe", "path": "C:\\Discord\\Discord.exe", "icon": "C:\\icons\\discord.png" }
   ]
 }
 ```
 
-See [`config.sample.json`](config.sample.json) for a full example.
+Each item requires `name`, `type`, and `path`. Optional fields: `args` (command-line arguments for EXE items) and `icon` (custom icon image path, overrides auto-extraction). See [`config.sample.json`](config.sample.json) for a full example.
 
 ## Docs
 
