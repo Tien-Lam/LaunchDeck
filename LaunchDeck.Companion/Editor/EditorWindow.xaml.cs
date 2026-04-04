@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 
@@ -11,7 +12,10 @@ public partial class EditorWindow : Window
     public EditorWindow(string configPath, Action? onSaved)
     {
         InitializeComponent();
-        DataContext = new EditorViewModel(configPath, onSaved);
+        var vm = new EditorViewModel(configPath, onSaved);
+        vm.ConfirmAction = (message, title) =>
+            MessageDialog.Show(this, message, title, MessageBoxButton.YesNo) == MessageBoxResult.Yes;
+        DataContext = vm;
     }
 
     private void OnEditClick(object sender, RoutedEventArgs e)
@@ -50,24 +54,32 @@ public partial class EditorWindow : Window
 
     private void OnAddStoreClick(object sender, RoutedEventArgs e)
     {
-        var picker = new StoreAppPickerWindow { Owner = this };
-        if (picker.ShowDialog() == true && picker.SelectedApp != null)
-        {
-            var app = picker.SelectedApp;
-            ViewModel.AddStoreCommand.Execute((app.Name, app.Aumid));
-        }
+        ViewModel.AddStoreCommand.Execute(null);
     }
 
     private void OnBrowsePathClick(object sender, RoutedEventArgs e)
     {
-        using var dialog = new System.Windows.Forms.OpenFileDialog
+        if (ViewModel.EditIsStore)
         {
-            Title = "Select an application",
-            Filter = "Executables (*.exe)|*.exe",
-            CheckFileExists = true
-        };
-        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            ViewModel.EditPath = dialog.FileName;
+            var picker = new StoreAppPickerWindow { Owner = this };
+            if (picker.ShowDialog() == true && picker.SelectedApp != null)
+            {
+                var app = picker.SelectedApp;
+                ViewModel.EditName = app.Name;
+                ViewModel.EditPath = $@"shell:AppsFolder\{app.Aumid}";
+            }
+        }
+        else
+        {
+            using var dialog = new System.Windows.Forms.OpenFileDialog
+            {
+                Title = "Select an application",
+                Filter = "Executables (*.exe)|*.exe",
+                CheckFileExists = true
+            };
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                ViewModel.EditPath = dialog.FileName;
+        }
     }
 
     private void OnBrowseIconClick(object sender, RoutedEventArgs e)
@@ -85,5 +97,21 @@ public partial class EditorWindow : Window
     private void OnBackdropClick(object sender, MouseButtonEventArgs e)
     {
         ViewModel.DialogCancelCommand.Execute(null);
+    }
+
+    private void OnWindowClosing(object? sender, CancelEventArgs e)
+    {
+        if (!ViewModel.IsDirty) return;
+
+        var result = MessageDialog.Show(
+            this,
+            "You have unsaved changes. Save before closing?",
+            "Unsaved changes",
+            MessageBoxButton.YesNoCancel);
+
+        if (result == MessageBoxResult.Yes)
+            ViewModel.SaveCommand.Execute(null);
+        else if (result == MessageBoxResult.Cancel)
+            e.Cancel = true;
     }
 }

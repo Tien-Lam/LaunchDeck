@@ -46,6 +46,19 @@ public class EditorModelTests
     }
 
     [Fact]
+    public void AddStore_NoArgs_CreatesPlaceholderItem()
+    {
+        var model = new EditorModel();
+        model.AddStore();
+
+        Assert.Single(model.Items);
+        Assert.Equal("New Store App", model.Items[0].Name);
+        Assert.Equal(LaunchItemType.Store, model.Items[0].Type);
+        Assert.Equal("", model.Items[0].Path);
+        Assert.Equal(0, model.SelectedIndex);
+    }
+
+    [Fact]
     public void AddStore_AppendsStoreItemAndSelectsIt()
     {
         var model = new EditorModel();

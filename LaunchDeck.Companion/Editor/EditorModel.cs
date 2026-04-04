@@ -49,6 +49,17 @@ public class EditorModel
         SelectedIndex = Items.Count - 1;
     }
 
+    public void AddStore()
+    {
+        Items.Add(new LaunchItemConfig
+        {
+            Name = "New Store App",
+            Type = LaunchItemType.Store,
+            Path = ""
+        });
+        SelectedIndex = Items.Count - 1;
+    }
+
     public void AddStore(string name, string path)
     {
         Items.Add(new LaunchItemConfig
