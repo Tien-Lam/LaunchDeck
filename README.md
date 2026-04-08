@@ -7,7 +7,12 @@ An Xbox Game Bar widget that launches apps, URLs, and Store apps from a configur
 
 [Xbox mode](https://support.microsoft.com/en-us/topic/windows-gaming-full-screen-experience-67fb8d12-5467-4a95-8adf-0a10789576ab) (formerly Xbox Full Screen Experience) turns Windows into a console-like fullscreen shell, but its library is game-focused — there's no easy way to launch non-game apps, utilities, or URLs without switching back to the desktop. LaunchDeck fills that gap as a Game Bar widget you can open with Win+G to launch anything without leaving the experience.
 
-<!-- TODO: Add screenshot here -->
+<p align="center">
+  <img src="https://store-images.s-microsoft.com/image/apps.43906.14282260671513564.52712b09-34b2-435e-9f8c-cb1c54279bd8.9d3a833c-7f68-4f8e-bf0b-b957d3aff6e1" alt="LaunchDeck widget" width="680"/>
+</p>
+<p align="center">
+  <img src="https://store-images.s-microsoft.com/image/apps.54778.14282260671513564.52712b09-34b2-435e-9f8c-cb1c54279bd8.01cc4738-471f-4b6a-8799-0a355c2ac6c5" alt="LaunchDeck config editor" width="680"/>
+</p>
 
 ## Install
 
@@ -23,65 +28,6 @@ Or build from source — see [Build](#build) and [Deploy](#deploy) below.
 - Automatic icon extraction for EXEs, favicons for URLs, and package icons for Store apps
 - Built-in config editor with Store app picker — browse installed apps and add them with one click
 - Runs as a Game Bar widget — open with Win+G while gaming
-
-## Architecture
-
-LaunchDeck uses a two-process design to work around UWP sandbox restrictions:
-
-- **Widget** (UWP) — the tile grid UI that runs inside Game Bar
-- **Companion** (.NET 10 Win32) — handles file I/O, process launching, icon extraction, and hosts the config editor
-
-The two processes communicate over Windows App Service IPC, packaged together in a single MSIX via a Windows Application Packaging Project.
-
-```
-LaunchDeck.Widget/       # UWP XAML widget
-LaunchDeck.Companion/    # .NET 10 companion (WPF editor, IPC handlers)
-LaunchDeck.Shared/       # Shared library (config models, loader)
-LaunchDeck.Tests/        # xUnit tests
-LaunchDeck.Package/      # MSIX packaging and manifest
-```
-
-## Requirements
-
-- Windows 10 19041+ with Xbox Game Bar
-- Visual Studio 2022 with UWP workload and Windows SDK 10.0.26100.0
-- .NET 10 SDK
-
-## Build
-
-```bash
-# Non-UWP projects
-dotnet build LaunchDeck.Shared/LaunchDeck.Shared.csproj
-dotnet build LaunchDeck.Companion/LaunchDeck.Companion.csproj
-dotnet test LaunchDeck.Tests/
-
-# Full solution (requires VS / MSBuild)
-msbuild LaunchDeck.sln /p:Configuration=Debug /p:Platform=x64 /restore
-```
-
-## Deploy
-
-```powershell
-.\deploy.ps1
-```
-
-Builds the full solution with MSBuild and registers the package via loose-file deployment (no signing needed). Requires Visual Studio with the UWP workload installed. After deploying, open Game Bar (Win+G) and enable the LaunchDeck widget from the widget menu.
-
-## Uninstall
-
-```powershell
-.\Uninstall.ps1
-```
-
-Or manually:
-
-```powershell
-# Remove the registered package
-Get-AppxPackage *LaunchDeck* | Remove-AppxPackage
-
-# Remove config and cached icons
-Remove-Item "$env:LOCALAPPDATA\LaunchDeck" -Recurse -Force
-```
 
 ## Configuration
 
@@ -100,6 +46,64 @@ Items are stored in `%LOCALAPPDATA%\LaunchDeck\config.json`. Use the built-in ed
 ```
 
 Each item requires `name`, `type`, and `path`. Optional fields: `args` (command-line arguments for EXE items) and `icon` (custom icon image path, overrides auto-extraction). See [`config.sample.json`](config.sample.json) for a full example.
+
+## Building from Source
+
+### Requirements
+
+- Windows 10 19041+ with Xbox Game Bar
+- Visual Studio 2022 with UWP workload and Windows SDK 10.0.26100.0
+- .NET 10 SDK
+
+### Architecture
+
+LaunchDeck uses a two-process design to work around UWP sandbox restrictions:
+
+- **Widget** (UWP) — the tile grid UI that runs inside Game Bar
+- **Companion** (.NET 10 Win32) — handles file I/O, process launching, icon extraction, and hosts the config editor
+
+The two processes communicate over Windows App Service IPC, packaged together in a single MSIX via a Windows Application Packaging Project.
+
+```
+LaunchDeck.Widget/       # UWP XAML widget
+LaunchDeck.Companion/    # .NET 10 companion (WPF editor, IPC handlers)
+LaunchDeck.Shared/       # Shared library (config models, loader)
+LaunchDeck.Tests/        # xUnit tests
+LaunchDeck.Package/      # MSIX packaging and manifest
+```
+
+### Build
+
+```bash
+# Non-UWP projects
+dotnet build LaunchDeck.Shared/LaunchDeck.Shared.csproj
+dotnet build LaunchDeck.Companion/LaunchDeck.Companion.csproj
+dotnet test LaunchDeck.Tests/
+
+# Full solution (requires VS / MSBuild)
+msbuild LaunchDeck.sln /p:Configuration=Debug /p:Platform=x64 /restore
+```
+
+### Deploy
+
+```powershell
+.\deploy.ps1
+```
+
+Builds the full solution with MSBuild and registers the package via loose-file deployment (no signing needed). Requires Visual Studio with the UWP workload installed. After deploying, open Game Bar (Win+G) and enable the LaunchDeck widget from the widget menu.
+
+### Uninstall
+
+```powershell
+.\Uninstall.ps1
+```
+
+Or manually:
+
+```powershell
+Get-AppxPackage *LaunchDeck* | Remove-AppxPackage
+Remove-Item "$env:LOCALAPPDATA\LaunchDeck" -Recurse -Force
+```
 
 ## Docs
 
