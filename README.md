@@ -1,8 +1,19 @@
 # LaunchDeck
 
+[![Microsoft Store](https://img.shields.io/badge/Microsoft_Store-Install-0078D4?style=flat&logo=microsoft)](https://apps.microsoft.com/detail/9PJHCMMVQ6HK)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 An Xbox Game Bar widget that launches apps, URLs, and Store apps from a configurable tile grid overlay.
 
 <!-- TODO: Add screenshot here -->
+
+## Install
+
+<a href="https://apps.microsoft.com/detail/9PJHCMMVQ6HK">
+  <img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Get it from Microsoft" height="80"/>
+</a>
+
+Or build from source — see [Build](#build) and [Deploy](#deploy) below.
 
 ## Features
 
