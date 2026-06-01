@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="AppDescription" xml:space="preserve"><value>Widget do LaunchDeck</value></data>
+  <data name="AppDisplayName" xml:space="preserve"><value>LaunchDeck</value></data>
+  <data name="EditConfigurationToolTip" xml:space="preserve"><value>Editar configuração</value></data>
+  <data name="EmptyInvalidConfigMessage" xml:space="preserve"><value>Erro de análise JSON:
+{0}</value></data>
+  <data name="EmptyInvalidConfigTitle" xml:space="preserve"><value>Configuração inválida</value></data>
+  <data name="EmptyLoadErrorTitle" xml:space="preserve"><value>Erro ao carregar</value></data>
+  <data name="EmptyNoAppsMessage" xml:space="preserve"><value>Clique no botão de engrenagem para adicionar aplicativos</value></data>
+  <data name="EmptyNoAppsTitle" xml:space="preserve"><value>Nenhum aplicativo configurado</value></data>
+  <data name="LoadingText" xml:space="preserve"><value>Carregando...</value></data>
+</root>

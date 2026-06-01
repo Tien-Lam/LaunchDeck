@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="AddItem" xml:space="preserve"><value>+ Добавить элемент</value></data>
+  <data name="AppFallback" xml:space="preserve"><value>ПРИЛОЖЕНИЕ</value></data>
+  <data name="ArgumentsLabel" xml:space="preserve"><value>Аргументы</value></data>
+  <data name="Browse" xml:space="preserve"><value>Обзор</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Отмена</value></data>
+  <data name="CustomIconLabel" xml:space="preserve"><value>Пользовательский значок</value></data>
+  <data name="Delete" xml:space="preserve"><value>Удалить</value></data>
+  <data name="DontSave" xml:space="preserve"><value>Не сохранять</value></data>
+  <data name="Edit" xml:space="preserve"><value>Изменить</value></data>
+  <data name="EditItem" xml:space="preserve"><value>Изменить элемент</value></data>
+  <data name="EditorSubtitle" xml:space="preserve"><value>Настройте элементы запуска</value></data>
+  <data name="EditorWindowTitle" xml:space="preserve"><value>LaunchDeck - редактор конфигурации</value></data>
+  <data name="ExeApplication" xml:space="preserve"><value>EXE-приложение</value></data>
+  <data name="ExecutableFilter" xml:space="preserve"><value>Исполняемые файлы (*.exe)|*.exe</value></data>
+  <data name="FocusLaunchedApps" xml:space="preserve"><value>Фокусировать запущенные приложения</value></data>
+  <data name="FocusLaunchedAppsToolTip" xml:space="preserve"><value>Переносит запущенные EXE-приложения на передний план, когда Windows обнаруживает окно процесса.</value></data>
+  <data name="ImageFilter" xml:space="preserve"><value>Изображения (*.png;*.ico;*.jpg;*.bmp)|*.png;*.ico;*.jpg;*.bmp</value></data>
+  <data name="ItemCountMany" xml:space="preserve"><value>{0} элементов</value></data>
+  <data name="ItemCountOne" xml:space="preserve"><value>{0} элемент</value></data>
+  <data name="LoadingInstalledApps" xml:space="preserve"><value>Загрузка установленных приложений...</value></data>
+  <data name="MoveDown" xml:space="preserve"><value>Переместить вниз</value></data>
+  <data name="MoveUp" xml:space="preserve"><value>Переместить вверх</value></data>
+  <data name="NameLabel" xml:space="preserve"><value>Имя</value></data>
+  <data name="NewApp" xml:space="preserve"><value>Новое приложение</value></data>
+  <data name="NewStoreApp" xml:space="preserve"><value>Новое приложение Store</value></data>
+  <data name="NewUrl" xml:space="preserve"><value>Новый URL</value></data>
+  <data name="No" xml:space="preserve"><value>Нет</value></data>
+  <data name="Ok" xml:space="preserve"><value>ОК</value></data>
+  <data name="PathLabel" xml:space="preserve"><value>Путь</value></data>
+  <data name="Save" xml:space="preserve"><value>Сохранить</value></data>
+  <data name="SaveAndRefresh" xml:space="preserve"><value>Сохранить и обновить</value></data>
+  <data name="SaveAnyway" xml:space="preserve"><value>Все равно сохранить?</value></data>
+  <data name="SelectApplicationTitle" xml:space="preserve"><value>Выберите приложение</value></data>
+  <data name="SelectIconTitle" xml:space="preserve"><value>Выберите значок</value></data>
+  <data name="SelectStoreApp" xml:space="preserve"><value>Выберите приложение Store</value></data>
+  <data name="StoreApp" xml:space="preserve"><value>Приложение Store</value></data>
+  <data name="TypeExe" xml:space="preserve"><value>exe</value></data>
+  <data name="TypeLabel" xml:space="preserve"><value>Тип</value></data>
+  <data name="TypeStore" xml:space="preserve"><value>store</value></data>
+  <data name="TypeUrl" xml:space="preserve"><value>url</value></data>
+  <data name="UnsavedChangesMessage" xml:space="preserve"><value>Есть несохраненные изменения. Сохранить перед закрытием?</value></data>
+  <data name="UnsavedChangesTitle" xml:space="preserve"><value>Несохраненные изменения</value></data>
+  <data name="Url" xml:space="preserve"><value>URL</value></data>
+  <data name="ValidationEmptyName" xml:space="preserve"><value>Имя элемента {0} пустое.</value></data>
+  <data name="ValidationEmptyPath" xml:space="preserve"><value>Путь элемента {0} '{1}' пустой.</value></data>
+  <data name="ValidationStorePrefix" xml:space="preserve"><value>Путь Store для элемента {0} '{1}' должен начинаться с shell:AppsFolder\.</value></data>
+  <data name="ValidationUrlScheme" xml:space="preserve"><value>URL элемента {0} '{1}' должен начинаться с http:// или https://.</value></data>
+  <data name="ValidationWarningsTitle" xml:space="preserve"><value>Предупреждения проверки</value></data>
+  <data name="Yes" xml:space="preserve"><value>Да</value></data>
+</root>

@@ -30,6 +30,17 @@ public class LocalizationTests
         Assert.Equal("儲存並重新整理", Strings.Get("SaveAndRefresh"));
     }
 
+    [Theory]
+    [InlineData("pt-BR", "Salvar e atualizar")]
+    [InlineData("ru-RU", "Сохранить и обновить")]
+    [InlineData("uk-UA", "Зберегти й оновити")]
+    public void Strings_Get_ReturnsAudienceCountryLocalizations(string cultureName, string expected)
+    {
+        using var culture = new CultureScope(cultureName);
+
+        Assert.Equal(expected, Strings.Get("SaveAndRefresh"));
+    }
+
     [Fact]
     public void Strings_Format_UsesLocalizedTemplate()
     {

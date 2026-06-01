@@ -134,7 +134,7 @@ Tests the diagnostic command-line parser for companion launch/focus investigatio
 
 Source under test: `LaunchDeck.Companion/LaunchDiagnostics.cs`
 
-### LocalizationTests (4 tests)
+### LocalizationTests (7 tests)
 
 Tests companion editor resource lookup and culture fallback.
 
@@ -143,6 +143,7 @@ Tests companion editor resource lookup and culture fallback.
 | `Strings_Get_ReturnsNeutralString` | English neutral resource lookup works |
 | `Strings_Get_ReturnsLocalizedString` | Spanish satellite resources are selected by `CurrentUICulture` |
 | `Strings_Get_ReturnsTraditionalChineseForRegionCulture` | Region-specific Traditional Chinese cultures fall back to `zh-Hant` resources |
+| `Strings_Get_ReturnsAudienceCountryLocalizations` (Theory, 3 cases) | Brazilian Portuguese, Russian, and Ukrainian satellite resources are selected by `CurrentUICulture` |
 | `Strings_Format_UsesLocalizedTemplate` | Formatted localized templates use the active UI culture |
 
 Source under test: `LaunchDeck.Companion/Localization/Strings.cs`

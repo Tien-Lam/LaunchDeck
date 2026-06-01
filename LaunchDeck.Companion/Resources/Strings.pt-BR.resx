@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="AddItem" xml:space="preserve"><value>+ Adicionar item</value></data>
+  <data name="AppFallback" xml:space="preserve"><value>APP</value></data>
+  <data name="ArgumentsLabel" xml:space="preserve"><value>Argumentos</value></data>
+  <data name="Browse" xml:space="preserve"><value>Procurar</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="CustomIconLabel" xml:space="preserve"><value>Ícone personalizado</value></data>
+  <data name="Delete" xml:space="preserve"><value>Excluir</value></data>
+  <data name="DontSave" xml:space="preserve"><value>Não salvar</value></data>
+  <data name="Edit" xml:space="preserve"><value>Editar</value></data>
+  <data name="EditItem" xml:space="preserve"><value>Editar item</value></data>
+  <data name="EditorSubtitle" xml:space="preserve"><value>Configure seus itens de inicialização</value></data>
+  <data name="EditorWindowTitle" xml:space="preserve"><value>LaunchDeck - Editor de configuração</value></data>
+  <data name="ExeApplication" xml:space="preserve"><value>Aplicativo EXE</value></data>
+  <data name="ExecutableFilter" xml:space="preserve"><value>Executáveis (*.exe)|*.exe</value></data>
+  <data name="FocusLaunchedApps" xml:space="preserve"><value>Focar aplicativos iniciados</value></data>
+  <data name="FocusLaunchedAppsToolTip" xml:space="preserve"><value>Traz os aplicativos EXE iniciados para primeiro plano quando o Windows detecta a janela do processo.</value></data>
+  <data name="ImageFilter" xml:space="preserve"><value>Imagens (*.png;*.ico;*.jpg;*.bmp)|*.png;*.ico;*.jpg;*.bmp</value></data>
+  <data name="ItemCountMany" xml:space="preserve"><value>{0} itens</value></data>
+  <data name="ItemCountOne" xml:space="preserve"><value>{0} item</value></data>
+  <data name="LoadingInstalledApps" xml:space="preserve"><value>Carregando aplicativos instalados...</value></data>
+  <data name="MoveDown" xml:space="preserve"><value>Mover para baixo</value></data>
+  <data name="MoveUp" xml:space="preserve"><value>Mover para cima</value></data>
+  <data name="NameLabel" xml:space="preserve"><value>Nome</value></data>
+  <data name="NewApp" xml:space="preserve"><value>Novo aplicativo</value></data>
+  <data name="NewStoreApp" xml:space="preserve"><value>Novo aplicativo da Store</value></data>
+  <data name="NewUrl" xml:space="preserve"><value>Nova URL</value></data>
+  <data name="No" xml:space="preserve"><value>Não</value></data>
+  <data name="Ok" xml:space="preserve"><value>OK</value></data>
+  <data name="PathLabel" xml:space="preserve"><value>Caminho</value></data>
+  <data name="Save" xml:space="preserve"><value>Salvar</value></data>
+  <data name="SaveAndRefresh" xml:space="preserve"><value>Salvar e atualizar</value></data>
+  <data name="SaveAnyway" xml:space="preserve"><value>Salvar mesmo assim?</value></data>
+  <data name="SelectApplicationTitle" xml:space="preserve"><value>Selecionar aplicativo</value></data>
+  <data name="SelectIconTitle" xml:space="preserve"><value>Selecionar ícone</value></data>
+  <data name="SelectStoreApp" xml:space="preserve"><value>Selecionar aplicativo da Store</value></data>
+  <data name="StoreApp" xml:space="preserve"><value>Aplicativo da Store</value></data>
+  <data name="TypeExe" xml:space="preserve"><value>exe</value></data>
+  <data name="TypeLabel" xml:space="preserve"><value>Tipo</value></data>
+  <data name="TypeStore" xml:space="preserve"><value>store</value></data>
+  <data name="TypeUrl" xml:space="preserve"><value>url</value></data>
+  <data name="UnsavedChangesMessage" xml:space="preserve"><value>Você tem alterações não salvas. Deseja salvar antes de fechar?</value></data>
+  <data name="UnsavedChangesTitle" xml:space="preserve"><value>Alterações não salvas</value></data>
+  <data name="Url" xml:space="preserve"><value>URL</value></data>
+  <data name="ValidationEmptyName" xml:space="preserve"><value>O nome do item {0} está vazio.</value></data>
+  <data name="ValidationEmptyPath" xml:space="preserve"><value>O caminho do item {0} '{1}' está vazio.</value></data>
+  <data name="ValidationStorePrefix" xml:space="preserve"><value>O caminho da Store do item {0} '{1}' deve começar com shell:AppsFolder\.</value></data>
+  <data name="ValidationUrlScheme" xml:space="preserve"><value>A URL do item {0} '{1}' deve começar com http:// ou https://.</value></data>
+  <data name="ValidationWarningsTitle" xml:space="preserve"><value>Avisos de validação</value></data>
+  <data name="Yes" xml:space="preserve"><value>Sim</value></data>
+</root>
