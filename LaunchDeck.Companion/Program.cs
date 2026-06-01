@@ -12,8 +12,8 @@ namespace LaunchDeck.Companion;
 class Program
 {
     private const string MutexName = "Local\\LaunchDeckCompanion";
-    private const string ReconnectRequestEventName = "Local\\LaunchDeckCompanionReconnectRequest";
-    private const string ReconnectAcknowledgedEventName = "Local\\LaunchDeckCompanionReconnectAcknowledged";
+    private const string ReconnectRequestEventNamePrefix = "Local\\LaunchDeckCompanionReconnectRequest_";
+    private const string ReconnectAcknowledgedEventNamePrefix = "Local\\LaunchDeckCompanionReconnectAcknowledged_";
 
     private static AppServiceConnection? _connection;
     private static readonly ManualResetEvent ExitEvent = new(false);
@@ -28,13 +28,15 @@ class Program
 
         Log.Write($"Companion starting. PFN={Package.Current.Id.FamilyName} ConfigPath={ConfigLoader.GetDefaultConfigPath()}");
 
-        using var reconnectRequestEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ReconnectRequestEventName);
-        using var reconnectAcknowledgedEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ReconnectAcknowledgedEventName);
+        var packageScope = GetPackageScope();
+        using var reconnectRequestEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ReconnectRequestEventNamePrefix + packageScope);
+        using var reconnectAcknowledgedEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ReconnectAcknowledgedEventNamePrefix + packageScope);
         _reconnectAcknowledgedEvent = reconnectAcknowledgedEvent;
 
         // Only one current companion should own the App Service connection.
-        // If an older/stale instance owns it, ask it to reopen the App Service
-        // for the current Game Bar activation instead of piling up processes.
+        // Same-version duplicate launches can ask the owner to reopen the App
+        // Service. Different-version owners will not see the version-scoped
+        // request, so updates replace stale binaries instead of reconnecting to them.
         using var mutex = new Mutex(false, MutexName);
         var ownsMutex = TryAcquireMutex(mutex, TimeSpan.FromSeconds(2));
         if (!ownsMutex)
@@ -80,6 +82,22 @@ class Program
             {
             }
         }
+    }
+
+    private static string GetPackageScope()
+    {
+        var id = Package.Current.Id;
+        var version = id.Version;
+        var versionText = $"{version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
+        return $"{SanitizeKernelObjectName(id.FamilyName)}_{versionText}";
+    }
+
+    private static string SanitizeKernelObjectName(string value)
+    {
+        foreach (var invalidChar in new[] { '\\', '/' })
+            value = value.Replace(invalidChar, '_');
+
+        return value;
     }
 
     private static bool TryAcquireMutex(Mutex mutex, TimeSpan timeout)
