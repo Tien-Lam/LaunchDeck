@@ -29,7 +29,7 @@ Or build from source — see [Build](#build) and [Deploy](#deploy) below.
 - Built-in config editor with Store app picker — browse installed apps and add them with one click
 - Runs as a Game Bar widget — open with Win+G while gaming
 - Focuses launched EXE apps by default, with a setting to turn foreground forcing off
-- Localized app, widget, and editor strings for English, Spanish, French, German, Japanese, and Simplified Chinese
+- Localized app, widget, and editor strings for English, Spanish, French, German, Japanese, Simplified Chinese, and Traditional Chinese
 
 ## Configuration
 

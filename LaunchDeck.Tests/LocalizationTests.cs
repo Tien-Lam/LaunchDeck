@@ -23,6 +23,14 @@ public class LocalizationTests
     }
 
     [Fact]
+    public void Strings_Get_ReturnsTraditionalChineseForRegionCulture()
+    {
+        using var culture = new CultureScope("zh-TW");
+
+        Assert.Equal("儲存並重新整理", Strings.Get("SaveAndRefresh"));
+    }
+
+    [Fact]
     public void Strings_Format_UsesLocalizedTemplate()
     {
         using var culture = new CultureScope("de-DE");

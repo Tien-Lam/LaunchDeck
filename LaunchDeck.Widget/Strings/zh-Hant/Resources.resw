@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="AppDescription" xml:space="preserve"><value>LaunchDeck 小工具</value></data>
+  <data name="AppDisplayName" xml:space="preserve"><value>LaunchDeck</value></data>
+  <data name="EditConfigurationToolTip" xml:space="preserve"><value>編輯設定</value></data>
+  <data name="EmptyInvalidConfigMessage" xml:space="preserve"><value>JSON 解析錯誤:
+{0}</value></data>
+  <data name="EmptyInvalidConfigTitle" xml:space="preserve"><value>設定檔無效</value></data>
+  <data name="EmptyLoadErrorTitle" xml:space="preserve"><value>載入錯誤</value></data>
+  <data name="EmptyNoAppsMessage" xml:space="preserve"><value>按一下齒輪按鈕以新增應用程式</value></data>
+  <data name="EmptyNoAppsTitle" xml:space="preserve"><value>尚未設定應用程式</value></data>
+  <data name="LoadingText" xml:space="preserve"><value>正在載入...</value></data>
+</root>

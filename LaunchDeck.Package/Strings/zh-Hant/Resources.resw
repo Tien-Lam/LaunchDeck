@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="PackageAppDescription" xml:space="preserve"><value>用於啟動應用程式的 Game Bar 小工具</value></data>
+  <data name="PackageAppDisplayName" xml:space="preserve"><value>LaunchDeck</value></data>
+  <data name="PackageWidgetDescription" xml:space="preserve"><value>快速應用程式啟動網格</value></data>
+</root>
