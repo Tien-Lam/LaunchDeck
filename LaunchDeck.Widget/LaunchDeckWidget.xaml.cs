@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
@@ -19,6 +20,10 @@ namespace LaunchDeck.Widget;
 public sealed partial class LaunchDeckWidget : Page
 {
     private bool _eventsSubscribed;
+    private int _loadGeneration;
+    private int _launchGeneration;
+    private bool _focusLaunchedApps;
+    private const int FocusAfterCompanionLaunchDelayMs = 350;
     public ObservableCollection<LaunchItem> Items { get; } = new();
 
     public LaunchDeckWidget()
@@ -32,7 +37,7 @@ public sealed partial class LaunchDeckWidget : Page
         // Re-establish companion connection and reload config
         // Called on widget re-activation (close then re-add from Game Bar)
         await EnsureCompanionAsync();
-        await LoadConfigAsync();
+        await LoadConfigAsync(requestInitialFocus: true);
     }
 
     private async Task EnsureCompanionAsync()
@@ -60,7 +65,7 @@ public sealed partial class LaunchDeckWidget : Page
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
         await EnsureCompanionAsync();
-        await LoadConfigAsync();
+        await LoadConfigAsync(requestInitialFocus: true);
 
         if (!_eventsSubscribed)
         {
@@ -116,8 +121,9 @@ public sealed partial class LaunchDeckWidget : Page
         }
     }
 
-    private async Task LoadConfigAsync()
+    private async Task LoadConfigAsync(bool requestInitialFocus = false)
     {
+        var loadGeneration = ++_loadGeneration;
         (ConfigLoadStatus status, LaunchDeckConfig? config, string? configPath, string? error) result;
         try
         {
@@ -125,9 +131,12 @@ public sealed partial class LaunchDeckWidget : Page
         }
         catch (Exception ex)
         {
+            if (loadGeneration != _loadGeneration) return;
             ShowEmptyState("Load error", ex.Message);
             return;
         }
+        if (loadGeneration != _loadGeneration) return;
+
         var (status, config, configPath, error) = result;
 
         if (status == ConfigLoadStatus.FileNotFound)
@@ -151,6 +160,8 @@ public sealed partial class LaunchDeckWidget : Page
             return;
         }
 
+        _focusLaunchedApps = config.FocusLaunchedApps;
+
         Items.Clear();
         foreach (var item in config.Items)
         {
@@ -169,26 +180,57 @@ public sealed partial class LaunchDeckWidget : Page
         EmptyState.Visibility = Visibility.Collapsed;
         LoadingState.Visibility = Visibility.Visible;
 
-        await LoadIconsAsync();
-
-        LoadingState.Visibility = Visibility.Collapsed;
-
-        // Select and focus first tile for controller/keyboard navigation
         if (Items.Count > 0)
+            await SelectFirstTileAsync(loadGeneration, requestInitialFocus);
+
+        var items = Items.ToArray();
+        await LoadIconsAsync(items, loadGeneration);
+
+        if (loadGeneration != _loadGeneration) return;
+        LoadingState.Visibility = Visibility.Collapsed;
+    }
+
+    private async Task SelectFirstTileAsync(int loadGeneration, bool requestFocus)
+    {
+        // Do not let a queued focus request run after a launch has started.
+        var launchGeneration = _launchGeneration;
+        await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Low, () =>
         {
-            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Low, () =>
-            {
-                ItemsGrid.SelectedIndex = 0;
-                var firstContainer = ItemsGrid.ContainerFromIndex(0) as GridViewItem;
-                firstContainer?.Focus(FocusState.Keyboard);
-            });
+            if (loadGeneration != _loadGeneration || Items.Count == 0)
+                return;
+
+            ItemsGrid.SelectedIndex = 0;
+
+            if (!requestFocus || launchGeneration != _launchGeneration || !CanRequestTileFocus())
+                return;
+
+            var firstContainer = ItemsGrid.ContainerFromIndex(0) as GridViewItem;
+            firstContainer?.Focus(FocusState.Keyboard);
+        });
+    }
+
+    private static bool CanRequestTileFocus()
+    {
+        var widget = App.Widget;
+        if (widget == null)
+            return false;
+
+        try
+        {
+            return widget.Visible && !widget.Pinned;
+        }
+        catch
+        {
+            return false;
         }
     }
 
-    private async Task LoadIconsAsync()
+    private async Task LoadIconsAsync(LaunchItem[] items, int loadGeneration)
     {
-        foreach (var item in Items)
+        foreach (var item in items)
         {
+            if (loadGeneration != _loadGeneration) return;
+
             byte[]? iconData = null;
 
             // Custom icon takes priority over type-based extraction
@@ -227,15 +269,18 @@ public sealed partial class LaunchDeckWidget : Page
                         stream.Seek(0);
                         await bitmap.SetSourceAsync(stream);
                     }
+                    if (loadGeneration != _loadGeneration) return;
                     item.IconSource = bitmap;
                 }
                 catch
                 {
+                    if (loadGeneration != _loadGeneration) return;
                     SetDefaultIcon(item);
                 }
             }
             else
             {
+                if (loadGeneration != _loadGeneration) return;
                 SetDefaultIcon(item);
             }
         }
@@ -274,47 +319,72 @@ public sealed partial class LaunchDeckWidget : Page
     {
         if (e.ClickedItem is LaunchItem item)
         {
+            _launchGeneration++;
             bool success;
+            bool dismissAfterCompanionLaunch = false;
             var widget = App.Widget;
+            var launchId = Guid.NewGuid().ToString("N");
+            var focusDelayMs = _focusLaunchedApps ? FocusAfterCompanionLaunchDelayMs : 0;
+            CompanionClient.RemoteLog($"widget-launch[{launchId}]: click type={item.Type} path={item.Path} argsPresent={!string.IsNullOrWhiteSpace(item.Args)} focusSetting={_focusLaunchedApps}");
 
             if (item.Type == "url" || item.Type == "store")
             {
-                // Use Game Bar's built-in launcher — handles overlay dismiss + focus
+                // Use Game Bar's built-in launcher so Game Bar owns overlay dismissal.
                 try
                 {
+                    CompanionClient.RemoteLog($"widget-launch[{launchId}]: using LaunchUriAsync");
                     success = widget != null
                         ? await widget.LaunchUriAsync(new Uri(item.Path))
-                        : await CompanionClient.LaunchAsync(item.Type, item.Path, item.Args);
+                        : await CompanionClient.LaunchAsync(item.Type, item.Path, item.Args, _focusLaunchedApps, launchId, focusDelayMs);
+                    dismissAfterCompanionLaunch = widget == null && success;
                 }
                 catch
                 {
-                    success = await CompanionClient.LaunchAsync(item.Type, item.Path, item.Args);
+                    CompanionClient.RemoteLog($"widget-launch[{launchId}]: LaunchUriAsync failed; falling back to companion");
+                    success = await CompanionClient.LaunchAsync(item.Type, item.Path, item.Args, _focusLaunchedApps, launchId, focusDelayMs);
+                    dismissAfterCompanionLaunch = success;
                 }
             }
             else if (item.Type == "exe")
             {
-                // Try LaunchUriAsync with file: URI — handles Game Bar dismiss
+                if (_focusLaunchedApps)
+                {
+                    success = await CompanionClient.LaunchAsync(
+                        item.Type,
+                        item.Path,
+                        item.Args,
+                        focusLaunchedApp: true,
+                        launchId: launchId,
+                        focusDelayMs: FocusAfterCompanionLaunchDelayMs);
+                    dismissAfterCompanionLaunch = success;
+                }
+                // Try LaunchUriAsync with file: URI so Game Bar owns overlay dismissal.
                 // Falls back to companion Process.Start if it fails (e.g. exe with args)
-                if (widget != null && string.IsNullOrEmpty(item.Args))
+                else if (widget != null && string.IsNullOrEmpty(item.Args))
                 {
                     try
                     {
+                        CompanionClient.RemoteLog($"widget-launch[{launchId}]: using LaunchUriAsync");
                         var fileUri = new Uri(item.Path);
                         success = await widget.LaunchUriAsync(fileUri);
                     }
                     catch
                     {
-                        success = await CompanionClient.LaunchAsync(item.Type, item.Path, item.Args);
+                        CompanionClient.RemoteLog($"widget-launch[{launchId}]: LaunchUriAsync failed; falling back to companion");
+                        success = await CompanionClient.LaunchAsync(item.Type, item.Path, item.Args, _focusLaunchedApps, launchId, focusDelayMs);
+                        dismissAfterCompanionLaunch = success;
                     }
                 }
                 else
                 {
-                    success = await CompanionClient.LaunchAsync(item.Type, item.Path, item.Args);
+                    success = await CompanionClient.LaunchAsync(item.Type, item.Path, item.Args, _focusLaunchedApps, launchId, focusDelayMs);
+                    dismissAfterCompanionLaunch = success;
                 }
             }
             else
             {
-                success = await CompanionClient.LaunchAsync(item.Type, item.Path, item.Args);
+                success = await CompanionClient.LaunchAsync(item.Type, item.Path, item.Args, _focusLaunchedApps, launchId, focusDelayMs);
+                dismissAfterCompanionLaunch = success;
             }
 
             if (sender is GridView gridView)
@@ -344,6 +414,34 @@ public sealed partial class LaunchDeckWidget : Page
                     }
                 }
             }
+
+            if (dismissAfterCompanionLaunch)
+                await TryMinimizeAfterCompanionLaunchAsync(launchId);
+        }
+    }
+
+    private static async Task TryMinimizeAfterCompanionLaunchAsync(string launchId)
+    {
+        var widget = App.Widget;
+        if (widget == null)
+            return;
+
+        try
+        {
+            if (!widget.Pinned)
+            {
+                CompanionClient.RemoteLog($"widget-launch[{launchId}]: minimizing unpinned widget after companion launch");
+                await widget.MinimizeAsync();
+            }
+            else
+            {
+                CompanionClient.RemoteLog($"widget-launch[{launchId}]: widget pinned; leaving visible after companion launch");
+            }
+        }
+        catch (Exception ex)
+        {
+            // Some Game Bar host states reject MinimizeAsync; launching still succeeded.
+            CompanionClient.RemoteLog($"widget-launch[{launchId}]: MinimizeAsync failed {ex.GetType().Name}: {ex.Message}");
         }
     }
 

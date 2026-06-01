@@ -23,6 +23,7 @@ public class ConfigModelsTests
 
         Assert.NotNull(config);
         Assert.Equal(2, config!.Items.Count);
+        Assert.True(config.FocusLaunchedApps);
         Assert.Equal("Notepad", config.Items[0].Name);
         Assert.Equal(LaunchItemType.Exe, config.Items[0].Type);
         Assert.Equal("C:\\Windows\\notepad.exe", config.Items[0].Path);
@@ -51,6 +52,36 @@ public class ConfigModelsTests
 
         Assert.Equal("--processStart Discord.exe", config!.Items[0].Args);
         Assert.Equal("C:\\icons\\discord.png", config.Items[0].Icon);
+    }
+
+    [Fact]
+    public void Deserialize_FocusLaunchedApps_ParsesCorrectly()
+    {
+        var json = """
+        {
+          "focusLaunchedApps": true,
+          "items": []
+        }
+        """;
+
+        var config = JsonSerializer.Deserialize<LaunchDeckConfig>(json);
+
+        Assert.True(config!.FocusLaunchedApps);
+    }
+
+    [Fact]
+    public void Deserialize_FocusLaunchedApps_CanBeDisabled()
+    {
+        var json = """
+        {
+          "focusLaunchedApps": false,
+          "items": []
+        }
+        """;
+
+        var config = JsonSerializer.Deserialize<LaunchDeckConfig>(json);
+
+        Assert.False(config!.FocusLaunchedApps);
     }
 
     [Fact]
@@ -161,6 +192,7 @@ public class ConfigModelsTests
     {
         var config = new LaunchDeckConfig
         {
+            FocusLaunchedApps = true,
             Items = new List<LaunchItemConfig>
             {
                 new()
@@ -179,6 +211,7 @@ public class ConfigModelsTests
         {
             ConfigLoader.Save(tempFile, config);
             var result = ConfigLoader.Load(tempFile);
+            Assert.True(result.Config!.FocusLaunchedApps);
             Assert.Equal("--processStart Discord.exe", result.Config!.Items[0].Args);
             Assert.Equal(@"C:\icons\discord.png", result.Config.Items[0].Icon);
         }

@@ -8,6 +8,9 @@ namespace LaunchDeck.Shared;
 
 public class LaunchDeckConfig
 {
+    [JsonPropertyName("focusLaunchedApps")]
+    public bool FocusLaunchedApps { get; set; } = true;
+
     [JsonPropertyName("items")]
     public List<LaunchItemConfig> Items { get; set; } = new();
 }
@@ -115,6 +118,12 @@ public static class ConfigLoader
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
 
+        if (TryGetProperty(root, "focusLaunchedApps", "FocusLaunchedApps", out var focusEl) &&
+            (focusEl.ValueKind == JsonValueKind.True || focusEl.ValueKind == JsonValueKind.False))
+        {
+            config.FocusLaunchedApps = focusEl.GetBoolean();
+        }
+
         if ((root.TryGetProperty("items", out var itemsEl) ||
              root.TryGetProperty("Items", out itemsEl)) &&
             itemsEl.ValueKind == JsonValueKind.Array)
@@ -144,5 +153,11 @@ public static class ConfigLoader
         }
 
         return config;
+    }
+
+    private static bool TryGetProperty(JsonElement element, string lowerName, string pascalName, out JsonElement value)
+    {
+        return element.TryGetProperty(lowerName, out value) ||
+               element.TryGetProperty(pascalName, out value);
     }
 }

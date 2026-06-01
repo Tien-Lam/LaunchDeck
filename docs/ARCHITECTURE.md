@@ -14,7 +14,7 @@ LaunchDeck is an Xbox Game Bar widget (Win+G) that launches apps from a configur
 |  - User interaction       |                                   |  - Favicon fetching              |
 |                           |                                   |  - File picker dialogs           |
 |  Services/                |                                   |  - Store app enumeration         |
-|    CompanionClient.cs     |                                   |  - Window focus (NativeMethods)  |
+|    CompanionClient.cs     |                                   |  - WPF editor hosting            |
 |  Models/                  |                                   |                                  |
 |    LaunchItem.cs          |                                   |  Editor/ (WPF)                   |
 +---------------------------+                                   |    EditorWindow, EditorViewModel  |
@@ -98,6 +98,7 @@ All communication uses `ValueSet` messages over `AppServiceConnection`. Every re
 ### Game Bar Integration
 - Widget registered as `microsoft.gameBarUIExtension` in `LaunchDeck.Package/Package.appxmanifest` (not the UWP project's own manifest)
 - Hardcoded dark theme (`#202020` background, `RequestedTheme="Dark"`) -- subscribes to Game Bar `RequestedOpacityChanged` and `VisibleChanged` events (opacity adjusts background alpha; visibility triggers config reload) but not theme events
+- Launches use `XboxGameBarWidget.LaunchUriAsync` where possible so Game Bar owns overlay dismissal. Foreground forcing is enabled by default via `focusLaunchedApps`; when enabled, EXE launches use the companion `Process.Start` path so it can foreground the launched process when possible. Focused EXE launches carry a correlation id in logs and use a short delay before the companion foregrounds the app, which lets Game Bar finish dismissing its overlay first. Successful companion fallback launches minimize the widget when it is not pinned.
 - Deploy via `deploy.ps1` (`Add-AppxPackage -Register`) or VS (F5)
 
 ## Config

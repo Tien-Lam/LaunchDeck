@@ -39,6 +39,18 @@ public class EditorViewModel : INotifyPropertyChanged
 
     public string ItemCountText => $"{Items.Count} item{(Items.Count == 1 ? "" : "s")}";
 
+    public bool FocusLaunchedApps
+    {
+        get => _model.FocusLaunchedApps;
+        set
+        {
+            if (_model.FocusLaunchedApps == value) return;
+            _model.FocusLaunchedApps = value;
+            IsDirty = true;
+            OnPropertyChanged();
+        }
+    }
+
     public ICommand SaveCommand { get; }
     public ICommand AddExeCommand { get; }
     public ICommand AddUrlCommand { get; }

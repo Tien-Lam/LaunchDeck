@@ -28,6 +28,7 @@ Or build from source — see [Build](#build) and [Deploy](#deploy) below.
 - Automatic icon extraction for EXEs, favicons for URLs, and package icons for Store apps
 - Built-in config editor with Store app picker — browse installed apps and add them with one click
 - Runs as a Game Bar widget — open with Win+G while gaming
+- Focuses launched EXE apps by default, with a setting to turn foreground forcing off
 
 ## Configuration
 
@@ -35,6 +36,7 @@ Items are stored in `%LOCALAPPDATA%\LaunchDeck\config.json`. Use the built-in ed
 
 ```json
 {
+  "focusLaunchedApps": true,
   "items": [
     { "name": "Notepad", "type": "exe", "path": "C:\\Windows\\notepad.exe" },
     { "name": "YouTube", "type": "url", "path": "https://youtube.com" },
@@ -45,7 +47,7 @@ Items are stored in `%LOCALAPPDATA%\LaunchDeck\config.json`. Use the built-in ed
 }
 ```
 
-Each item requires `name`, `type`, and `path`. Optional fields: `args` (command-line arguments for EXE items) and `icon` (custom icon image path, overrides auto-extraction). See [`config.sample.json`](config.sample.json) for a full example.
+Each item requires `name`, `type`, and `path`. Optional fields: `args` (command-line arguments for EXE items) and `icon` (custom icon image path, overrides auto-extraction). The top-level `focusLaunchedApps` setting defaults to `true`; set it to `false` to leave foreground ownership entirely to Windows, Game Bar, and the launched app. See [`config.sample.json`](config.sample.json) for a full example.
 
 ## Building from Source
 

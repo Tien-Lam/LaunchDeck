@@ -8,11 +8,13 @@ public class EditorModel
 {
     public List<LaunchItemConfig> Items { get; private set; } = new();
     public int SelectedIndex { get; set; } = -1;
+    public bool FocusLaunchedApps { get; set; } = true;
 
     public void Load(string configPath)
     {
         var result = ConfigLoader.Load(configPath);
         Items = result.Config?.Items ?? new List<LaunchItemConfig>();
+        FocusLaunchedApps = result.Config?.FocusLaunchedApps ?? true;
         SelectedIndex = Items.Count > 0 ? 0 : -1;
     }
 
@@ -130,7 +132,11 @@ public class EditorModel
 
     public void Save(string configPath, Action? onSaved = null)
     {
-        var config = new LaunchDeckConfig { Items = Items };
+        var config = new LaunchDeckConfig
+        {
+            FocusLaunchedApps = FocusLaunchedApps,
+            Items = Items
+        };
         Log.Write($"EditorModel.Save: path={configPath} items={Items.Count}");
         try
         {

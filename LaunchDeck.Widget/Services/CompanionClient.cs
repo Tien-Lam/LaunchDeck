@@ -65,23 +65,44 @@ public static class CompanionClient
         return (ConfigLoadStatus.ParseError, null, responsePath, error);
     }
 
-    public static async Task<bool> LaunchAsync(string type, string path, string? args = null)
+    public static async Task<bool> LaunchAsync(
+        string type,
+        string path,
+        string? args = null,
+        bool focusLaunchedApp = false,
+        string? launchId = null,
+        int focusDelayMs = 0)
     {
         var connection = App.CompanionConnection;
         if (connection == null) return false;
 
+        launchId ??= Guid.NewGuid().ToString("N");
         var request = new ValueSet
         {
             ["action"] = "launch",
             ["type"] = type,
-            ["path"] = path
+            ["path"] = path,
+            ["focusLaunchedApp"] = focusLaunchedApp ? "true" : "false",
+            ["launchId"] = launchId,
+            ["focusDelayMs"] = focusDelayMs.ToString()
         };
         if (args != null) request["args"] = args;
 
         var response = await connection.SendMessageAsync(request);
-        if (response.Status != AppServiceResponseStatus.Success) return false;
+        if (response.Status != AppServiceResponseStatus.Success)
+        {
+            RemoteLog($"widget-launch[{launchId}]: AppService error {response.Status}");
+            return false;
+        }
 
-        return response.Message["status"] as string == "ok";
+        var success = response.Message["status"] as string == "ok";
+        if (!success)
+        {
+            var error = response.Message.ContainsKey("error") ? response.Message["error"] as string : "";
+            RemoteLog($"widget-launch[{launchId}]: launch error {error}");
+        }
+
+        return success;
     }
 
     public static async Task<byte[]?> ExtractIconAsync(string exePath)

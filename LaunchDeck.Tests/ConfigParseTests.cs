@@ -39,6 +39,32 @@ public class ConfigParseTests
     }
 
     [Fact]
+    public void ParseJson_FocusLaunchedApps_ParsesLowercaseAndPascalCase()
+    {
+        var config = ConfigLoader.ParseJson("""{"focusLaunchedApps":true,"items":[]}""");
+        Assert.True(config.FocusLaunchedApps);
+
+        config = ConfigLoader.ParseJson("""{"FocusLaunchedApps":true,"items":[]}""");
+        Assert.True(config.FocusLaunchedApps);
+    }
+
+    [Fact]
+    public void ParseJson_FocusLaunchedApps_DefaultsTrueWhenMissing()
+    {
+        var config = ConfigLoader.ParseJson("""{"items":[]}""");
+
+        Assert.True(config.FocusLaunchedApps);
+    }
+
+    [Fact]
+    public void ParseJson_FocusLaunchedApps_CanBeDisabled()
+    {
+        var config = ConfigLoader.ParseJson("""{"focusLaunchedApps":false,"items":[]}""");
+
+        Assert.False(config.FocusLaunchedApps);
+    }
+
+    [Fact]
     public void ParseJson_ExeType_CaseInsensitive()
     {
         var json = """{"items":[{"name":"A","type":"exe","path":"a.exe"}]}""";
@@ -188,6 +214,7 @@ public class ConfigParseTests
         // handles this exact format — this is the real-world failure case on .NET Native.
         var config = new LaunchDeckConfig
         {
+            FocusLaunchedApps = true,
             Items = new List<LaunchItemConfig>
             {
                 new() { Name = "Notepad", Type = LaunchItemType.Exe, Path = @"C:\Windows\notepad.exe" },
@@ -199,6 +226,7 @@ public class ConfigParseTests
         var json = System.Text.Json.JsonSerializer.Serialize(config);
         var parsed = ConfigLoader.ParseJson(json);
 
+        Assert.Equal(config.FocusLaunchedApps, parsed.FocusLaunchedApps);
         Assert.Equal(config.Items.Count, parsed.Items.Count);
         for (int i = 0; i < config.Items.Count; i++)
         {

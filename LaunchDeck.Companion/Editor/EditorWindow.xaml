@@ -27,6 +27,12 @@
                            Foreground="{StaticResource TextSecondary}" Margin="0,0,0,12"/>
             </StackPanel>
 
+            <Border DockPanel.Dock="Top" Style="{StaticResource SettingsCard}" Margin="0,0,0,8">
+                <CheckBox Content="Focus launched apps"
+                          IsChecked="{Binding FocusLaunchedApps, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          ToolTip="Foreground launched EXE apps when Windows exposes a process window."/>
+            </Border>
+
             <!-- Bottom bar (sticky bottom) -->
             <DockPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
                 <Button Content="Save and Refresh"

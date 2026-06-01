@@ -24,6 +24,52 @@ dotnet test LaunchDeck.Tests/ --filter "FullyQualifiedName~LaunchHandlerTests"
 
 Platform note: the csproj supports `x64`, `x86`, and `ARM`. The default `dotnet test` invocation uses AnyCPU / the host architecture, which works for all current tests.
 
+## Launch Focus Diagnostics
+
+The companion has a diagnostic mode for reproducing launch/focus timing issues without opening Game Bar:
+
+```powershell
+powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\tools\Diagnose-LaunchFocus.ps1 `
+  -Type exe `
+  -Path "C:\Program Files\Google\Chrome\Application\chrome.exe" `
+  -Focus `
+  -FocusDelayMs 350 `
+  -TimeoutMs 2500 `
+  -PostFocusObserveMs 900
+```
+
+Reports are written to `%LOCALAPPDATA%\LaunchDeck\Diagnostics\launch-focus-*.json` and include the launched process, focus attempts, foreground process/window before and after focus, and whether the target retained focus after observation.
+
+To reproduce the Game Bar overlay race, use the focus-steal simulation. This intentionally failing command models the old timing, where the focus API can report success before another foreground window takes focus back:
+
+```powershell
+powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\tools\Diagnose-LaunchFocus.ps1 `
+  -Type exe `
+  -Path "C:\Program Files\Google\Chrome\Application\chrome.exe" `
+  -Focus `
+  -FocusDelayMs 0 `
+  -TimeoutMs 2500 `
+  -PostFocusObserveMs 900 `
+  -SimulateFocusStealAfterMs 150 `
+  -SimulateFocusStealDurationMs 3000
+```
+
+The expected result is exit code `1`, `Focus.Success: true`, and `FocusRetained: false`. The fixed timing should retain Chrome focus:
+
+```powershell
+powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\tools\Diagnose-LaunchFocus.ps1 `
+  -Type exe `
+  -Path "C:\Program Files\Google\Chrome\Application\chrome.exe" `
+  -Focus `
+  -FocusDelayMs 350 `
+  -TimeoutMs 2500 `
+  -PostFocusObserveMs 900 `
+  -SimulateFocusStealAfterMs 150 `
+  -SimulateFocusStealDurationMs 3000
+```
+
+The expected result is exit code `0`, `Focus.Success: true`, and `FocusRetained: true`.
+
 ## Test Dependencies
 
 | Package | Version | Purpose |
@@ -37,7 +83,7 @@ No mocking framework is used. All tests are direct unit tests against concrete i
 
 ## Test Coverage by Area
 
-### ConfigModelsTests (9 tests)
+### ConfigModelsTests (11 tests)
 
 Tests the shared configuration model (`LaunchDeck.Shared.ConfigModels`) -- JSON serialization, deserialization, and the `ConfigLoader` utility.
 
@@ -45,6 +91,8 @@ Tests the shared configuration model (`LaunchDeck.Shared.ConfigModels`) -- JSON 
 |------|-----------------|
 | `Deserialize_ValidConfig_ReturnsItems` | Parses a config with two items; checks name, type, path, and that optional fields default to null |
 | `Deserialize_WithOptionalFields_ParsesCorrectly` | Parses `args` and `icon` optional fields |
+| `Deserialize_FocusLaunchedApps_ParsesCorrectly` | Parses the top-level `focusLaunchedApps` setting |
+| `Deserialize_FocusLaunchedApps_CanBeDisabled` | Parses explicit `focusLaunchedApps: false` while the model default remains enabled |
 | `Deserialize_EmptyItems_ReturnsEmptyList` | Empty items array produces an empty list, not null |
 | `Deserialize_AllTypes_ParsesCorrectly` | All three `LaunchItemType` enum values (`Exe`, `Url`, `Store`) deserialize from JSON strings |
 | `ConfigLoader_MissingFile_ReturnsFileNotFound` | `ConfigLoader.Load` returns `FileNotFound` status for a nonexistent path |
@@ -55,7 +103,7 @@ Tests the shared configuration model (`LaunchDeck.Shared.ConfigModels`) -- JSON 
 
 Source under test: `LaunchDeck.Shared/ConfigModels.cs`
 
-Note: `ConfigModels.cs` has additional coverage from ConfigParseTests (14 tests) and ConfigLoaderPathTests (4 tests), which test the `ParseJson` manual parser and path resolution utilities respectively.
+Note: `ConfigModels.cs` has additional coverage from ConfigParseTests (17 tests) and ConfigLoaderPathTests (4 tests), which test the `ParseJson` manual parser and path resolution utilities respectively.
 
 ### LaunchHandlerTests (11 tests)
 
@@ -73,6 +121,18 @@ Tests the companion process launch logic (`LaunchDeck.Companion.LaunchHandler`) 
 | `BuildProcessStartInfo_UrlAndStore_IgnoresArgs` (Theory, 2 cases) | URL and Store types ignore the `args` parameter (empty `Arguments`) |
 
 Source under test: `LaunchDeck.Companion/LaunchHandler.cs`
+
+### LaunchDiagnosticsTests (3 tests)
+
+Tests the diagnostic command-line parser for companion launch/focus investigations.
+
+| Test | What it verifies |
+|------|-----------------|
+| `TryParse_WithFocusOptions_ParsesLaunchDiagnostic` | Parses focus delay, timeout, post-focus observation, focus-steal simulation, launch id, and report path |
+| `TryParse_MissingPath_ReturnsFalse` | Rejects diagnostics without a target path |
+| `TryParse_NoFocus_DisablesFocus` | `--no-focus` overrides a prior `--focus true` flag |
+
+Source under test: `LaunchDeck.Companion/LaunchDiagnostics.cs`
 
 ### IconExtractorTests (5 tests)
 
@@ -137,7 +197,7 @@ Tests `ConfigLoader.GetDefaultConfigPath` and `ConfigLoader.StripPackagePath` --
 
 Source under test: `LaunchDeck.Shared/ConfigModels.cs`
 
-### ConfigParseTests (14 tests)
+### ConfigParseTests (17 tests)
 
 Tests `ConfigLoader.ParseJson` -- the manual `JsonDocument` parser that replaces `JsonSerializer.Deserialize` in the UWP widget. .NET Native's AOT compiler silently ignores `[JsonPropertyName]` attributes, so the widget uses this hand-written parser instead.
 
@@ -145,6 +205,9 @@ Tests `ConfigLoader.ParseJson` -- the manual `JsonDocument` parser that replaces
 |------|-----------------|
 | `ParseJson_LowercaseProperties_ParsesCorrectly` | Parses lowercase JSON property names (the format the companion produces) |
 | `ParseJson_PascalCaseProperties_ParsesCorrectly` | Parses PascalCase JSON property names |
+| `ParseJson_FocusLaunchedApps_ParsesLowercaseAndPascalCase` | Parses the top-level focus setting in both supported casings |
+| `ParseJson_FocusLaunchedApps_DefaultsTrueWhenMissing` | Missing focus setting defaults to enabled |
+| `ParseJson_FocusLaunchedApps_CanBeDisabled` | Explicit `focusLaunchedApps: false` disables foreground forcing |
 | `ParseJson_ExeType_CaseInsensitive` | `"exe"` and `"EXE"` both parse to `LaunchItemType.Exe` |
 | `ParseJson_UrlType_CaseInsensitive` | `"url"` and `"Url"` both parse to `LaunchItemType.Url` |
 | `ParseJson_StoreType_CaseInsensitive` | `"store"` and `"STORE"` both parse to `LaunchItemType.Store` |
@@ -299,6 +362,7 @@ For areas that cannot be automated, follow this procedure:
 
 - **Config loading:** Place a valid `config.json` in `%LOCALAPPDATA%\LaunchDeck\config.json`. Verify the widget displays the configured items in a grid.
 - **EXE launch:** Click an EXE-type item. Verify the application starts.
+- **Focus behavior:** With the default `Focus launched apps` setting on, launch EXE, URL, and Store items from an active game. Verify EXE launches are foregrounded when Windows exposes a process/window, and verify Store apps still dismiss Game Bar consistently. Turn the setting off, save, then launch an EXE item again and verify LaunchDeck does not pull focus back after the target starts.
 - **URL launch:** Click a URL-type item. Verify the browser opens to the correct URL.
 - **Store app launch:** Click a store-type item. Verify the store app launches.
 - **Add EXE via editor:** Open the editor (gear button), click "+ Add item" > "EXE Application". Verify the edit dialog opens with placeholder values. Set a name and browse for an EXE, save, then click "Save and Refresh". Verify the item appears in the widget grid.

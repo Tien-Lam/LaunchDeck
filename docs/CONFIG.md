@@ -42,10 +42,11 @@ If the directory does not exist when saving, `ConfigLoader.Save` creates it auto
 
 ## JSON Schema
 
-The config file is a single JSON object with one top-level key, `items`, containing an array of launch item objects.
+The config file is a single JSON object with optional launch behavior settings and one `items` array containing launch item objects.
 
 ```json
 {
+  "focusLaunchedApps": true,
   "items": [
     {
       "name": "...",
@@ -60,9 +61,10 @@ The config file is a single JSON object with one top-level key, `items`, contain
 
 ### Top-Level Object
 
-| Field   | Type    | Required | Description                   |
-|---------|---------|----------|-------------------------------|
-| `items` | array   | Yes      | Array of `LaunchItemConfig` objects. May be empty. |
+| Field               | Type    | Required | Default | Description |
+|---------------------|---------|----------|---------|-------------|
+| `focusLaunchedApps` | boolean | No       | `true` | When enabled, EXE launches use the companion path and call foreground focus APIs after `Process.Start` when a process/window can be identified. Set to `false` to leave foreground ownership to Windows, Game Bar, and the launched app. |
+| `items`             | array   | Yes      | --      | Array of `LaunchItemConfig` objects. May be empty. |
 
 ### LaunchItemConfig
 
@@ -293,6 +295,7 @@ Note: `ConfigLoader.Load` uses `PropertyNameCaseInsensitive = true`, so field na
 
 ```json
 {
+  "focusLaunchedApps": true,
   "items": [
     {
       "name": "Notepad",

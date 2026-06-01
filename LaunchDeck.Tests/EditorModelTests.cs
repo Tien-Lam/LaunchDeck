@@ -195,7 +195,7 @@ public class EditorModelTests
     public void Load_ReadsConfigFile()
     {
         var tempFile = Path.GetTempFileName();
-        File.WriteAllText(tempFile, """{ "items": [{ "name": "Test", "type": "exe", "path": "test.exe" }] }""");
+        File.WriteAllText(tempFile, """{ "focusLaunchedApps": true, "items": [{ "name": "Test", "type": "exe", "path": "test.exe" }] }""");
 
         try
         {
@@ -203,6 +203,7 @@ public class EditorModelTests
             model.Load(tempFile);
 
             Assert.Single(model.Items);
+            Assert.True(model.FocusLaunchedApps);
             Assert.Equal("Test", model.Items[0].Name);
             Assert.Equal(0, model.SelectedIndex);
         }
@@ -219,6 +220,7 @@ public class EditorModelTests
         model.Load(@"C:\nonexistent\config.json");
 
         Assert.Empty(model.Items);
+        Assert.True(model.FocusLaunchedApps);
         Assert.Equal(-1, model.SelectedIndex);
     }
 
@@ -231,6 +233,7 @@ public class EditorModelTests
         try
         {
             var model = new EditorModel();
+            model.FocusLaunchedApps = true;
             model.AddExe(@"C:\app.exe", "App");
             model.AddUrl();
             model.Save(tempFile, () => callbackCalled = true);
@@ -239,6 +242,7 @@ public class EditorModelTests
 
             var result = ConfigLoader.Load(tempFile);
             Assert.Equal(ConfigLoadStatus.Success, result.Status);
+            Assert.True(result.Config!.FocusLaunchedApps);
             Assert.Equal(2, result.Config!.Items.Count);
             Assert.Equal("App", result.Config.Items[0].Name);
             Assert.Equal("New URL", result.Config.Items[1].Name);

@@ -11,11 +11,11 @@ internal static class Log
 
     static Log()
     {
-        var dir = Path.Combine(
+        var dir = System.IO.Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "LaunchDeck");
         Directory.CreateDirectory(dir);
-        LogPath = Path.Combine(dir, "companion.log");
+        LogPath = System.IO.Path.Combine(dir, "companion.log");
 
         // Truncate if too large
         try
@@ -25,6 +25,8 @@ internal static class Log
         }
         catch { }
     }
+
+    internal static string Path => LogPath;
 
     internal static void Write(string message)
     {

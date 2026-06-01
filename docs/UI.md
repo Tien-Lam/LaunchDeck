@@ -129,10 +129,12 @@ Pointer press adds a scale-down effect:
 
 On `ItemClick`, the widget launches the target app and dismisses the Game Bar overlay:
 
-1. **URL and Store items** use `XboxGameBarWidget.LaunchUriAsync(uri)` — Game Bar's built-in launcher that handles overlay dismissal and app focus automatically.
+1. **URL and Store items** use `XboxGameBarWidget.LaunchUriAsync(uri)` so Game Bar owns overlay dismissal.
 2. **EXE items without arguments** also use `LaunchUriAsync` with the file path as a URI (guarded by `widget != null`).
-3. **EXE items with arguments**, or when the widget reference is null, or if `LaunchUriAsync` fails, fall back to the companion process via the `launch` IPC action. The companion calls `SetForegroundWindow` on the launched process to bring it to the foreground.
-4. When the widget is pinned, no overlay dismissal occurs — the widget stays visible.
+3. `focusLaunchedApps` defaults to enabled. When enabled, EXE items use the companion `launch` IPC action so the companion can foreground the launched process when possible. The widget sends a launch correlation id and a short focus delay so Game Bar can finish dismissing the overlay before the companion calls foreground APIs. URL and Store items continue to prefer `LaunchUriAsync` because Game Bar handles activation, focus, and overlay dismissal for them.
+4. **EXE items with arguments**, or when the widget reference is null, or if `LaunchUriAsync` fails, fall back to the companion process via the `launch` IPC action. The companion starts the target with `Process.Start`.
+5. Successful companion launches minimize the widget when it is not pinned, matching the dismiss behavior users expect from launch actions without removing the widget from Game Bar.
+6. When the widget is pinned, no overlay dismissal occurs — the widget stays visible.
 
 ### Click Feedback
 
@@ -152,7 +154,7 @@ Tiles are focusable for gamepad and keyboard navigation:
 - `GridView` uses `SelectionMode="Single"` with `SingleSelectionFollowsFocus="True"` — the focused tile is always the selected tile.
 - Custom focus visual: a `FocusBorder` element inside each tile (2px `TileFocusBorder` border, `#60FFFFFF`) shows/hides via `GotFocus`/`LostFocus` handlers. System focus visuals are disabled.
 - Focused tiles also get the hover background color for additional visual emphasis.
-- On first load, `SelectedIndex` is set to 0 and the first tile receives keyboard focus.
+- On initial load/re-activation, `SelectedIndex` is set to 0 before icon loading starts. Keyboard focus is requested only when the widget is visible and not pinned, and any queued focus request is skipped if a launch starts first.
 - All tile colors are read from XAML resources via `GetResourceColor()` — no hardcoded values in code-behind.
 
 ---
@@ -195,6 +197,7 @@ The config editor (`EditorWindow`) is a WPF window using a ViewModel + code-behi
 
 DockPanel with sticky header/footer and scrollable item list:
 - **Header** (top): Page title and subtitle
+- **Launch behavior** (top): `Focus launched apps` checkbox bound to the top-level `focusLaunchedApps` config setting, enabled by default
 - **Footer** (bottom): "+ Add item" menu (EXE Application / URL / Store App) and "Save and Refresh" button
 - **Middle** (scrollable): Vertical stack of card-style item rows (`ItemsControl` bound to `ObservableCollection`)
 - Each card shows: 32x32 icon, name, path, and icon buttons (move up/down, edit, delete)
