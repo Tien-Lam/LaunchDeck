@@ -20,26 +20,54 @@ class Program
 
         Log.Write($"Companion starting. PFN={Package.Current.Id.FamilyName} ConfigPath={ConfigLoader.GetDefaultConfigPath()}");
 
-        // Acquire mutex with timeout — if a previous instance is stuck with a dead
-        // connection (zombie), proceed anyway and let App Service sort it out.
+        // Only one companion should own the App Service connection. Multiple
+        // instances can race during repeated Game Bar activations.
         using var mutex = new Mutex(false, "Local\\LaunchDeckCompanion");
-        mutex.WaitOne(500);
-
-        _connection = new AppServiceConnection
+        var ownsMutex = false;
+        try
         {
-            AppServiceName = "com.launchdeck.service",
-            PackageFamilyName = Package.Current.Id.FamilyName
-        };
-        _connection.RequestReceived += OnRequestReceived;
-        _connection.ServiceClosed += (_, _) => { Log.Write("ServiceClosed — exiting"); ExitEvent.Set(); };
+            ownsMutex = mutex.WaitOne(TimeSpan.FromSeconds(2));
+        }
+        catch (AbandonedMutexException)
+        {
+            ownsMutex = true;
+        }
 
-        var status = await _connection.OpenAsync();
-        Log.Write($"AppService.OpenAsync → {status}");
-        if (status != AppServiceConnectionStatus.Success)
-            return 1;
+        if (!ownsMutex)
+        {
+            Log.Write("Another companion instance is already running; exiting");
+            return 0;
+        }
 
-        ExitEvent.WaitOne();
-        return 0;
+        try
+        {
+            _connection = new AppServiceConnection
+            {
+                AppServiceName = "com.launchdeck.service",
+                PackageFamilyName = Package.Current.Id.FamilyName
+            };
+            _connection.RequestReceived += OnRequestReceived;
+            _connection.ServiceClosed += (_, _) => { Log.Write("ServiceClosed — exiting"); ExitEvent.Set(); };
+
+            var status = await _connection.OpenAsync();
+            Log.Write($"AppService.OpenAsync → {status}");
+            if (status != AppServiceConnectionStatus.Success)
+                return 1;
+
+            ExitEvent.WaitOne();
+            return 0;
+        }
+        finally
+        {
+            try
+            {
+                if (ownsMutex)
+                    mutex.ReleaseMutex();
+            }
+            catch
+            {
+            }
+        }
     }
 
     public static async void NotifyConfigUpdated()

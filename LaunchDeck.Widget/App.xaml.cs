@@ -15,6 +15,7 @@ sealed partial class App : Application
     private XboxGameBarWidget? _widget;
     private AppServiceConnection? _companionConnection;
     private BackgroundTaskDeferral? _appServiceDeferral;
+    private Task? _companionRelaunchTask;
 
     public static AppServiceConnection? CompanionConnection { get; private set; }
     public static XboxGameBarWidget? Widget { get; private set; }
@@ -42,6 +43,15 @@ sealed partial class App : Application
                 var widgetArgs = args as XboxGameBarWidgetActivatedEventArgs;
                 if (widgetArgs != null)
                 {
+                    if (!widgetArgs.IsLaunchActivation)
+                    {
+                        ReloadActiveWidget();
+                        Window.Current.Activate();
+                        return;
+                    }
+
+                    ReleaseWidget();
+
                     var rootFrame = new Frame();
                     Window.Current.Content = rootFrame;
 
@@ -52,10 +62,39 @@ sealed partial class App : Application
                     Widget = _widget;
 
                     rootFrame.Navigate(typeof(LaunchDeckWidget));
+                    Window.Current.Closed += OnWindowClosed;
                     Window.Current.Activate();
                 }
             }
         }
+    }
+
+    private static void ReloadActiveWidget()
+    {
+        if (Window.Current.Content is Frame { Content: LaunchDeckWidget page })
+            page.ReloadAsync();
+    }
+
+    private void OnWindowClosed(object sender, Windows.UI.Core.CoreWindowEventArgs e)
+    {
+        ReleaseWidget();
+    }
+
+    private void ReleaseWidget()
+    {
+        try
+        {
+            Window.Current.Closed -= OnWindowClosed;
+        }
+        catch
+        {
+        }
+
+        if (Window.Current.Content is Frame { Content: LaunchDeckWidget page })
+            page.ReleaseForWidgetLifecycle();
+
+        _widget = null;
+        Widget = null;
     }
 
 
@@ -75,7 +114,7 @@ sealed partial class App : Application
             _companionConnection.ServiceClosed += (_, _) =>
             {
                 CompanionConnection = null;
-                TryRelaunchCompanion();
+                ScheduleCompanionRelaunch();
             };
 
             args.TaskInstance.Canceled += (_, _) =>
@@ -91,7 +130,15 @@ sealed partial class App : Application
         }
     }
 
-    private async void TryRelaunchCompanion()
+    private void ScheduleCompanionRelaunch()
+    {
+        if (_companionRelaunchTask is { IsCompleted: false })
+            return;
+
+        _companionRelaunchTask = TryRelaunchCompanionAsync();
+    }
+
+    private static async Task TryRelaunchCompanionAsync()
     {
         int[] delays = { 1000, 2000, 4000 };
         foreach (var delay in delays)
@@ -109,8 +156,7 @@ sealed partial class App : Application
     private void OnSuspending(object sender, SuspendingEventArgs e)
     {
         var deferral = e.SuspendingOperation.GetDeferral();
-        _widget = null;
-        Widget = null;
+        ReleaseWidget();
         CompanionConnection = null;
         deferral.Complete();
     }

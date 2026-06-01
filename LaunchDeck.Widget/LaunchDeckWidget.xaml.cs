@@ -20,6 +20,10 @@ namespace LaunchDeck.Widget;
 public sealed partial class LaunchDeckWidget : Page
 {
     private bool _eventsSubscribed;
+    private bool _released;
+    private XboxGameBarWidget? _subscribedWidget;
+    private readonly object _ensureCompanionLock = new();
+    private Task? _ensureCompanionTask;
     private int _loadGeneration;
     private int _launchGeneration;
     private bool _focusLaunchedApps;
@@ -31,6 +35,7 @@ public sealed partial class LaunchDeckWidget : Page
         this.InitializeComponent();
         ApplyLocalizedText();
         this.Loaded += OnLoaded;
+        this.Unloaded += OnUnloaded;
     }
 
     private void ApplyLocalizedText()
@@ -43,13 +48,36 @@ public sealed partial class LaunchDeckWidget : Page
 
     public async void ReloadAsync()
     {
-        // Re-establish companion connection and reload config
-        // Called on widget re-activation (close then re-add from Game Bar)
-        await EnsureCompanionAsync();
-        await LoadConfigAsync(requestInitialFocus: true);
+        try
+        {
+            // Re-establish companion connection and reload config
+            // Called on widget re-activation (close then re-add from Game Bar)
+            await EnsureCompanionAsync();
+            await LoadConfigAsync(requestInitialFocus: true);
+        }
+        catch (Exception ex)
+        {
+            LogWidgetException("ReloadAsync", ex);
+        }
     }
 
     private async Task EnsureCompanionAsync()
+    {
+        if (App.CompanionConnection != null)
+            return;
+
+        Task task;
+        lock (_ensureCompanionLock)
+        {
+            if (_ensureCompanionTask == null || _ensureCompanionTask.IsCompleted)
+                _ensureCompanionTask = EnsureCompanionCoreAsync();
+            task = _ensureCompanionTask;
+        }
+
+        await task;
+    }
+
+    private async Task EnsureCompanionCoreAsync()
     {
         for (int attempt = 0; attempt < 3; attempt++)
         {
@@ -73,60 +101,162 @@ public sealed partial class LaunchDeckWidget : Page
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        await EnsureCompanionAsync();
-        await LoadConfigAsync(requestInitialFocus: true);
+        _released = false;
 
-        if (!_eventsSubscribed)
+        try
         {
-            _eventsSubscribed = true;
-            CompanionClient.ConfigUpdated += async () =>
-            {
-                await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
-                {
-                    await LoadConfigAsync();
-                });
-            };
-            CompanionClient.CompanionConnected += async () =>
-            {
-                await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
-                {
-                    await LoadConfigAsync();
-                });
-            };
+            await EnsureCompanionAsync();
+            await LoadConfigAsync(requestInitialFocus: true);
+            SubscribeLifecycleEvents();
+        }
+        catch (Exception ex)
+        {
+            LogWidgetException("OnLoaded", ex);
+            ShowEmptyState(Localization.Get("EmptyLoadErrorTitle"), ex.Message);
+        }
+    }
 
-            var widget = App.Widget;
-            if (widget != null)
-            {
-                // Reload config when Game Bar overlay becomes visible
-                // Catches saves that were missed while the widget was suspended
-                widget.VisibleChanged += async (s, a) =>
-                {
-                    if (s.Visible)
-                    {
-                        await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
-                        {
-                            await LoadConfigAsync();
-                        });
-                    }
-                };
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        ReleaseForWidgetLifecycle();
+    }
 
-                // Honor Game Bar opacity setting for compact/pinned mode
+    internal void ReleaseForWidgetLifecycle()
+    {
+        _released = true;
+        _loadGeneration++;
+        UnsubscribeLifecycleEvents();
+    }
+
+    private void SubscribeLifecycleEvents()
+    {
+        if (_eventsSubscribed)
+            return;
+
+        _eventsSubscribed = true;
+        CompanionClient.ConfigUpdated += OnConfigUpdated;
+        CompanionClient.CompanionConnected += OnCompanionConnected;
+
+        var widget = App.Widget;
+        if (widget == null)
+            return;
+
+        _subscribedWidget = widget;
+        try
+        {
+            widget.VisibleChanged += OnWidgetVisibleChanged;
+
+            // Honor Game Bar opacity setting for compact/pinned mode
+            try
+            {
+                ApplyBackgroundOpacity(widget.RequestedOpacity / 100.0);
+                widget.RequestedOpacityChanged += OnWidgetRequestedOpacityChanged;
+            }
+            catch (Exception ex)
+            {
+                // RequestedOpacity may not be available in all Game Bar versions.
+                LogWidgetException("SubscribeLifecycleEvents opacity", ex);
+            }
+        }
+        catch (Exception ex)
+        {
+            LogWidgetException("SubscribeLifecycleEvents", ex);
+        }
+    }
+
+    private void UnsubscribeLifecycleEvents()
+    {
+        if (!_eventsSubscribed)
+            return;
+
+        _eventsSubscribed = false;
+        CompanionClient.ConfigUpdated -= OnConfigUpdated;
+        CompanionClient.CompanionConnected -= OnCompanionConnected;
+
+        var widget = _subscribedWidget;
+        _subscribedWidget = null;
+        if (widget == null)
+            return;
+
+        try { widget.VisibleChanged -= OnWidgetVisibleChanged; }
+        catch (Exception ex) { LogWidgetException("Unsubscribe VisibleChanged", ex); }
+
+        try { widget.RequestedOpacityChanged -= OnWidgetRequestedOpacityChanged; }
+        catch (Exception ex) { LogWidgetException("Unsubscribe RequestedOpacityChanged", ex); }
+    }
+
+    private async void OnConfigUpdated()
+    {
+        await RunOnWidgetDispatcherAsync("ConfigUpdated", () => LoadConfigAsync());
+    }
+
+    private async void OnCompanionConnected()
+    {
+        await RunOnWidgetDispatcherAsync("CompanionConnected", () => LoadConfigAsync());
+    }
+
+    private async void OnWidgetVisibleChanged(XboxGameBarWidget sender, object args)
+    {
+        try
+        {
+            if (_released || !sender.Visible)
+                return;
+        }
+        catch (Exception ex)
+        {
+            LogWidgetException("VisibleChanged state", ex);
+            return;
+        }
+
+        await RunOnWidgetDispatcherAsync("VisibleChanged", () => LoadConfigAsync());
+    }
+
+    private async void OnWidgetRequestedOpacityChanged(XboxGameBarWidget sender, object args)
+    {
+        double opacity;
+        try
+        {
+            if (_released)
+                return;
+
+            opacity = sender.RequestedOpacity / 100.0;
+        }
+        catch (Exception ex)
+        {
+            LogWidgetException("RequestedOpacityChanged state", ex);
+            return;
+        }
+
+        await RunOnWidgetDispatcherAsync("RequestedOpacityChanged", () =>
+        {
+            ApplyBackgroundOpacity(opacity);
+            return Task.CompletedTask;
+        });
+    }
+
+    private async Task RunOnWidgetDispatcherAsync(string source, Func<Task> action)
+    {
+        if (_released)
+            return;
+
+        try
+        {
+            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
+            {
                 try
                 {
-                    ApplyBackgroundOpacity(widget.RequestedOpacity / 100.0);
-                    widget.RequestedOpacityChanged += (opacitySender, args) =>
-                    {
-                        _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
-                        {
-                            ApplyBackgroundOpacity(opacitySender.RequestedOpacity / 100.0);
-                        });
-                    };
+                    if (!_released)
+                        await action();
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // RequestedOpacity may not be available in all Game Bar versions
+                    LogWidgetException(source, ex);
                 }
-            }
+            });
+        }
+        catch (Exception ex)
+        {
+            LogWidgetException($"{source} dispatcher", ex);
         }
     }
 
@@ -452,6 +582,11 @@ public sealed partial class LaunchDeckWidget : Page
             // Some Game Bar host states reject MinimizeAsync; launching still succeeded.
             CompanionClient.RemoteLog($"widget-launch[{launchId}]: MinimizeAsync failed {ex.GetType().Name}: {ex.Message}");
         }
+    }
+
+    private static void LogWidgetException(string source, Exception ex)
+    {
+        CompanionClient.RemoteLog($"widget-lifecycle: {source} failed {ex.GetType().Name}: {ex.Message}");
     }
 
     private Windows.UI.Color GetResourceColor(string key) =>
