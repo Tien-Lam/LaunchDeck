@@ -2,11 +2,15 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
-    <Platforms>x64;x86;ARM</Platforms>
+    <Platforms>x64;x86;ARM64</Platforms>
     <RuntimeIdentifiers>win-x64;win-x86;win-arm64</RuntimeIdentifiers>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <UseWPF>true</UseWPF>
+  </PropertyGroup>
+  <!-- AL.exe rejects ARM64 as a managed satellite assembly platform; the win-arm64 RID still produces an ARM64 apphost. -->
+  <PropertyGroup Condition="'$(Platform)' == 'ARM64'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="LaunchDeck.Tests" />

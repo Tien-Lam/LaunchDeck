@@ -1,7 +1,13 @@
 # LaunchDeck build + deploy script
 # Run from project root in PowerShell
 
+param(
+    [ValidateSet('x64', 'ARM64')]
+    [string]$Platform = 'x64'
+)
+
 $ErrorActionPreference = 'Stop'
+$Configuration = 'Debug'
 
 # Find MSBuild
 $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
@@ -24,8 +30,8 @@ if ($procs) {
 }
 
 # Build full solution (produces .msix)
-Write-Host "Building solution..." -ForegroundColor Cyan
-& $msbuild LaunchDeck.sln -p:Configuration=Debug -p:Platform=x64 -p:AppxBundle=Never -restore -v:minimal
+Write-Host "Building solution for $Platform..." -ForegroundColor Cyan
+& $msbuild LaunchDeck.sln -p:Configuration=$Configuration -p:Platform=$Platform -p:AppxBundle=Never -restore -v:minimal
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Build failed"
     exit 1
@@ -33,16 +39,16 @@ if ($LASTEXITCODE -ne 0) {
 
 # Find MSIX in output (prefer .msix over .msixbundle for loose-file registration)
 $pkg = Get-ChildItem -Path "$PSScriptRoot\LaunchDeck.Package\AppPackages" -Recurse -Include '*.msix' |
-    Where-Object { $_.Name -match 'Debug' -and $_.Extension -eq '.msix' } |
+    Where-Object { $_.Name -match "_$($Platform)_$($Configuration)\.msix$" -and $_.Extension -eq '.msix' } |
     Sort-Object LastWriteTime -Descending |
     Select-Object -First 1
 if (-not $pkg) {
     $pkg = Get-ChildItem -Path "$PSScriptRoot\LaunchDeck.Package\AppPackages" -Recurse -Include '*.msixbundle' |
-        Where-Object { $_.Name -match 'Debug' } |
+        Where-Object { $_.Name -match "_$($Platform)_$($Configuration)\.msixbundle$" } |
         Sort-Object LastWriteTime -Descending |
         Select-Object -First 1
 }
-$layoutDir = Join-Path $PSScriptRoot 'LaunchDeck.Package\bin\x64\Debug\AppX'
+$layoutDir = Join-Path $PSScriptRoot "LaunchDeck.Package\bin\$Platform\$Configuration\AppX"
 
 if (-not $pkg) {
     Write-Error "No MSIX/MSIXBUNDLE found in LaunchDeck.Package\AppPackages"
@@ -60,11 +66,17 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 # Bundles contain an inner .msix — extract the bundle first, then the msix
 if ($pkg.Extension -eq '.msixbundle') {
-    $bundleDir = Join-Path $PSScriptRoot 'LaunchDeck.Package\bin\x64\Debug\Bundle'
+    $bundleDir = Join-Path $PSScriptRoot "LaunchDeck.Package\bin\$Platform\$Configuration\Bundle"
     if (Test-Path $bundleDir) { Remove-Item $bundleDir -Recurse -Force }
     New-Item $bundleDir -ItemType Directory | Out-Null
     [System.IO.Compression.ZipFile]::ExtractToDirectory($pkg.FullName, $bundleDir)
-    $innerMsix = Get-ChildItem $bundleDir -Filter '*.msix' | Select-Object -First 1
+    $innerMsix = Get-ChildItem $bundleDir -Filter '*.msix' |
+        Where-Object { $_.Name -match "_$($Platform)_$($Configuration)\.msix$" } |
+        Select-Object -First 1
+    if (-not $innerMsix) {
+        Write-Error "No $Platform app MSIX found inside $($pkg.Name)"
+        exit 1
+    }
     [System.IO.Compression.ZipFile]::ExtractToDirectory($innerMsix.FullName, $layoutDir)
     Remove-Item $bundleDir -Recurse -Force
 } else {
@@ -72,7 +84,7 @@ if ($pkg.Extension -eq '.msixbundle') {
 }
 
 # Remove existing registration, then re-register
-$existing = Get-AppxPackage -Name 'LaunchDeck' -ErrorAction SilentlyContinue
+$existing = Get-AppxPackage -Name '34667TienLongLam.LaunchDeck' -ErrorAction SilentlyContinue
 if ($existing) {
     Write-Host "Removing existing package..." -ForegroundColor Yellow
     Remove-AppxPackage $existing.PackageFullName

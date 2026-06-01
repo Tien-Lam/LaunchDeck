@@ -85,15 +85,17 @@ dotnet test LaunchDeck.Tests/
 
 # Full solution (requires VS / MSBuild)
 msbuild LaunchDeck.sln /p:Configuration=Debug /p:Platform=x64 /restore
+msbuild LaunchDeck.sln /p:Configuration=Debug /p:Platform=ARM64 /restore
 ```
 
 ### Deploy
 
 ```powershell
 .\deploy.ps1
+.\deploy.ps1 -Platform ARM64
 ```
 
-Builds the full solution with MSBuild and registers the package via loose-file deployment (no signing needed). Requires Visual Studio with the UWP workload installed. After deploying, open Game Bar (Win+G) and enable the LaunchDeck widget from the widget menu.
+Builds the full solution with MSBuild and registers the package via loose-file deployment (no signing needed). The deploy script defaults to `x64`; use `-Platform ARM64` on Windows on Arm devices. Requires Visual Studio with the UWP workload installed. After deploying, open Game Bar (Win+G) and enable the LaunchDeck widget from the widget menu.
 
 ### Uninstall
 

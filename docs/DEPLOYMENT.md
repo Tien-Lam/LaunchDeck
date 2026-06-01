@@ -45,15 +45,19 @@ The Widget project is a classic UWP project (not SDK-style) and requires MSBuild
 ```bash
 # In bash, use -p: instead of /p: to avoid shell path expansion
 msbuild LaunchDeck.sln -p:Configuration=Debug -p:Platform=x64 /restore
+msbuild LaunchDeck.sln -p:Configuration=Debug -p:Platform=ARM64 /restore
 ```
 
 In PowerShell or Developer Command Prompt, `/p:` syntax works:
 
 ```powershell
 msbuild LaunchDeck.sln /p:Configuration=Debug /p:Platform=x64 /restore
+msbuild LaunchDeck.sln /p:Configuration=Debug /p:Platform=ARM64 /restore
 ```
 
-The solution is configured for `Debug|x64` and `Release|x64` platform configurations. The Shared project builds as `Any CPU`; all other projects build as `x64`.
+The solution is configured for `Debug|x64`, `Release|x64`, `Debug|ARM64`, and `Release|ARM64` platform configurations. The Shared project builds as `Any CPU`; Widget, Companion, Tests, and Package build as the selected native platform.
+
+Release packaging creates a combined `x64` + `ARM64` MSIX upload bundle. Debug packaging stays single-platform because the generated x64 and ARM64 debug UWP packages use different framework dependencies and cannot be placed in the same bundle.
 
 ### Prerequisites
 
@@ -75,15 +79,18 @@ The solution is configured for `Debug|x64` and `Release|x64` platform configurat
 The `deploy.ps1` script is the primary deployment method. It performs these steps:
 
 1. Kills any running `LaunchDeck.Companion` and `LaunchDeck.Widget` processes.
-2. Builds the full solution with MSBuild (`AppxBundle=Never`, Debug|x64).
+2. Builds the full solution with MSBuild (`AppxBundle=Never`, Debug plus the selected platform).
 3. Locates the `.msix` (or `.msixbundle`) in `LaunchDeck.Package\AppPackages`.
-4. Extracts the MSIX to a layout directory (`LaunchDeck.Package\bin\x64\Debug\AppX`) using `ZipFile`. For `.msixbundle` files, extracts the bundle first, then the inner `.msix`.
+4. Extracts the MSIX to a platform-specific layout directory such as `LaunchDeck.Package\bin\x64\Debug\AppX` or `LaunchDeck.Package\bin\ARM64\Debug\AppX` using `ZipFile`. For `.msixbundle` files, extracts the bundle first, then the matching platform `.msix`.
 5. Removes any existing `LaunchDeck` package registration via `Remove-AppxPackage`.
 6. Registers the extracted layout via `Add-AppxPackage -Register` (loose-file registration, no signing needed).
 
 ```powershell
 .\deploy.ps1
+.\deploy.ps1 -Platform ARM64
 ```
+
+The deploy script defaults to `x64`; use `-Platform ARM64` when deploying locally on a Windows on Arm device.
 
 ### Alternative: Visual Studio F5
 
@@ -231,6 +238,7 @@ rm -rf LaunchDeck.Companion/bin LaunchDeck.Companion/obj
 rm -rf LaunchDeck.Shared/bin LaunchDeck.Shared/obj
 rm -rf LaunchDeck.Package/bin LaunchDeck.Package/obj
 msbuild LaunchDeck.sln -p:Configuration=Debug -p:Platform=x64 /restore
+msbuild LaunchDeck.sln -p:Configuration=Debug -p:Platform=ARM64 /restore
 ```
 
 Or in Visual Studio: **Build > Clean Solution**, then **Build > Rebuild Solution**.
