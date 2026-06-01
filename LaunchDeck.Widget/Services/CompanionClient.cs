@@ -28,7 +28,7 @@ public static class CompanionClient
     {
         var connection = App.CompanionConnection;
         if (connection == null)
-            return (ConfigLoadStatus.FileNotFound, null, null, "Companion not connected");
+            return (ConfigLoadStatus.LoadError, null, null, "Companion not connected");
 
         var configPath = ConfigLoader.GetDefaultConfigPath();
         var request = new ValueSet { ["action"] = "load-config", ["configPath"] = configPath };
@@ -36,7 +36,7 @@ public static class CompanionClient
         if (response.Status != AppServiceResponseStatus.Success)
         {
             RemoteLog($"widget: load-config AppService error: {response.Status}");
-            return (ConfigLoadStatus.FileNotFound, null, null, "App Service error");
+            return (ConfigLoadStatus.LoadError, null, null, "App Service error");
         }
 
         var msg = response.Message;

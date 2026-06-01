@@ -53,7 +53,8 @@ public enum ConfigLoadStatus
 {
     Success,
     FileNotFound,
-    ParseError
+    ParseError,
+    LoadError
 }
 
 public static class ConfigLoader

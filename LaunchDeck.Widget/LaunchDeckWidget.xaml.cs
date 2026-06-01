@@ -285,6 +285,13 @@ public sealed partial class LaunchDeckWidget : Page
             return;
         }
 
+        if (status == ConfigLoadStatus.LoadError)
+        {
+            ShowEmptyState(Localization.Get("EmptyLoadErrorTitle"),
+                error ?? "Companion not connected");
+            return;
+        }
+
         if (status == ConfigLoadStatus.ParseError)
         {
             ShowEmptyState(Localization.Get("EmptyInvalidConfigTitle"),
@@ -650,7 +657,9 @@ public sealed partial class LaunchDeckWidget : Page
         EditButton.IsEnabled = false;
         try
         {
-            await CompanionClient.OpenEditorAsync();
+            await EnsureCompanionAsync();
+            if (!await CompanionClient.OpenEditorAsync())
+                ShowEmptyState(Localization.Get("EmptyLoadErrorTitle"), "Companion not connected");
         }
         finally
         {

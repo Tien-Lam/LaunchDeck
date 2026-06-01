@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using LaunchDeck.Shared;
@@ -10,8 +11,15 @@ namespace LaunchDeck.Companion;
 
 class Program
 {
+    private const string MutexName = "Local\\LaunchDeckCompanion";
+    private const string ReconnectRequestEventName = "Local\\LaunchDeckCompanionReconnectRequest";
+    private const string ReconnectAcknowledgedEventName = "Local\\LaunchDeckCompanionReconnectAcknowledged";
+
     private static AppServiceConnection? _connection;
     private static readonly ManualResetEvent ExitEvent = new(false);
+    private static readonly AutoResetEvent ReconnectEvent = new(false);
+    private static EventWaitHandle? _reconnectAcknowledgedEvent;
+    private static int _reconnectRequested;
 
     static async Task<int> Main(string[] args)
     {
@@ -20,45 +28,49 @@ class Program
 
         Log.Write($"Companion starting. PFN={Package.Current.Id.FamilyName} ConfigPath={ConfigLoader.GetDefaultConfigPath()}");
 
-        // Only one companion should own the App Service connection. Multiple
-        // instances can race during repeated Game Bar activations.
-        using var mutex = new Mutex(false, "Local\\LaunchDeckCompanion");
-        var ownsMutex = false;
-        try
+        using var reconnectRequestEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ReconnectRequestEventName);
+        using var reconnectAcknowledgedEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ReconnectAcknowledgedEventName);
+        _reconnectAcknowledgedEvent = reconnectAcknowledgedEvent;
+
+        // Only one current companion should own the App Service connection.
+        // If an older/stale instance owns it, ask it to reopen the App Service
+        // for the current Game Bar activation instead of piling up processes.
+        using var mutex = new Mutex(false, MutexName);
+        var ownsMutex = TryAcquireMutex(mutex, TimeSpan.FromSeconds(2));
+        if (!ownsMutex)
         {
-            ownsMutex = mutex.WaitOne(TimeSpan.FromSeconds(2));
-        }
-        catch (AbandonedMutexException)
-        {
-            ownsMutex = true;
+            if (RequestExistingCompanionReconnect(reconnectRequestEvent, reconnectAcknowledgedEvent))
+                return 0;
+
+            Log.Write("Existing companion did not acknowledge reconnect; terminating stale companion instances");
+            TerminateOtherCompanionProcesses();
+            ownsMutex = TryAcquireMutex(mutex, TimeSpan.FromSeconds(5));
         }
 
         if (!ownsMutex)
         {
-            Log.Write("Another companion instance is already running; exiting");
-            return 0;
+            Log.Write("Unable to acquire companion mutex after recovery attempt; exiting");
+            return 1;
         }
 
+        RegisteredWaitHandle? reconnectRegistration = null;
         try
         {
-            _connection = new AppServiceConnection
-            {
-                AppServiceName = "com.launchdeck.service",
-                PackageFamilyName = Package.Current.Id.FamilyName
-            };
-            _connection.RequestReceived += OnRequestReceived;
-            _connection.ServiceClosed += (_, _) => { Log.Write("ServiceClosed — exiting"); ExitEvent.Set(); };
+            reconnectRegistration = ThreadPool.RegisterWaitForSingleObject(
+                reconnectRequestEvent,
+                OnReconnectRequested,
+                null,
+                Timeout.InfiniteTimeSpan,
+                executeOnlyOnce: false);
 
-            var status = await _connection.OpenAsync();
-            Log.Write($"AppService.OpenAsync → {status}");
-            if (status != AppServiceConnectionStatus.Success)
-                return 1;
-
-            ExitEvent.WaitOne();
-            return 0;
+            return await RunAppServiceLoopAsync();
         }
         finally
         {
+            reconnectRegistration?.Unregister(null);
+            _reconnectAcknowledgedEvent = null;
+            _connection = null;
+
             try
             {
                 if (ownsMutex)
@@ -66,6 +78,134 @@ class Program
             }
             catch
             {
+            }
+        }
+    }
+
+    private static bool TryAcquireMutex(Mutex mutex, TimeSpan timeout)
+    {
+        try
+        {
+            return mutex.WaitOne(timeout);
+        }
+        catch (AbandonedMutexException)
+        {
+            return true;
+        }
+    }
+
+    private static bool RequestExistingCompanionReconnect(EventWaitHandle requestEvent, EventWaitHandle acknowledgedEvent)
+    {
+        try { acknowledgedEvent.Reset(); }
+        catch { }
+
+        Log.Write("Another companion instance is already running; requesting AppService reconnect");
+        try
+        {
+            requestEvent.Set();
+            if (acknowledgedEvent.WaitOne(TimeSpan.FromSeconds(3)))
+            {
+                Log.Write("Existing companion acknowledged reconnect; exiting duplicate launch");
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Write($"Reconnect request failed {ex.GetType().Name}: {ex.Message}");
+        }
+
+        return false;
+    }
+
+    private static async Task<int> RunAppServiceLoopAsync()
+    {
+        while (true)
+        {
+            ExitEvent.Reset();
+            ReconnectEvent.Reset();
+            Interlocked.Exchange(ref _reconnectRequested, 0);
+
+            using var connection = new AppServiceConnection
+            {
+                AppServiceName = "com.launchdeck.service",
+                PackageFamilyName = Package.Current.Id.FamilyName
+            };
+
+            _connection = connection;
+            connection.RequestReceived += OnRequestReceived;
+            connection.ServiceClosed += OnServiceClosed;
+
+            var status = await connection.OpenAsync();
+            Log.Write($"AppService.OpenAsync -> {status}");
+            if (status != AppServiceConnectionStatus.Success)
+            {
+                _connection = null;
+                return 1;
+            }
+
+            var signaled = WaitHandle.WaitAny(new WaitHandle[] { ExitEvent, ReconnectEvent });
+
+            connection.RequestReceived -= OnRequestReceived;
+            connection.ServiceClosed -= OnServiceClosed;
+            _connection = null;
+
+            if (signaled == 1)
+            {
+                Log.Write("Reopening AppService connection after reconnect request");
+                continue;
+            }
+
+            return 0;
+        }
+    }
+
+    private static void OnServiceClosed(AppServiceConnection sender, AppServiceClosedEventArgs args)
+    {
+        if (Interlocked.CompareExchange(ref _reconnectRequested, 0, 0) == 1)
+        {
+            Log.Write("ServiceClosed during reconnect");
+            ReconnectEvent.Set();
+            return;
+        }
+
+        Log.Write("ServiceClosed - exiting");
+        ExitEvent.Set();
+    }
+
+    private static void OnReconnectRequested(object? state, bool timedOut)
+    {
+        if (timedOut)
+            return;
+
+        Log.Write("AppService reconnect requested by duplicate companion launch");
+        Interlocked.Exchange(ref _reconnectRequested, 1);
+
+        try { _reconnectAcknowledgedEvent?.Set(); }
+        catch { }
+
+        ReconnectEvent.Set();
+    }
+
+    private static void TerminateOtherCompanionProcesses()
+    {
+        var currentProcessId = Environment.ProcessId;
+        foreach (var process in Process.GetProcessesByName("LaunchDeck.Companion"))
+        {
+            using (process)
+            {
+                if (process.Id == currentProcessId)
+                    continue;
+
+                try
+                {
+                    Log.Write($"Terminating stale companion pid={process.Id}");
+                    process.Kill(entireProcessTree: false);
+                    process.WaitForExit(2000);
+                }
+                catch (Exception ex)
+                {
+                    Log.Write($"Failed to terminate companion pid={process.Id}: {ex.GetType().Name}: {ex.Message}");
+                }
             }
         }
     }
