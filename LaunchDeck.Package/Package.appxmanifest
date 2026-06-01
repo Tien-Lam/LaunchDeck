@@ -13,7 +13,7 @@
                      PhonePublisherId="00000000-0000-0000-0000-000000000000" />
 
   <Properties>
-    <DisplayName>LaunchDeck</DisplayName>
+    <DisplayName>ms-resource:PackageAppDisplayName</DisplayName>
     <PublisherDisplayName>Tien Lam</PublisherDisplayName>
     <Logo>Images\StoreLogo.png</Logo>
   </Properties>
@@ -30,8 +30,8 @@
     <Application Id="App"
                  Executable="LaunchDeck.Widget\LaunchDeck.Widget.exe"
                  EntryPoint="LaunchDeck.Widget.App">
-      <uap:VisualElements DisplayName="LaunchDeck"
-                          Description="Game Bar app launcher widget"
+      <uap:VisualElements DisplayName="ms-resource:PackageAppDisplayName"
+                          Description="ms-resource:PackageAppDescription"
                           Square150x150Logo="Images\Square150x150Logo.png"
                           Square44x44Logo="Images\Square44x44Logo.png"
                           BackgroundColor="transparent"
@@ -44,8 +44,8 @@
         <uap3:Extension Category="windows.appExtension">
           <uap3:AppExtension Name="microsoft.gameBarUIExtension"
                              Id="LaunchDeckWidget"
-                             DisplayName="LaunchDeck"
-                             Description="Quick app launcher grid"
+                             DisplayName="ms-resource:PackageAppDisplayName"
+                             Description="ms-resource:PackageWidgetDescription"
                              PublicFolder="GameBar">
             <uap3:Properties>
               <GameBarWidget Type="Standard">

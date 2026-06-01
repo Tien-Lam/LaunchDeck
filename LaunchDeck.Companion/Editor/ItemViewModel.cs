@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
+using LaunchDeck.Companion.Localization;
 using LaunchDeck.Shared;
 
 namespace LaunchDeck.Companion.Editor;
@@ -26,7 +27,7 @@ public class ItemViewModel : INotifyPropertyChanged
         set { _config.Name = value; OnPropertyChanged(); }
     }
 
-    public string TypeLabel => _config.Type.ToString().ToLowerInvariant();
+    public string TypeLabel => Strings.TypeLabel(_config.Type);
 
     public string Path
     {
@@ -64,7 +65,7 @@ public class ItemViewModel : INotifyPropertyChanged
     {
         LaunchItemType.Exe => "EXE",
         LaunchItemType.Url => "URL",
-        _ => "APP"
+        _ => Strings.Get("AppFallback")
     };
 
     private async void LoadIconAsync()

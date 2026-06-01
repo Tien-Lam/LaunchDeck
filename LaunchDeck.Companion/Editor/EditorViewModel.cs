@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
+using LaunchDeck.Companion.Localization;
 using LaunchDeck.Shared;
 
 namespace LaunchDeck.Companion.Editor;
@@ -37,7 +38,9 @@ public class EditorViewModel : INotifyPropertyChanged
 
     public bool IsDirty { get; private set; }
 
-    public string ItemCountText => $"{Items.Count} item{(Items.Count == 1 ? "" : "s")}";
+    public string ItemCountText => Items.Count == 1
+        ? Strings.Format("ItemCountOne", Items.Count)
+        : Strings.Format("ItemCountMany", Items.Count);
 
     public bool FocusLaunchedApps
     {
@@ -127,7 +130,7 @@ public class EditorViewModel : INotifyPropertyChanged
         _editingItem = item;
         _addingType = null;
         EditName = item.Name;
-        EditTypeLabel = item.TypeLabel;
+        EditTypeLabel = Strings.TypeLabel(item.Config.Type);
         EditPath = item.Path;
         EditArgs = item.Args;
         EditIcon = item.Icon;
@@ -141,7 +144,7 @@ public class EditorViewModel : INotifyPropertyChanged
         _editingItem = null;
         _addingType = type;
         EditName = defaultName;
-        EditTypeLabel = type.ToString().ToLowerInvariant();
+        EditTypeLabel = Strings.TypeLabel(type);
         EditPath = defaultPath;
         EditArgs = "";
         EditIcon = "";
@@ -176,9 +179,9 @@ public class EditorViewModel : INotifyPropertyChanged
         IsDirty = true;
     }
 
-    private void AddExe() => OpenAddDialog(LaunchItemType.Exe, "New App", "");
-    private void AddUrl() => OpenAddDialog(LaunchItemType.Url, "New URL", "https://");
-    private void AddStore() => OpenAddDialog(LaunchItemType.Store, "New Store App", "");
+    private void AddExe() => OpenAddDialog(LaunchItemType.Exe, Strings.Get("NewApp"), "");
+    private void AddUrl() => OpenAddDialog(LaunchItemType.Url, Strings.Get("NewUrl"), "https://");
+    private void AddStore() => OpenAddDialog(LaunchItemType.Store, Strings.Get("NewStoreApp"), "");
 
     private void DialogSave()
     {
@@ -224,8 +227,8 @@ public class EditorViewModel : INotifyPropertyChanged
         var errors = _model.Validate();
         if (errors.Count > 0)
         {
-            var message = string.Join("\n", errors) + "\n\nSave anyway?";
-            if (ConfirmAction?.Invoke(message, "Validation warnings") != true)
+            var message = string.Join("\n", errors) + "\n\n" + Strings.Get("SaveAnyway");
+            if (ConfirmAction?.Invoke(message, Strings.Get("ValidationWarningsTitle")) != true)
                 return;
         }
 

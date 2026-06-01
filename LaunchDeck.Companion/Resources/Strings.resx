@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="AddItem" xml:space="preserve"><value>+ Add item</value></data>
+  <data name="AppFallback" xml:space="preserve"><value>APP</value></data>
+  <data name="ArgumentsLabel" xml:space="preserve"><value>ARGUMENTS</value></data>
+  <data name="Browse" xml:space="preserve"><value>Browse</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="CustomIconLabel" xml:space="preserve"><value>CUSTOM ICON</value></data>
+  <data name="Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="DontSave" xml:space="preserve"><value>Don't Save</value></data>
+  <data name="Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="EditItem" xml:space="preserve"><value>Edit Item</value></data>
+  <data name="EditorSubtitle" xml:space="preserve"><value>Configure your launch items</value></data>
+  <data name="EditorWindowTitle" xml:space="preserve"><value>LaunchDeck - Config Editor</value></data>
+  <data name="ExeApplication" xml:space="preserve"><value>EXE Application</value></data>
+  <data name="ExecutableFilter" xml:space="preserve"><value>Executables (*.exe)|*.exe</value></data>
+  <data name="FocusLaunchedApps" xml:space="preserve"><value>Focus launched apps</value></data>
+  <data name="FocusLaunchedAppsToolTip" xml:space="preserve"><value>Foreground launched EXE apps when Windows exposes a process window.</value></data>
+  <data name="ImageFilter" xml:space="preserve"><value>Images (*.png;*.ico;*.jpg;*.bmp)|*.png;*.ico;*.jpg;*.bmp</value></data>
+  <data name="ItemCountMany" xml:space="preserve"><value>{0} items</value></data>
+  <data name="ItemCountOne" xml:space="preserve"><value>{0} item</value></data>
+  <data name="LoadingInstalledApps" xml:space="preserve"><value>Loading installed apps...</value></data>
+  <data name="MoveDown" xml:space="preserve"><value>Move down</value></data>
+  <data name="MoveUp" xml:space="preserve"><value>Move up</value></data>
+  <data name="NameLabel" xml:space="preserve"><value>NAME</value></data>
+  <data name="NewApp" xml:space="preserve"><value>New App</value></data>
+  <data name="NewStoreApp" xml:space="preserve"><value>New Store App</value></data>
+  <data name="NewUrl" xml:space="preserve"><value>New URL</value></data>
+  <data name="No" xml:space="preserve"><value>No</value></data>
+  <data name="Ok" xml:space="preserve"><value>OK</value></data>
+  <data name="PathLabel" xml:space="preserve"><value>PATH</value></data>
+  <data name="Save" xml:space="preserve"><value>Save</value></data>
+  <data name="SaveAndRefresh" xml:space="preserve"><value>Save and Refresh</value></data>
+  <data name="SaveAnyway" xml:space="preserve"><value>Save anyway?</value></data>
+  <data name="SelectApplicationTitle" xml:space="preserve"><value>Select an application</value></data>
+  <data name="SelectIconTitle" xml:space="preserve"><value>Select an icon</value></data>
+  <data name="SelectStoreApp" xml:space="preserve"><value>Select Store App</value></data>
+  <data name="StoreApp" xml:space="preserve"><value>Store App</value></data>
+  <data name="TypeExe" xml:space="preserve"><value>exe</value></data>
+  <data name="TypeLabel" xml:space="preserve"><value>TYPE</value></data>
+  <data name="TypeStore" xml:space="preserve"><value>store</value></data>
+  <data name="TypeUrl" xml:space="preserve"><value>url</value></data>
+  <data name="UnsavedChangesMessage" xml:space="preserve"><value>You have unsaved changes. Save before closing?</value></data>
+  <data name="UnsavedChangesTitle" xml:space="preserve"><value>Unsaved changes</value></data>
+  <data name="Url" xml:space="preserve"><value>URL</value></data>
+  <data name="ValidationEmptyName" xml:space="preserve"><value>Item {0} has an empty name.</value></data>
+  <data name="ValidationEmptyPath" xml:space="preserve"><value>Item {0} '{1}' has an empty path.</value></data>
+  <data name="ValidationStorePrefix" xml:space="preserve"><value>Item {0} '{1}' Store path must start with shell:AppsFolder\</value></data>
+  <data name="ValidationUrlScheme" xml:space="preserve"><value>Item {0} '{1}' URL must start with http:// or https://</value></data>
+  <data name="ValidationWarningsTitle" xml:space="preserve"><value>Validation warnings</value></data>
+  <data name="Yes" xml:space="preserve"><value>Yes</value></data>
+</root>

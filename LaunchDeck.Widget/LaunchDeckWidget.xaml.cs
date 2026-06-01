@@ -29,7 +29,16 @@ public sealed partial class LaunchDeckWidget : Page
     public LaunchDeckWidget()
     {
         this.InitializeComponent();
+        ApplyLocalizedText();
         this.Loaded += OnLoaded;
+    }
+
+    private void ApplyLocalizedText()
+    {
+        LoadingState.Text = Localization.Get("LoadingText");
+        EmptyStateTitle.Text = Localization.Get("EmptyNoAppsTitle");
+        EmptyStateMessage.Text = Localization.Get("EmptyNoAppsMessage");
+        ToolTipService.SetToolTip(EditButton, Localization.Get("EditConfigurationToolTip"));
     }
 
     public async void ReloadAsync()
@@ -132,7 +141,7 @@ public sealed partial class LaunchDeckWidget : Page
         catch (Exception ex)
         {
             if (loadGeneration != _loadGeneration) return;
-            ShowEmptyState("Load error", ex.Message);
+            ShowEmptyState(Localization.Get("EmptyLoadErrorTitle"), ex.Message);
             return;
         }
         if (loadGeneration != _loadGeneration) return;
@@ -141,22 +150,22 @@ public sealed partial class LaunchDeckWidget : Page
 
         if (status == ConfigLoadStatus.FileNotFound)
         {
-            ShowEmptyState("No apps configured",
-                "Click the gear button to add apps");
+            ShowEmptyState(Localization.Get("EmptyNoAppsTitle"),
+                Localization.Get("EmptyNoAppsMessage"));
             return;
         }
 
         if (status == ConfigLoadStatus.ParseError)
         {
-            ShowEmptyState("Invalid config file",
-                $"JSON parse error:\n{error}");
+            ShowEmptyState(Localization.Get("EmptyInvalidConfigTitle"),
+                Localization.Format("EmptyInvalidConfigMessage", error ?? ""));
             return;
         }
 
         if (config == null || config.Items.Count == 0)
         {
-            ShowEmptyState("No apps configured",
-                "Click the gear button to add apps");
+            ShowEmptyState(Localization.Get("EmptyNoAppsTitle"),
+                Localization.Get("EmptyNoAppsMessage"));
             return;
         }
 

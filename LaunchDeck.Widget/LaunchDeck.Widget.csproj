@@ -48,6 +48,7 @@
     <Compile Include="LaunchDeckWidget.xaml.cs">
       <DependentUpon>LaunchDeckWidget.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Localization.cs" />
     <Compile Include="Models\LaunchItem.cs" />
     <Compile Include="Services\CompanionClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -55,6 +56,15 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Properties\Default.rd.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PRIResource Include="Strings\de\Resources.resw" />
+    <PRIResource Include="Strings\en-US\Resources.resw" />
+    <PRIResource Include="Strings\es\Resources.resw" />
+    <PRIResource Include="Strings\fr\Resources.resw" />
+    <PRIResource Include="Strings\ja\Resources.resw" />
+    <PRIResource Include="Strings\zh-Hans\Resources.resw" />
   </ItemGroup>
 
   <ItemGroup>

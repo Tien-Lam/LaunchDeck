@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="AddItem" xml:space="preserve"><value>+ Ajouter un élément</value></data>
+  <data name="AppFallback" xml:space="preserve"><value>APP</value></data>
+  <data name="ArgumentsLabel" xml:space="preserve"><value>ARGUMENTS</value></data>
+  <data name="Browse" xml:space="preserve"><value>Parcourir</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Annuler</value></data>
+  <data name="CustomIconLabel" xml:space="preserve"><value>ICÔNE PERSONNALISÉE</value></data>
+  <data name="Delete" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="DontSave" xml:space="preserve"><value>Ne pas enregistrer</value></data>
+  <data name="Edit" xml:space="preserve"><value>Modifier</value></data>
+  <data name="EditItem" xml:space="preserve"><value>Modifier l'élément</value></data>
+  <data name="EditorSubtitle" xml:space="preserve"><value>Configurez vos éléments de lancement</value></data>
+  <data name="EditorWindowTitle" xml:space="preserve"><value>LaunchDeck - Éditeur de configuration</value></data>
+  <data name="ExeApplication" xml:space="preserve"><value>Application EXE</value></data>
+  <data name="ExecutableFilter" xml:space="preserve"><value>Exécutables (*.exe)|*.exe</value></data>
+  <data name="FocusLaunchedApps" xml:space="preserve"><value>Activer les apps lancées</value></data>
+  <data name="FocusLaunchedAppsToolTip" xml:space="preserve"><value>Place les apps EXE lancées au premier plan lorsque Windows expose une fenêtre de processus.</value></data>
+  <data name="ImageFilter" xml:space="preserve"><value>Images (*.png;*.ico;*.jpg;*.bmp)|*.png;*.ico;*.jpg;*.bmp</value></data>
+  <data name="ItemCountMany" xml:space="preserve"><value>{0} éléments</value></data>
+  <data name="ItemCountOne" xml:space="preserve"><value>{0} élément</value></data>
+  <data name="LoadingInstalledApps" xml:space="preserve"><value>Chargement des apps installées...</value></data>
+  <data name="MoveDown" xml:space="preserve"><value>Déplacer vers le bas</value></data>
+  <data name="MoveUp" xml:space="preserve"><value>Déplacer vers le haut</value></data>
+  <data name="NameLabel" xml:space="preserve"><value>NOM</value></data>
+  <data name="NewApp" xml:space="preserve"><value>Nouvelle app</value></data>
+  <data name="NewStoreApp" xml:space="preserve"><value>Nouvelle app Store</value></data>
+  <data name="NewUrl" xml:space="preserve"><value>Nouvelle URL</value></data>
+  <data name="No" xml:space="preserve"><value>Non</value></data>
+  <data name="Ok" xml:space="preserve"><value>OK</value></data>
+  <data name="PathLabel" xml:space="preserve"><value>CHEMIN</value></data>
+  <data name="Save" xml:space="preserve"><value>Enregistrer</value></data>
+  <data name="SaveAndRefresh" xml:space="preserve"><value>Enregistrer et actualiser</value></data>
+  <data name="SaveAnyway" xml:space="preserve"><value>Enregistrer quand même ?</value></data>
+  <data name="SelectApplicationTitle" xml:space="preserve"><value>Sélectionner une application</value></data>
+  <data name="SelectIconTitle" xml:space="preserve"><value>Sélectionner une icône</value></data>
+  <data name="SelectStoreApp" xml:space="preserve"><value>Sélectionner une app Store</value></data>
+  <data name="StoreApp" xml:space="preserve"><value>App Store</value></data>
+  <data name="TypeExe" xml:space="preserve"><value>exe</value></data>
+  <data name="TypeLabel" xml:space="preserve"><value>TYPE</value></data>
+  <data name="TypeStore" xml:space="preserve"><value>store</value></data>
+  <data name="TypeUrl" xml:space="preserve"><value>url</value></data>
+  <data name="UnsavedChangesMessage" xml:space="preserve"><value>Vous avez des modifications non enregistrées. Enregistrer avant de fermer ?</value></data>
+  <data name="UnsavedChangesTitle" xml:space="preserve"><value>Modifications non enregistrées</value></data>
+  <data name="Url" xml:space="preserve"><value>URL</value></data>
+  <data name="ValidationEmptyName" xml:space="preserve"><value>L'élément {0} a un nom vide.</value></data>
+  <data name="ValidationEmptyPath" xml:space="preserve"><value>L'élément {0} '{1}' a un chemin vide.</value></data>
+  <data name="ValidationStorePrefix" xml:space="preserve"><value>Le chemin Store de l'élément {0} '{1}' doit commencer par shell:AppsFolder\</value></data>
+  <data name="ValidationUrlScheme" xml:space="preserve"><value>L'URL de l'élément {0} '{1}' doit commencer par http:// ou https://</value></data>
+  <data name="ValidationWarningsTitle" xml:space="preserve"><value>Avertissements de validation</value></data>
+  <data name="Yes" xml:space="preserve"><value>Oui</value></data>
+</root>

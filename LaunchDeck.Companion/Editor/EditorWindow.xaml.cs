@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
+using LaunchDeck.Companion.Localization;
 
 namespace LaunchDeck.Companion.Editor;
 
@@ -73,8 +74,8 @@ public partial class EditorWindow : Window
         {
             using var dialog = new System.Windows.Forms.OpenFileDialog
             {
-                Title = "Select an application",
-                Filter = "Executables (*.exe)|*.exe",
+                Title = Strings.Get("SelectApplicationTitle"),
+                Filter = Strings.Get("ExecutableFilter"),
                 CheckFileExists = true
             };
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
@@ -86,8 +87,8 @@ public partial class EditorWindow : Window
     {
         using var dialog = new System.Windows.Forms.OpenFileDialog
         {
-            Title = "Select an icon",
-            Filter = "Images (*.png;*.ico;*.jpg;*.bmp)|*.png;*.ico;*.jpg;*.bmp",
+            Title = Strings.Get("SelectIconTitle"),
+            Filter = Strings.Get("ImageFilter"),
             CheckFileExists = true
         };
         if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
@@ -105,8 +106,8 @@ public partial class EditorWindow : Window
 
         var result = MessageDialog.Show(
             this,
-            "You have unsaved changes. Save before closing?",
-            "Unsaved changes",
+            Strings.Get("UnsavedChangesMessage"),
+            Strings.Get("UnsavedChangesTitle"),
             MessageBoxButton.YesNoCancel);
 
         if (result == MessageBoxResult.Yes)

@@ -2,7 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:editor="clr-namespace:LaunchDeck.Companion.Editor"
-        Title="LaunchDeck — Config Editor"
+        xmlns:localization="clr-namespace:LaunchDeck.Companion.Localization"
+        Title="{localization:Loc EditorWindowTitle}"
         Width="520" Height="550"
         MinWidth="400" MinHeight="350"
         WindowStartupLocation="CenterScreen"
@@ -23,27 +24,27 @@
             <StackPanel DockPanel.Dock="Top">
                 <TextBlock Text="LaunchDeck" Style="{StaticResource PageTitle}"
                            Margin="0,0,0,2"/>
-                <TextBlock Text="Configure your launch items" FontSize="12"
+                <TextBlock Text="{localization:Loc EditorSubtitle}" FontSize="12"
                            Foreground="{StaticResource TextSecondary}" Margin="0,0,0,12"/>
             </StackPanel>
 
             <Border DockPanel.Dock="Top" Style="{StaticResource SettingsCard}" Margin="0,0,0,8">
-                <CheckBox Content="Focus launched apps"
+                <CheckBox Content="{localization:Loc FocusLaunchedApps}"
                           IsChecked="{Binding FocusLaunchedApps, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          ToolTip="Foreground launched EXE apps when Windows exposes a process window."/>
+                          ToolTip="{localization:Loc FocusLaunchedAppsToolTip}"/>
             </Border>
 
             <!-- Bottom bar (sticky bottom) -->
             <DockPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
-                <Button Content="Save and Refresh"
+                <Button Content="{localization:Loc SaveAndRefresh}"
                         Style="{DynamicResource AccentButtonStyle}"
                         DockPanel.Dock="Right"
                         Command="{Binding SaveCommand}"/>
                 <Menu>
-                    <MenuItem Header="+ Add item">
-                        <MenuItem Header="EXE Application" Click="OnAddExeClick"/>
-                        <MenuItem Header="URL" Click="OnAddUrlClick"/>
-                        <MenuItem Header="Store App" Click="OnAddStoreClick"/>
+                    <MenuItem Header="{localization:Loc AddItem}">
+                        <MenuItem Header="{localization:Loc ExeApplication}" Click="OnAddExeClick"/>
+                        <MenuItem Header="{localization:Loc Url}" Click="OnAddUrlClick"/>
+                        <MenuItem Header="{localization:Loc StoreApp}" Click="OnAddStoreClick"/>
                     </MenuItem>
                 </Menu>
             </DockPanel>
@@ -62,16 +63,16 @@
                                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
                                                 VerticalAlignment="Center" Margin="8,0,0,0">
                                         <Button Content="&#xE70E;" Style="{StaticResource IconButton}"
-                                                ToolTip="Move up" Click="OnMoveUpClick"
+                                                ToolTip="{localization:Loc MoveUp}" Click="OnMoveUpClick"
                                                 Tag="{Binding}"/>
                                         <Button Content="&#xE70D;" Style="{StaticResource IconButton}"
-                                                ToolTip="Move down" Click="OnMoveDownClick"
+                                                ToolTip="{localization:Loc MoveDown}" Click="OnMoveDownClick"
                                                 Tag="{Binding}"/>
                                         <Button Content="&#xE70F;" Style="{StaticResource IconButton}"
-                                                ToolTip="Edit" Click="OnEditClick"
+                                                ToolTip="{localization:Loc Edit}" Click="OnEditClick"
                                                 Tag="{Binding}"/>
                                         <Button Content="&#xE74D;" Style="{StaticResource IconButton}"
-                                                ToolTip="Delete"
+                                                ToolTip="{localization:Loc Delete}"
                                                 Foreground="{StaticResource DangerForeground}"
                                                 Click="OnDeleteClick" Tag="{Binding}"/>
                                     </StackPanel>
@@ -122,44 +123,44 @@
                               HorizontalScrollBarVisibility="Disabled"
                               PanningMode="VerticalOnly">
                     <StackPanel>
-                        <TextBlock Text="Edit Item" FontSize="18" FontWeight="SemiBold"
+                        <TextBlock Text="{localization:Loc EditItem}" FontSize="18" FontWeight="SemiBold"
                                    Foreground="{StaticResource TextPrimary}" Margin="0,0,0,16"/>
 
-                        <TextBlock Text="NAME" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{localization:Loc NameLabel}" Style="{StaticResource FieldLabel}"/>
                         <TextBox Text="{Binding EditName, UpdateSourceTrigger=PropertyChanged}"
                                  Margin="0,0,0,12"/>
 
-                        <TextBlock Text="TYPE" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{localization:Loc TypeLabel}" Style="{StaticResource FieldLabel}"/>
                         <TextBlock Text="{Binding EditTypeLabel}"
                                    Foreground="{StaticResource TextTertiary}"
                                    FontSize="13" Margin="0,0,0,12" Padding="6,5"/>
 
-                        <TextBlock Text="PATH" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{localization:Loc PathLabel}" Style="{StaticResource FieldLabel}"/>
                         <DockPanel Margin="0,0,0,12">
-                            <Button Content="Browse" DockPanel.Dock="Right" Margin="4,0,0,0"
+                            <Button Content="{localization:Loc Browse}" DockPanel.Dock="Right" Margin="4,0,0,0"
                                     Click="OnBrowsePathClick"
                                     Visibility="{Binding EditBrowsePathVisibility}"/>
                             <TextBox Text="{Binding EditPath, UpdateSourceTrigger=PropertyChanged}"/>
                         </DockPanel>
 
                         <StackPanel Visibility="{Binding EditArgsVisibility}">
-                            <TextBlock Text="ARGUMENTS" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{localization:Loc ArgumentsLabel}" Style="{StaticResource FieldLabel}"/>
                             <TextBox Text="{Binding EditArgs, UpdateSourceTrigger=PropertyChanged}"
                                      Margin="0,0,0,12"/>
                         </StackPanel>
 
-                        <TextBlock Text="CUSTOM ICON" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{localization:Loc CustomIconLabel}" Style="{StaticResource FieldLabel}"/>
                         <DockPanel Margin="0,0,0,16">
-                            <Button Content="Browse" DockPanel.Dock="Right" Margin="4,0,0,0"
+                            <Button Content="{localization:Loc Browse}" DockPanel.Dock="Right" Margin="4,0,0,0"
                                     Click="OnBrowseIconClick"/>
                             <TextBox Text="{Binding EditIcon, UpdateSourceTrigger=PropertyChanged}"/>
                         </DockPanel>
 
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Content="Save" Style="{DynamicResource AccentButtonStyle}"
+                            <Button Content="{localization:Loc Save}" Style="{DynamicResource AccentButtonStyle}"
                                     Command="{Binding DialogSaveCommand}"
                                     Margin="0,0,8,0" MinWidth="80"/>
-                            <Button Content="Cancel"
+                            <Button Content="{localization:Loc Cancel}"
                                     Command="{Binding DialogCancelCommand}"
                                     MinWidth="80"/>
                         </StackPanel>

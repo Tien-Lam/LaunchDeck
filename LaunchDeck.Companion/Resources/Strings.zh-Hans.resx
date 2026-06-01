@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="AddItem" xml:space="preserve"><value>+ 添加项目</value></data>
+  <data name="AppFallback" xml:space="preserve"><value>APP</value></data>
+  <data name="ArgumentsLabel" xml:space="preserve"><value>参数</value></data>
+  <data name="Browse" xml:space="preserve"><value>浏览</value></data>
+  <data name="Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="CustomIconLabel" xml:space="preserve"><value>自定义图标</value></data>
+  <data name="Delete" xml:space="preserve"><value>删除</value></data>
+  <data name="DontSave" xml:space="preserve"><value>不保存</value></data>
+  <data name="Edit" xml:space="preserve"><value>编辑</value></data>
+  <data name="EditItem" xml:space="preserve"><value>编辑项目</value></data>
+  <data name="EditorSubtitle" xml:space="preserve"><value>配置你的启动项目</value></data>
+  <data name="EditorWindowTitle" xml:space="preserve"><value>LaunchDeck - 配置编辑器</value></data>
+  <data name="ExeApplication" xml:space="preserve"><value>EXE 应用程序</value></data>
+  <data name="ExecutableFilter" xml:space="preserve"><value>可执行文件 (*.exe)|*.exe</value></data>
+  <data name="FocusLaunchedApps" xml:space="preserve"><value>聚焦已启动的应用</value></data>
+  <data name="FocusLaunchedAppsToolTip" xml:space="preserve"><value>当 Windows 暴露进程窗口时，将已启动的 EXE 应用置于前台。</value></data>
+  <data name="ImageFilter" xml:space="preserve"><value>图像 (*.png;*.ico;*.jpg;*.bmp)|*.png;*.ico;*.jpg;*.bmp</value></data>
+  <data name="ItemCountMany" xml:space="preserve"><value>{0} 个项目</value></data>
+  <data name="ItemCountOne" xml:space="preserve"><value>{0} 个项目</value></data>
+  <data name="LoadingInstalledApps" xml:space="preserve"><value>正在加载已安装的应用...</value></data>
+  <data name="MoveDown" xml:space="preserve"><value>下移</value></data>
+  <data name="MoveUp" xml:space="preserve"><value>上移</value></data>
+  <data name="NameLabel" xml:space="preserve"><value>名称</value></data>
+  <data name="NewApp" xml:space="preserve"><value>新应用</value></data>
+  <data name="NewStoreApp" xml:space="preserve"><value>新 Store 应用</value></data>
+  <data name="NewUrl" xml:space="preserve"><value>新 URL</value></data>
+  <data name="No" xml:space="preserve"><value>否</value></data>
+  <data name="Ok" xml:space="preserve"><value>确定</value></data>
+  <data name="PathLabel" xml:space="preserve"><value>路径</value></data>
+  <data name="Save" xml:space="preserve"><value>保存</value></data>
+  <data name="SaveAndRefresh" xml:space="preserve"><value>保存并刷新</value></data>
+  <data name="SaveAnyway" xml:space="preserve"><value>仍然保存?</value></data>
+  <data name="SelectApplicationTitle" xml:space="preserve"><value>选择应用程序</value></data>
+  <data name="SelectIconTitle" xml:space="preserve"><value>选择图标</value></data>
+  <data name="SelectStoreApp" xml:space="preserve"><value>选择 Store 应用</value></data>
+  <data name="StoreApp" xml:space="preserve"><value>Store 应用</value></data>
+  <data name="TypeExe" xml:space="preserve"><value>exe</value></data>
+  <data name="TypeLabel" xml:space="preserve"><value>类型</value></data>
+  <data name="TypeStore" xml:space="preserve"><value>store</value></data>
+  <data name="TypeUrl" xml:space="preserve"><value>url</value></data>
+  <data name="UnsavedChangesMessage" xml:space="preserve"><value>你有未保存的更改。关闭前要保存吗?</value></data>
+  <data name="UnsavedChangesTitle" xml:space="preserve"><value>未保存的更改</value></data>
+  <data name="Url" xml:space="preserve"><value>URL</value></data>
+  <data name="ValidationEmptyName" xml:space="preserve"><value>项目 {0} 的名称为空。</value></data>
+  <data name="ValidationEmptyPath" xml:space="preserve"><value>项目 {0} '{1}' 的路径为空。</value></data>
+  <data name="ValidationStorePrefix" xml:space="preserve"><value>项目 {0} '{1}' 的 Store 路径必须以 shell:AppsFolder\ 开头。</value></data>
+  <data name="ValidationUrlScheme" xml:space="preserve"><value>项目 {0} '{1}' 的 URL 必须以 http:// 或 https:// 开头。</value></data>
+  <data name="ValidationWarningsTitle" xml:space="preserve"><value>验证警告</value></data>
+  <data name="Yes" xml:space="preserve"><value>是</value></data>
+</root>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="AddItem" xml:space="preserve"><value>+ 項目を追加</value></data>
+  <data name="AppFallback" xml:space="preserve"><value>APP</value></data>
+  <data name="ArgumentsLabel" xml:space="preserve"><value>引数</value></data>
+  <data name="Browse" xml:space="preserve"><value>参照</value></data>
+  <data name="Cancel" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="CustomIconLabel" xml:space="preserve"><value>カスタム アイコン</value></data>
+  <data name="Delete" xml:space="preserve"><value>削除</value></data>
+  <data name="DontSave" xml:space="preserve"><value>保存しない</value></data>
+  <data name="Edit" xml:space="preserve"><value>編集</value></data>
+  <data name="EditItem" xml:space="preserve"><value>項目を編集</value></data>
+  <data name="EditorSubtitle" xml:space="preserve"><value>起動項目を設定します</value></data>
+  <data name="EditorWindowTitle" xml:space="preserve"><value>LaunchDeck - 設定エディター</value></data>
+  <data name="ExeApplication" xml:space="preserve"><value>EXE アプリケーション</value></data>
+  <data name="ExecutableFilter" xml:space="preserve"><value>実行可能ファイル (*.exe)|*.exe</value></data>
+  <data name="FocusLaunchedApps" xml:space="preserve"><value>起動したアプリにフォーカス</value></data>
+  <data name="FocusLaunchedAppsToolTip" xml:space="preserve"><value>Windows がプロセス ウィンドウを検出できる場合、起動した EXE アプリを前面に表示します。</value></data>
+  <data name="ImageFilter" xml:space="preserve"><value>画像 (*.png;*.ico;*.jpg;*.bmp)|*.png;*.ico;*.jpg;*.bmp</value></data>
+  <data name="ItemCountMany" xml:space="preserve"><value>{0} 個の項目</value></data>
+  <data name="ItemCountOne" xml:space="preserve"><value>{0} 個の項目</value></data>
+  <data name="LoadingInstalledApps" xml:space="preserve"><value>インストール済みアプリを読み込んでいます...</value></data>
+  <data name="MoveDown" xml:space="preserve"><value>下へ移動</value></data>
+  <data name="MoveUp" xml:space="preserve"><value>上へ移動</value></data>
+  <data name="NameLabel" xml:space="preserve"><value>名前</value></data>
+  <data name="NewApp" xml:space="preserve"><value>新しいアプリ</value></data>
+  <data name="NewStoreApp" xml:space="preserve"><value>新しい Store アプリ</value></data>
+  <data name="NewUrl" xml:space="preserve"><value>新しい URL</value></data>
+  <data name="No" xml:space="preserve"><value>いいえ</value></data>
+  <data name="Ok" xml:space="preserve"><value>OK</value></data>
+  <data name="PathLabel" xml:space="preserve"><value>パス</value></data>
+  <data name="Save" xml:space="preserve"><value>保存</value></data>
+  <data name="SaveAndRefresh" xml:space="preserve"><value>保存して更新</value></data>
+  <data name="SaveAnyway" xml:space="preserve"><value>それでも保存しますか?</value></data>
+  <data name="SelectApplicationTitle" xml:space="preserve"><value>アプリケーションを選択</value></data>
+  <data name="SelectIconTitle" xml:space="preserve"><value>アイコンを選択</value></data>
+  <data name="SelectStoreApp" xml:space="preserve"><value>Store アプリを選択</value></data>
+  <data name="StoreApp" xml:space="preserve"><value>Store アプリ</value></data>
+  <data name="TypeExe" xml:space="preserve"><value>exe</value></data>
+  <data name="TypeLabel" xml:space="preserve"><value>種類</value></data>
+  <data name="TypeStore" xml:space="preserve"><value>store</value></data>
+  <data name="TypeUrl" xml:space="preserve"><value>url</value></data>
+  <data name="UnsavedChangesMessage" xml:space="preserve"><value>未保存の変更があります。閉じる前に保存しますか?</value></data>
+  <data name="UnsavedChangesTitle" xml:space="preserve"><value>未保存の変更</value></data>
+  <data name="Url" xml:space="preserve"><value>URL</value></data>
+  <data name="ValidationEmptyName" xml:space="preserve"><value>項目 {0} の名前が空です。</value></data>
+  <data name="ValidationEmptyPath" xml:space="preserve"><value>項目 {0} '{1}' のパスが空です。</value></data>
+  <data name="ValidationStorePrefix" xml:space="preserve"><value>項目 {0} '{1}' の Store パスは shell:AppsFolder\ で始まる必要があります。</value></data>
+  <data name="ValidationUrlScheme" xml:space="preserve"><value>項目 {0} '{1}' の URL は http:// または https:// で始まる必要があります。</value></data>
+  <data name="ValidationWarningsTitle" xml:space="preserve"><value>検証の警告</value></data>
+  <data name="Yes" xml:space="preserve"><value>はい</value></data>
+</root>

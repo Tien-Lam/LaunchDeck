@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using LaunchDeck.Companion.Localization;
 
 namespace LaunchDeck.Companion.Editor;
 
@@ -31,20 +32,20 @@ public partial class MessageDialog : Window
         switch (buttons)
         {
             case MessageBoxButton.YesNo:
-                AddButton("Yes", MessageBoxResult.Yes, accent: true);
-                AddButton("No", MessageBoxResult.No);
+                AddButton(Strings.Get("Yes"), MessageBoxResult.Yes, accent: true);
+                AddButton(Strings.Get("No"), MessageBoxResult.No);
                 break;
             case MessageBoxButton.YesNoCancel:
-                AddButton("Save", MessageBoxResult.Yes, accent: true);
-                AddButton("Don't Save", MessageBoxResult.No);
-                AddButton("Cancel", MessageBoxResult.Cancel);
+                AddButton(Strings.Get("Save"), MessageBoxResult.Yes, accent: true);
+                AddButton(Strings.Get("DontSave"), MessageBoxResult.No);
+                AddButton(Strings.Get("Cancel"), MessageBoxResult.Cancel);
                 break;
             case MessageBoxButton.OKCancel:
-                AddButton("OK", MessageBoxResult.OK, accent: true);
-                AddButton("Cancel", MessageBoxResult.Cancel);
+                AddButton(Strings.Get("Ok"), MessageBoxResult.OK, accent: true);
+                AddButton(Strings.Get("Cancel"), MessageBoxResult.Cancel);
                 break;
             default:
-                AddButton("OK", MessageBoxResult.OK, accent: true);
+                AddButton(Strings.Get("Ok"), MessageBoxResult.OK, accent: true);
                 break;
         }
     }

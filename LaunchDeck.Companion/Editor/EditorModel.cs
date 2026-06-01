@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using LaunchDeck.Companion.Localization;
 using LaunchDeck.Shared;
 
 namespace LaunchDeck.Companion.Editor;
@@ -103,14 +104,12 @@ public class EditorModel
         for (int i = 0; i < Items.Count; i++)
         {
             var item = Items[i];
-            var label = $"Item {i + 1} '{item.Name}'";
-
             if (string.IsNullOrWhiteSpace(item.Name))
-                errors.Add($"Item {i + 1} has an empty name.");
+                errors.Add(Strings.Format("ValidationEmptyName", i + 1));
 
             if (string.IsNullOrWhiteSpace(item.Path))
             {
-                errors.Add($"{label} has an empty path.");
+                errors.Add(Strings.Format("ValidationEmptyPath", i + 1, item.Name));
                 continue;
             }
 
@@ -118,13 +117,13 @@ public class EditorModel
                 !item.Path.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
                 !item.Path.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
             {
-                errors.Add($"{label} URL must start with http:// or https://");
+                errors.Add(Strings.Format("ValidationUrlScheme", i + 1, item.Name));
             }
 
             if (item.Type == LaunchItemType.Store &&
                 !item.Path.StartsWith(@"shell:AppsFolder\", StringComparison.OrdinalIgnoreCase))
             {
-                errors.Add($"{label} Store path must start with shell:AppsFolder\\");
+                errors.Add(Strings.Format("ValidationStorePrefix", i + 1, item.Name));
             }
         }
         return errors;
