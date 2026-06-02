@@ -475,20 +475,34 @@ public sealed partial class LaunchDeckWidget : Page
 
             if (item.Type == "url" || item.Type == "store")
             {
-                // Use Game Bar's built-in launcher so Game Bar owns overlay dismissal.
-                try
+                if (item.Type == "url" && _focusLaunchedApps)
                 {
-                    CompanionClient.RemoteLog($"widget-launch[{launchId}]: using LaunchUriAsync");
-                    success = widget != null
-                        ? await widget.LaunchUriAsync(new Uri(item.Path))
-                        : await CompanionClient.LaunchAsync(item.Type, item.Path, item.Args, _focusLaunchedApps, launchId, focusDelayMs);
-                    dismissAfterCompanionLaunch = widget == null && success;
-                }
-                catch
-                {
-                    CompanionClient.RemoteLog($"widget-launch[{launchId}]: LaunchUriAsync failed; falling back to companion");
-                    success = await CompanionClient.LaunchAsync(item.Type, item.Path, item.Args, _focusLaunchedApps, launchId, focusDelayMs);
+                    success = await CompanionClient.LaunchAsync(
+                        item.Type,
+                        item.Path,
+                        item.Args,
+                        focusLaunchedApp: true,
+                        launchId: launchId,
+                        focusDelayMs: FocusAfterCompanionLaunchDelayMs);
                     dismissAfterCompanionLaunch = success;
+                }
+                else
+                {
+                    // Use Game Bar's built-in launcher so Game Bar owns overlay dismissal.
+                    try
+                    {
+                        CompanionClient.RemoteLog($"widget-launch[{launchId}]: using LaunchUriAsync");
+                        success = widget != null
+                            ? await widget.LaunchUriAsync(new Uri(item.Path))
+                            : await CompanionClient.LaunchAsync(item.Type, item.Path, item.Args, _focusLaunchedApps, launchId, focusDelayMs);
+                        dismissAfterCompanionLaunch = widget == null && success;
+                    }
+                    catch
+                    {
+                        CompanionClient.RemoteLog($"widget-launch[{launchId}]: LaunchUriAsync failed; falling back to companion");
+                        success = await CompanionClient.LaunchAsync(item.Type, item.Path, item.Args, _focusLaunchedApps, launchId, focusDelayMs);
+                        dismissAfterCompanionLaunch = success;
+                    }
                 }
             }
             else if (item.Type == "exe")

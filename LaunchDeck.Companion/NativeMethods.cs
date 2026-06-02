@@ -72,8 +72,23 @@ internal static class NativeMethods
         int timeoutMs = 5000,
         int intervalMs = 100)
     {
+        return await FocusLaunchTargetAsync(
+            process,
+            "exe",
+            executablePath,
+            timeoutMs,
+            intervalMs);
+    }
+
+    internal static async Task<FocusResult> FocusLaunchTargetAsync(
+        Process? process,
+        string launchType,
+        string launchPath,
+        int timeoutMs = 5000,
+        int intervalMs = 100)
+    {
         var stopwatch = Stopwatch.StartNew();
-        var processNames = GetCandidateProcessNames(process, executablePath);
+        var processNames = FocusTargetResolver.GetCandidateProcessNames(process, launchType, launchPath);
         var events = new List<string>
         {
             $"candidates={string.Join(",", processNames)}"
@@ -83,25 +98,42 @@ internal static class NativeMethods
         var launchedProcessId = TryGetProcessId(process);
         var launchedProcessName = TryGetProcessName(process);
 
+        if (processNames.Length == 0)
+        {
+            return BuildFocusResult(
+                success: false,
+                reason: "no focus candidates",
+                attempts,
+                stopwatch,
+                processNames,
+                launchedProcessId,
+                launchedProcessName,
+                targetWindow,
+                events);
+        }
+
         while (stopwatch.ElapsedMilliseconds < timeoutMs)
         {
             attempts++;
             await Task.Delay(intervalMs);
 
-            var mainWindowResult = await TryFocusProcessMainWindowAsync(process, processNames, events);
-            targetWindow = mainWindowResult.TargetWindow ?? targetWindow;
-            if (mainWindowResult.Success)
+            if (process != null)
             {
-                return BuildFocusResult(
-                    success: true,
-                    reason: "focused launched process main window",
-                    attempts,
-                    stopwatch,
-                    processNames,
-                    launchedProcessId,
-                    launchedProcessName,
-                    targetWindow,
-                    events);
+                var mainWindowResult = await TryFocusProcessMainWindowAsync(process, processNames, events);
+                targetWindow = mainWindowResult.TargetWindow ?? targetWindow;
+                if (mainWindowResult.Success)
+                {
+                    return BuildFocusResult(
+                        success: true,
+                        reason: "focused launched process main window",
+                        attempts,
+                        stopwatch,
+                        processNames,
+                        launchedProcessId,
+                        launchedProcessName,
+                        targetWindow,
+                        events);
+                }
             }
 
             var matchingWindowResult = await TryFocusProcessWindowByNameAsync(processNames, events);
@@ -160,27 +192,6 @@ internal static class NativeMethods
             ForegroundWindow = foreground.Describe(),
             Events = events.ToArray()
         };
-    }
-
-    private static string[] GetCandidateProcessNames(Process process, string executablePath)
-    {
-        string? launchedProcessName = null;
-        string? pathProcessName = null;
-        try
-        {
-            launchedProcessName = process.ProcessName;
-            if (string.Equals(Path.GetExtension(executablePath), ".exe", StringComparison.OrdinalIgnoreCase))
-                pathProcessName = Path.GetFileNameWithoutExtension(executablePath);
-        }
-        catch (ArgumentException) { }
-        catch (InvalidOperationException) { }
-        catch (System.ComponentModel.Win32Exception) { }
-
-        return new[] { launchedProcessName, pathProcessName }
-            .Where(name => !string.IsNullOrWhiteSpace(name))
-            .Select(name => name!)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
     }
 
     private static async Task<(bool Success, WindowSnapshot? TargetWindow)> TryFocusProcessMainWindowAsync(
@@ -384,14 +395,20 @@ internal static class NativeMethods
         }
     }
 
-    private static int? TryGetProcessId(Process process)
+    private static int? TryGetProcessId(Process? process)
     {
+        if (process == null)
+            return null;
+
         try { return process.Id; }
         catch { return null; }
     }
 
-    private static string? TryGetProcessName(Process process)
+    private static string? TryGetProcessName(Process? process)
     {
+        if (process == null)
+            return null;
+
         try { return process.ProcessName; }
         catch { return null; }
     }

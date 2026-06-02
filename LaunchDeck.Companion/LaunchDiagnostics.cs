@@ -247,13 +247,14 @@ internal static class LaunchDiagnostics
             Log.Write($"diagnostic[{options.LaunchId}]: focus-steal simulation scheduled afterMs={options.SimulateFocusStealAfterMs.Value} durationMs={options.SimulateFocusStealDurationMs}");
         }
 
-        if (success && process != null && options.Focus)
+        if (success && options.Focus)
         {
             if (options.FocusDelayMs > 0)
                 await Task.Delay(options.FocusDelayMs);
 
-            report.Focus = await NativeMethods.FocusProcessAsync(
+            report.Focus = await NativeMethods.FocusLaunchTargetAsync(
                 process,
+                options.Type,
                 options.Path,
                 timeoutMs: options.TimeoutMs);
         }

@@ -368,7 +368,7 @@ class Program
 
         Log.Write($"launch[{launchId}]: result success={success} error={error ?? ""} pid={TryGetProcessId(process)?.ToString() ?? ""} process={TryGetProcessName(process) ?? ""}");
 
-        if (success && process != null && focusLaunchedApp)
+        if (success && focusLaunchedApp)
         {
             _ = Task.Run(async () =>
             {
@@ -377,7 +377,7 @@ class Program
                     if (focusDelayMs > 0)
                         await Task.Delay(focusDelayMs);
 
-                    var focus = await NativeMethods.FocusProcessAsync(process, path);
+                    var focus = await NativeMethods.FocusLaunchTargetAsync(process, type, path);
                     Log.Write($"launch[{launchId}]: focus complete success={focus.Success} reason={focus.Reason} attempts={focus.Attempts} elapsedMs={focus.ElapsedMs} foreground={focus.ForegroundProcessName ?? ""}/{focus.ForegroundProcessId?.ToString() ?? ""} window={focus.ForegroundWindow ?? ""}");
                 }
                 catch (Exception ex)
