@@ -14,11 +14,14 @@ class Program
     private const string MutexName = "Local\\LaunchDeckCompanion";
     private const string ReconnectRequestEventNamePrefix = "Local\\LaunchDeckCompanionReconnectRequest_";
     private const string ReconnectAcknowledgedEventNamePrefix = "Local\\LaunchDeckCompanionReconnectAcknowledged_";
+    private const string TakeoverRequestEventName = "Local\\LaunchDeckCompanionTakeoverRequest";
+    private const string TakeoverAcknowledgedEventName = "Local\\LaunchDeckCompanionTakeoverAcknowledged";
 
     private static AppServiceConnection? _connection;
     private static readonly ManualResetEvent ExitEvent = new(false);
     private static readonly AutoResetEvent ReconnectEvent = new(false);
     private static EventWaitHandle? _reconnectAcknowledgedEvent;
+    private static EventWaitHandle? _takeoverAcknowledgedEvent;
     private static int _reconnectRequested;
 
     static async Task<int> Main(string[] args)
@@ -31,12 +34,16 @@ class Program
         var packageScope = GetPackageScope();
         using var reconnectRequestEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ReconnectRequestEventNamePrefix + packageScope);
         using var reconnectAcknowledgedEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ReconnectAcknowledgedEventNamePrefix + packageScope);
+        using var takeoverRequestEvent = new EventWaitHandle(false, EventResetMode.AutoReset, TakeoverRequestEventName);
+        using var takeoverAcknowledgedEvent = new EventWaitHandle(false, EventResetMode.AutoReset, TakeoverAcknowledgedEventName);
         _reconnectAcknowledgedEvent = reconnectAcknowledgedEvent;
+        _takeoverAcknowledgedEvent = takeoverAcknowledgedEvent;
 
         // Only one current companion should own the App Service connection.
         // Same-version duplicate launches can ask the owner to reopen the App
         // Service. Different-version owners will not see the version-scoped
-        // request, so updates replace stale binaries instead of reconnecting to them.
+        // request; they get a takeover request so updates replace stale binaries
+        // instead of reconnecting to them.
         using var mutex = new Mutex(false, MutexName);
         var ownsMutex = TryAcquireMutex(mutex, TimeSpan.FromSeconds(2));
         if (!ownsMutex)
@@ -44,9 +51,16 @@ class Program
             if (RequestExistingCompanionReconnect(reconnectRequestEvent, reconnectAcknowledgedEvent))
                 return 0;
 
-            Log.Write("Existing companion did not acknowledge reconnect; terminating stale companion instances");
-            TerminateOtherCompanionProcesses();
-            ownsMutex = TryAcquireMutex(mutex, TimeSpan.FromSeconds(5));
+            Log.Write("Existing companion did not acknowledge same-version reconnect; requesting takeover");
+            if (RequestExistingCompanionTakeover(takeoverRequestEvent, takeoverAcknowledgedEvent))
+                ownsMutex = TryAcquireMutex(mutex, TimeSpan.FromSeconds(5));
+
+            if (!ownsMutex)
+            {
+                Log.Write("Existing companion did not release mutex after takeover request; terminating stale companion instances");
+                TerminateOtherCompanionProcesses();
+                ownsMutex = TryAcquireMutex(mutex, TimeSpan.FromSeconds(5));
+            }
         }
 
         if (!ownsMutex)
@@ -56,6 +70,7 @@ class Program
         }
 
         RegisteredWaitHandle? reconnectRegistration = null;
+        RegisteredWaitHandle? takeoverRegistration = null;
         try
         {
             reconnectRegistration = ThreadPool.RegisterWaitForSingleObject(
@@ -65,12 +80,21 @@ class Program
                 Timeout.InfiniteTimeSpan,
                 executeOnlyOnce: false);
 
+            takeoverRegistration = ThreadPool.RegisterWaitForSingleObject(
+                takeoverRequestEvent,
+                OnTakeoverRequested,
+                null,
+                Timeout.InfiniteTimeSpan,
+                executeOnlyOnce: false);
+
             return await RunAppServiceLoopAsync();
         }
         finally
         {
             reconnectRegistration?.Unregister(null);
+            takeoverRegistration?.Unregister(null);
             _reconnectAcknowledgedEvent = null;
+            _takeoverAcknowledgedEvent = null;
             _connection = null;
 
             try
@@ -130,6 +154,28 @@ class Program
         catch (Exception ex)
         {
             Log.Write($"Reconnect request failed {ex.GetType().Name}: {ex.Message}");
+        }
+
+        return false;
+    }
+
+    private static bool RequestExistingCompanionTakeover(EventWaitHandle requestEvent, EventWaitHandle acknowledgedEvent)
+    {
+        try { acknowledgedEvent.Reset(); }
+        catch { }
+
+        try
+        {
+            requestEvent.Set();
+            if (acknowledgedEvent.WaitOne(TimeSpan.FromSeconds(3)))
+            {
+                Log.Write("Existing companion acknowledged takeover request");
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Write($"Takeover request failed {ex.GetType().Name}: {ex.Message}");
         }
 
         return false;
@@ -202,6 +248,19 @@ class Program
         catch { }
 
         ReconnectEvent.Set();
+    }
+
+    private static void OnTakeoverRequested(object? state, bool timedOut)
+    {
+        if (timedOut)
+            return;
+
+        Log.Write("Companion takeover requested by another package version; exiting");
+
+        try { _takeoverAcknowledgedEvent?.Set(); }
+        catch { }
+
+        ExitEvent.Set();
     }
 
     private static void TerminateOtherCompanionProcesses()
