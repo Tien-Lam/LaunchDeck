@@ -77,4 +77,24 @@ public class LaunchHandlerTests
         var info = LaunchHandler.BuildProcessStartInfo(type, "https://example.com", "--some-args");
         Assert.Equal("", info.Arguments);
     }
+
+    [Fact]
+    public void TryExtractStoreAumid_FromAppsFolderPath_ReturnsAumid()
+    {
+        var result = LaunchHandler.TryExtractStoreAumid(
+            @"shell:AppsFolder\Microsoft.WindowsStore_8wekyb3d8bbwe!App",
+            out var aumid);
+
+        Assert.True(result);
+        Assert.Equal("Microsoft.WindowsStore_8wekyb3d8bbwe!App", aumid);
+    }
+
+    [Fact]
+    public void TryExtractStoreAumid_FromBareAumid_ReturnsAumid()
+    {
+        var result = LaunchHandler.TryExtractStoreAumid("Package_family!App", out var aumid);
+
+        Assert.True(result);
+        Assert.Equal("Package_family!App", aumid);
+    }
 }

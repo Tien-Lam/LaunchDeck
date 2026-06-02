@@ -19,7 +19,7 @@
   <data name="ExeApplication" xml:space="preserve"><value>EXE-приложение</value></data>
   <data name="ExecutableFilter" xml:space="preserve"><value>Исполняемые файлы (*.exe)|*.exe</value></data>
   <data name="FocusLaunchedApps" xml:space="preserve"><value>Фокусировать запущенные приложения</value></data>
-  <data name="FocusLaunchedAppsToolTip" xml:space="preserve"><value>Переносит запущенные EXE-приложения на передний план, когда Windows обнаруживает окно процесса.</value></data>
+  <data name="FocusLaunchedAppsToolTip" xml:space="preserve"><value>Переносит запущенные приложения, URL и приложения Store на передний план, когда Windows обнаруживает окно.</value></data>
   <data name="ImageFilter" xml:space="preserve"><value>Изображения (*.png;*.ico;*.jpg;*.bmp)|*.png;*.ico;*.jpg;*.bmp</value></data>
   <data name="ItemCountMany" xml:space="preserve"><value>{0} элементов</value></data>
   <data name="ItemCountOne" xml:space="preserve"><value>{0} элемент</value></data>

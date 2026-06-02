@@ -19,7 +19,7 @@
   <data name="ExeApplication" xml:space="preserve"><value>EXE 应用程序</value></data>
   <data name="ExecutableFilter" xml:space="preserve"><value>可执行文件 (*.exe)|*.exe</value></data>
   <data name="FocusLaunchedApps" xml:space="preserve"><value>聚焦已启动的应用</value></data>
-  <data name="FocusLaunchedAppsToolTip" xml:space="preserve"><value>当 Windows 暴露进程窗口时，将已启动的 EXE 应用置于前台。</value></data>
+  <data name="FocusLaunchedAppsToolTip" xml:space="preserve"><value>当 Windows 检测到窗口时，将已启动的应用、URL 和 Store 应用置于前台。</value></data>
   <data name="ImageFilter" xml:space="preserve"><value>图像 (*.png;*.ico;*.jpg;*.bmp)|*.png;*.ico;*.jpg;*.bmp</value></data>
   <data name="ItemCountMany" xml:space="preserve"><value>{0} 个项目</value></data>
   <data name="ItemCountOne" xml:space="preserve"><value>{0} 个项目</value></data>

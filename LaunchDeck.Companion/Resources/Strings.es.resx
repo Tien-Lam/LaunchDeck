@@ -19,7 +19,7 @@
   <data name="ExeApplication" xml:space="preserve"><value>Aplicación EXE</value></data>
   <data name="ExecutableFilter" xml:space="preserve"><value>Ejecutables (*.exe)|*.exe</value></data>
   <data name="FocusLaunchedApps" xml:space="preserve"><value>Enfocar apps iniciadas</value></data>
-  <data name="FocusLaunchedAppsToolTip" xml:space="preserve"><value>Pone en primer plano las apps EXE iniciadas cuando Windows expone una ventana de proceso.</value></data>
+  <data name="FocusLaunchedAppsToolTip" xml:space="preserve"><value>Pone en primer plano apps, URL y apps de Store iniciadas cuando Windows expone una ventana.</value></data>
   <data name="ImageFilter" xml:space="preserve"><value>Imágenes (*.png;*.ico;*.jpg;*.bmp)|*.png;*.ico;*.jpg;*.bmp</value></data>
   <data name="ItemCountMany" xml:space="preserve"><value>{0} elementos</value></data>
   <data name="ItemCountOne" xml:space="preserve"><value>{0} elemento</value></data>

@@ -19,7 +19,7 @@
   <data name="ExeApplication" xml:space="preserve"><value>EXE アプリケーション</value></data>
   <data name="ExecutableFilter" xml:space="preserve"><value>実行可能ファイル (*.exe)|*.exe</value></data>
   <data name="FocusLaunchedApps" xml:space="preserve"><value>起動したアプリにフォーカス</value></data>
-  <data name="FocusLaunchedAppsToolTip" xml:space="preserve"><value>Windows がプロセス ウィンドウを検出できる場合、起動した EXE アプリを前面に表示します。</value></data>
+  <data name="FocusLaunchedAppsToolTip" xml:space="preserve"><value>Windows がウィンドウを検出できる場合、起動したアプリ、URL、Store アプリを前面に表示します。</value></data>
   <data name="ImageFilter" xml:space="preserve"><value>画像 (*.png;*.ico;*.jpg;*.bmp)|*.png;*.ico;*.jpg;*.bmp</value></data>
   <data name="ItemCountMany" xml:space="preserve"><value>{0} 個の項目</value></data>
   <data name="ItemCountOne" xml:space="preserve"><value>{0} 個の項目</value></data>

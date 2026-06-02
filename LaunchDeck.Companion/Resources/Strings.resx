@@ -19,7 +19,7 @@
   <data name="ExeApplication" xml:space="preserve"><value>EXE Application</value></data>
   <data name="ExecutableFilter" xml:space="preserve"><value>Executables (*.exe)|*.exe</value></data>
   <data name="FocusLaunchedApps" xml:space="preserve"><value>Focus launched apps</value></data>
-  <data name="FocusLaunchedAppsToolTip" xml:space="preserve"><value>Foreground launched EXE apps when Windows exposes a process window.</value></data>
+  <data name="FocusLaunchedAppsToolTip" xml:space="preserve"><value>Foreground launched apps, URLs, and Store apps when Windows exposes a window.</value></data>
   <data name="ImageFilter" xml:space="preserve"><value>Images (*.png;*.ico;*.jpg;*.bmp)|*.png;*.ico;*.jpg;*.bmp</value></data>
   <data name="ItemCountMany" xml:space="preserve"><value>{0} items</value></data>
   <data name="ItemCountOne" xml:space="preserve"><value>{0} item</value></data>

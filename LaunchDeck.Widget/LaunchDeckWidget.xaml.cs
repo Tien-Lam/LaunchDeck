@@ -475,7 +475,7 @@ public sealed partial class LaunchDeckWidget : Page
 
             if (item.Type == "url" || item.Type == "store")
             {
-                if (item.Type == "url" && _focusLaunchedApps)
+                if ((item.Type == "url" || item.Type == "store") && _focusLaunchedApps)
                 {
                     success = await CompanionClient.LaunchAsync(
                         item.Type,

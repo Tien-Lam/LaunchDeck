@@ -19,7 +19,7 @@
   <data name="ExeApplication" xml:space="preserve"><value>EXE-програма</value></data>
   <data name="ExecutableFilter" xml:space="preserve"><value>Виконувані файли (*.exe)|*.exe</value></data>
   <data name="FocusLaunchedApps" xml:space="preserve"><value>Фокусувати запущені програми</value></data>
-  <data name="FocusLaunchedAppsToolTip" xml:space="preserve"><value>Переміщує запущені EXE-програми на передній план, коли Windows виявляє вікно процесу.</value></data>
+  <data name="FocusLaunchedAppsToolTip" xml:space="preserve"><value>Переміщує запущені програми, URL-адреси та Store-програми на передній план, коли Windows виявляє вікно.</value></data>
   <data name="ImageFilter" xml:space="preserve"><value>Зображення (*.png;*.ico;*.jpg;*.bmp)|*.png;*.ico;*.jpg;*.bmp</value></data>
   <data name="ItemCountMany" xml:space="preserve"><value>{0} елементів</value></data>
   <data name="ItemCountOne" xml:space="preserve"><value>{0} елемент</value></data>

@@ -5,6 +5,8 @@ namespace LaunchDeck.Companion;
 
 public static class LaunchHandler
 {
+    private const string StoreAppsFolderPrefix = @"shell:AppsFolder\";
+
     public static ProcessStartInfo BuildProcessStartInfo(string type, string path, string? args)
     {
         return type.ToLowerInvariant() switch
@@ -28,6 +30,12 @@ public static class LaunchHandler
     {
         try
         {
+            if (string.Equals(type, "store", StringComparison.OrdinalIgnoreCase) &&
+                TryExtractStoreAumid(path, out var aumid))
+            {
+                return StoreAppActivator.Activate(aumid);
+            }
+
             var startInfo = BuildProcessStartInfo(type, path, args);
             var process = Process.Start(startInfo);
             return (true, null, process);
@@ -36,5 +44,23 @@ public static class LaunchHandler
         {
             return (false, ex.Message, null);
         }
+    }
+
+    internal static bool TryExtractStoreAumid(string path, out string aumid)
+    {
+        if (path.StartsWith(StoreAppsFolderPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            aumid = path.Substring(StoreAppsFolderPrefix.Length);
+            return !string.IsNullOrWhiteSpace(aumid);
+        }
+
+        if (path.Contains('!') && !path.Contains('\\') && !path.Contains('/'))
+        {
+            aumid = path;
+            return !string.IsNullOrWhiteSpace(aumid);
+        }
+
+        aumid = "";
+        return false;
     }
 }

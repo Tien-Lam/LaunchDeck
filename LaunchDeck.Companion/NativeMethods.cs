@@ -15,6 +15,9 @@ internal static class NativeMethods
     [DllImport("user32.dll")]
     private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, nint lParam);
 
+    [DllImport("user32.dll")]
+    private static extern bool EnumChildWindows(nint hWndParent, EnumWindowsProc lpEnumFunc, nint lParam);
+
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool SetForegroundWindow(nint hWnd);
 
@@ -63,7 +66,8 @@ internal static class NativeMethods
     {
         var foreground = GetForegroundSnapshot();
         return foreground.ProcessName != null &&
-               expectedProcessNames.Contains(foreground.ProcessName, StringComparer.OrdinalIgnoreCase);
+               expectedProcessNames.Contains(foreground.ProcessName, StringComparer.OrdinalIgnoreCase) ||
+               WindowHasDescendantProcessName(foreground.HWnd, expectedProcessNames);
     }
 
     internal static async Task<FocusResult> FocusProcessAsync(
@@ -291,8 +295,11 @@ internal static class NativeMethods
             try
             {
                 using var process = Process.GetProcessById((int)pid);
-                if (processNames.Contains(process.ProcessName, StringComparer.OrdinalIgnoreCase))
+                if (processNames.Contains(process.ProcessName, StringComparer.OrdinalIgnoreCase) ||
+                    WindowHasDescendantProcessName(hWnd, processNames))
+                {
                     windows.Add(hWnd);
+                }
             }
             catch
             {
@@ -303,6 +310,43 @@ internal static class NativeMethods
         }, nint.Zero);
 
         return windows.ToArray();
+    }
+
+    private static bool WindowHasDescendantProcessName(nint hWnd, string[] processNames)
+    {
+        if (hWnd == nint.Zero || processNames.Length == 0)
+            return false;
+
+        var found = false;
+        try
+        {
+            EnumChildWindows(hWnd, (childHwnd, _) =>
+            {
+                GetWindowThreadProcessId(childHwnd, out var childPid);
+                if (childPid == 0)
+                    return true;
+
+                try
+                {
+                    using var childProcess = Process.GetProcessById((int)childPid);
+                    if (processNames.Contains(childProcess.ProcessName, StringComparer.OrdinalIgnoreCase))
+                    {
+                        found = true;
+                        return false;
+                    }
+                }
+                catch
+                {
+                }
+
+                return true;
+            }, nint.Zero);
+        }
+        catch
+        {
+        }
+
+        return found;
     }
 
     private static async Task<bool> TryFocusWindowAsync(
