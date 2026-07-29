@@ -54,9 +54,11 @@ Each item requires `name`, `type`, and `path`. Optional fields: `args` (command-
 
 ### Requirements
 
-- Windows 10 19041+ with Xbox Game Bar
-- Visual Studio 2022 with UWP workload and Windows SDK 10.0.26100.0
-- .NET 10 SDK
+- Installing and testing the widget: Windows 10 19041+ with Xbox Game Bar
+- Full local build: Visual Studio with UWP build tools and Windows SDK
+  10.0.26100.0
+- Managed-project builds: .NET 10 SDK; use [mise](https://mise.jdx.dev/) on
+  macOS
 
 ### Architecture
 
@@ -78,15 +80,44 @@ LaunchDeck.Package/      # MSIX packaging and manifest
 ### Build
 
 ```bash
-# Non-UWP projects
+# Managed projects on Windows
 dotnet build LaunchDeck.Shared/LaunchDeck.Shared.csproj
 dotnet build LaunchDeck.Companion/LaunchDeck.Companion.csproj
 dotnet test LaunchDeck.Tests/
 
-# Full solution (requires VS / MSBuild)
+# Full solution on Windows (requires Visual Studio / MSBuild)
 msbuild LaunchDeck.sln /p:Configuration=Debug /p:Platform=x64 /restore
 msbuild LaunchDeck.sln /p:Configuration=Debug /p:Platform=ARM64 /restore
 ```
+
+On macOS, use mise rather than installing .NET directly. The portable Shared
+project builds locally:
+
+```bash
+mise x dotnet@10 -- dotnet build LaunchDeck.Shared/LaunchDeck.Shared.csproj
+```
+
+The Windows-targeted Companion and Tests assemblies can be cross-compiled with
+`EnableWindowsTargeting=true`, but the tests cannot run on macOS because their
+test host requires `Microsoft.WindowsDesktop.App`. The UWP Widget and MSIX
+packaging projects require Windows build targets and cannot be built locally on
+macOS.
+
+To build the complete signed MSIX from macOS or Linux, run the manual Windows
+GitHub Actions workflow:
+
+```bash
+gh workflow run build-msix.yml --ref main \
+  -f platform=x64 \
+  -f configuration=Debug
+```
+
+Choose `ARM64` instead of `x64` when needed; `Debug` and `Release` are both
+supported. The **Build MSIX** workflow runs the Windows tests, builds the full
+solution, and uploads a 14-day artifact containing the development-signed
+MSIX, its certificate, and the install/uninstall scripts. It does not publish a
+GitHub Release. See [Deployment](docs/DEPLOYMENT.md#remote-msix-build-from-macos-or-linux)
+for download and installation details.
 
 ### Deploy
 

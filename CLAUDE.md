@@ -32,7 +32,9 @@ Always pass `model: "opus"` on every Agent tool call. Never use sonnet or haiku 
 
 ## Testing Standards
 
-- Run `dotnet test LaunchDeck.Tests/` after any code change and before committing
+- Run `dotnet test LaunchDeck.Tests/` on Windows after any code change and before committing
+- On macOS, use mise for .NET and use the manual Windows **Build MSIX** workflow
+  when an explicitly authorized remote test/build is required
 - Every test must catch a real bug — if you can't name what would break, delete the test
 - No false-confidence tests (tests that pass even if the code is broken)
 - Extract logic from WPF/UWP code-behind into testable classes (e.g., `EditorModel`)
@@ -70,7 +72,7 @@ When changing IPC actions, UI behavior, or config schema, update the correspondi
 ## Build
 
 ```bash
-# Non-UWP projects (shared, companion, tests)
+# Managed projects on Windows
 dotnet build LaunchDeck.Shared/LaunchDeck.Shared.csproj
 dotnet build LaunchDeck.Companion/LaunchDeck.Companion.csproj
 dotnet test LaunchDeck.Tests/
@@ -81,6 +83,21 @@ dotnet test LaunchDeck.Tests/ --filter "EditorModelTests.AddExe_AppendsItemAndSe
 
 # Full solution (requires VS / MSBuild)
 msbuild LaunchDeck.sln /p:Configuration=Debug /p:Platform=x64 /restore
+```
+
+On macOS, do not install .NET directly. Use mise for portable builds:
+
+```bash
+mise x dotnet@10 -- dotnet build LaunchDeck.Shared/LaunchDeck.Shared.csproj
+```
+
+The Windows-targeted tests cannot run on macOS. For a full test and signed MSIX
+build, explicitly trigger the manual Windows workflow:
+
+```bash
+gh workflow run build-msix.yml --ref main \
+  -f platform=x64 \
+  -f configuration=Debug
 ```
 
 ## Deploy

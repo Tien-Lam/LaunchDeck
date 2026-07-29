@@ -22,7 +22,22 @@ To run a specific test class:
 dotnet test LaunchDeck.Tests/ --filter "FullyQualifiedName~LaunchHandlerTests"
 ```
 
-Platform note: the csproj supports `x64`, `x86`, and `ARM`. The default `dotnet test` invocation uses AnyCPU / the host architecture, which works for all current tests.
+Platform note: the csproj supports `x64`, `x86`, and `ARM64`, but the test project
+references the WPF Companion and requires `Microsoft.WindowsDesktop.App`.
+Execute the tests on Windows. macOS can cross-compile the test assembly with
+`EnableWindowsTargeting=true`, but cannot run its test host.
+
+From macOS or Linux, the manual **Build MSIX** workflow runs the tests on a
+Windows runner before packaging:
+
+```bash
+gh workflow run build-msix.yml --ref main \
+  -f platform=x64 \
+  -f configuration=Debug
+```
+
+The workflow uploads an artifact only after the tests and full Windows build
+succeed.
 
 ## Launch Focus Diagnostics
 
@@ -359,7 +374,7 @@ For areas that cannot be automated, follow this procedure:
 
 ### Prerequisites
 
-- Visual Studio 2022 with UWP workload and Windows SDK 19041+
+- Visual Studio 2022 with UWP workload and Windows SDK 10.0.26100.0
 - Windows 10/11 with Xbox Game Bar enabled
 - Developer Mode enabled in Windows Settings
 

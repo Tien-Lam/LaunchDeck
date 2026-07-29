@@ -30,13 +30,23 @@ The WAPPROJ declares `LaunchDeck.Widget.csproj` as the `EntryPointProjectUniqueN
 
 ### Non-UWP projects (Shared, Companion, Tests)
 
-These use the .NET SDK and can be built from the command line:
+These use the .NET SDK and can be built from the command line on Windows:
 
 ```bash
 dotnet build LaunchDeck.Shared/LaunchDeck.Shared.csproj
 dotnet build LaunchDeck.Companion/LaunchDeck.Companion.csproj
 dotnet test  LaunchDeck.Tests/
 ```
+
+On macOS, manage .NET through mise. The Shared project builds normally:
+
+```bash
+mise x dotnet@10 -- dotnet build LaunchDeck.Shared/LaunchDeck.Shared.csproj
+```
+
+The Companion and Tests assemblies can cross-compile by passing
+`-p:EnableWindowsTargeting=true`, but `dotnet test` cannot execute them on
+macOS because the test host requires `Microsoft.WindowsDesktop.App`.
 
 ### Full solution (requires Visual Studio / MSBuild)
 
@@ -58,6 +68,48 @@ msbuild LaunchDeck.sln /p:Configuration=Debug /p:Platform=ARM64 /restore
 The solution is configured for `Debug|x64`, `Release|x64`, `Debug|ARM64`, and `Release|ARM64` platform configurations. The Shared project builds as `Any CPU`; Widget, Companion, Tests, and Package build as the selected native platform.
 
 Release packaging creates a combined `x64` + `ARM64` MSIX upload bundle. Debug packaging stays single-platform because the generated x64 and ARM64 debug UWP packages use different framework dependencies and cannot be placed in the same bundle.
+
+### Remote MSIX build from macOS or Linux
+
+The manual `.github/workflows/build-msix.yml` GitHub Actions workflow provides
+the complete Windows build without requiring a local Windows development
+environment. The workflow:
+
+1. Runs the test suite on a Windows runner.
+2. Creates an ephemeral development signing certificate.
+3. Builds the full solution and a signed single-platform MSIX.
+4. Uploads the MSIX, public certificate, `Install.ps1`, and `Uninstall.ps1` as
+   a workflow artifact retained for 14 days.
+
+Trigger an x64 Debug build from any machine with an authenticated GitHub CLI:
+
+```bash
+gh workflow run build-msix.yml --ref main \
+  -f platform=x64 \
+  -f configuration=Debug
+```
+
+The `platform` input accepts `x64` or `ARM64`; `configuration` accepts `Debug`
+or `Release`. The workflow must exist on the repository's default branch before
+GitHub permits manual dispatch. It does not create a tag or GitHub Release.
+
+Monitor and download the result with the GitHub CLI:
+
+```bash
+gh run list --workflow build-msix.yml --limit 5
+gh run watch <run-id> --exit-status
+gh run download <run-id> --name LaunchDeck-x64-Debug
+```
+
+Alternatively, open **Actions > Build MSIX**, select **Run workflow**, and
+download the artifact from the completed run. On the target Windows machine,
+extract the artifact and run `Install.ps1` as Administrator. The installer adds
+the included development certificate to `LocalMachine\TrustedPeople` before
+installing the MSIX.
+
+This remote path builds the package, but it does not replace Windows for
+runtime validation. Installing the package, opening the widget in Xbox Game
+Bar, and completing the manual test checklist still require Windows.
 
 ### Prerequisites
 
