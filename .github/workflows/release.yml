@@ -1,104 +1,16 @@
-name: Release
+name: Legacy Release (retired)
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
 
-permissions:
-  contents: write
+permissions: {}
 
 jobs:
-  build-and-release:
-    runs-on: windows-latest
-
+  retired:
+    name: retired
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-          include-prerelease: true
-
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
-
-      - name: Build and test
+      - name: Reject legacy release entry point
         run: |
-          dotnet build LaunchDeck.Shared/LaunchDeck.Shared.csproj -warnaserror
-          dotnet build LaunchDeck.Companion/LaunchDeck.Companion.csproj -warnaserror
-          dotnet test LaunchDeck.Tests/ --configuration Release --verbosity normal
-
-      - name: Create signing certificate
-        run: |
-          $cert = New-SelfSignedCertificate `
-            -Type Custom `
-            -Subject "CN=E37AAF35-F870-4E74-8486-74BED9927C48" `
-            -KeyUsage DigitalSignature `
-            -FriendlyName "LaunchDeck Dev Certificate" `
-            -CertStoreLocation "Cert:\CurrentUser\My" `
-            -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
-          $password = ConvertTo-SecureString -String "LaunchDeckBuild" -Force -AsPlainText
-          Export-PfxCertificate -cert "Cert:\CurrentUser\My\$($cert.Thumbprint)" `
-            -FilePath "$env:GITHUB_WORKSPACE\LaunchDeck.Package\LaunchDeck_Dev.pfx" `
-            -Password $password
-          Export-Certificate -Cert "Cert:\CurrentUser\My\$($cert.Thumbprint)" `
-            -FilePath "$env:GITHUB_WORKSPACE\LaunchDeck_Dev.cer"
-          echo "CERT_THUMBPRINT=$($cert.Thumbprint)" >> $env:GITHUB_ENV
-        shell: pwsh
-
-      - name: Build signed MSIX
-        run: >
-          msbuild LaunchDeck.sln
-          /p:Configuration=Release
-          /p:Platform=x64
-          /p:AppxBundle=Never
-          /p:AppxPackageSigningEnabled=true
-          /p:PackageCertificateThumbprint=${{ env.CERT_THUMBPRINT }}
-          /p:PackageCertificatePassword=LaunchDeckBuild
-          /p:PackageCertificateKeyFile=${{ github.workspace }}\LaunchDeck.Package\LaunchDeck_Dev.pfx
-          /restore
-
-      - name: Find MSIX
-        run: |
-          $msix = Get-ChildItem -Path "LaunchDeck.Package\AppPackages" -Recurse -Filter "*.msix" |
-            Where-Object { $_.Name -notmatch 'Widget' } |
-            Select-Object -First 1
-          if (-not $msix) { Write-Error "No MSIX found"; exit 1 }
-          Write-Host "Found: $($msix.FullName)"
-          echo "MSIX_PATH=$($msix.FullName)" >> $env:GITHUB_ENV
-          echo "MSIX_NAME=$($msix.Name)" >> $env:GITHUB_ENV
-        shell: pwsh
-
-      - name: Create release zip
-        run: |
-          New-Item -ItemType Directory -Path "release" -Force
-          Copy-Item "${{ env.MSIX_PATH }}" "release\"
-          Copy-Item "LaunchDeck_Dev.cer" "release\"
-          Copy-Item "Install.ps1" "release\"
-          Copy-Item "Uninstall.ps1" "release\"
-          Compress-Archive -Path "release\*" -DestinationPath "LaunchDeck-${{ github.ref_name }}.zip"
-        shell: pwsh
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          generate_release_notes: true
-          body: |
-            ## Installation
-
-            **Recommended:** Install from the [Microsoft Store](https://apps.microsoft.com/detail/9PJHCMMVQ6HK) for automatic updates.
-
-            **Sideload:** Download the zip, extract, and right-click `Install.ps1` → **Run with PowerShell** (as Administrator). The install script installs a developer certificate and the MSIX package.
-
-            ## Uninstall
-
-            Right-click `Uninstall.ps1` → **Run with PowerShell** (as Administrator).
-
-            ## Requirements
-
-            - Windows 10 19041+ with Xbox Game Bar
-            - Administrator access (for certificate install)
-          files: |
-            LaunchDeck-${{ github.ref_name }}.zip
+          echo "This workflow is retired. Run the Release Request workflow from main."
+          exit 1

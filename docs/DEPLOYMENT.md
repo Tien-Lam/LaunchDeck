@@ -65,9 +65,15 @@ msbuild LaunchDeck.sln /p:Configuration=Debug /p:Platform=x64 /restore
 msbuild LaunchDeck.sln /p:Configuration=Debug /p:Platform=ARM64 /restore
 ```
 
-The solution is configured for `Debug|x64`, `Release|x64`, `Debug|ARM64`, and `Release|ARM64` platform configurations. The Shared project builds as `Any CPU`; Widget, Companion, Tests, and Package build as the selected native platform.
+The solution is configured for `Debug|x64`, `Release|x64`, `Debug|ARM64`, and
+`Release|ARM64` platform configurations. The Shared project builds as `Any
+CPU`; Widget, Companion, Tests, and Package build as the selected native
+platform.
 
-Release packaging creates a combined `x64` + `ARM64` MSIX upload bundle. Debug packaging stays single-platform because the generated x64 and ARM64 debug UWP packages use different framework dependencies and cannot be placed in the same bundle.
+The manual workflow produces one signed single-platform artifact for the
+selected input. A version release invokes the same workflow twice and publishes
+separate `x64` and `ARM64` archives only after both builds succeed. It does not
+combine the architectures into one MSIX bundle.
 
 ### Remote MSIX build from macOS or Linux
 
@@ -75,11 +81,21 @@ The manual `.github/workflows/build-msix.yml` GitHub Actions workflow provides
 the complete Windows build without requiring a local Windows development
 environment. The workflow:
 
-1. Runs the test suite on a Windows runner.
-2. Creates an ephemeral development signing certificate.
-3. Builds the full solution and a signed single-platform MSIX.
-4. Uploads the MSIX, public certificate, `Install.ps1`, and `Uninstall.ps1` as
-   a workflow artifact retained for 14 days.
+1. Validates that `platform` is exactly `x64` or `ARM64` and `configuration` is
+   exactly `Debug` or `Release`.
+2. Runs the workflow-script tests.
+3. Builds Shared, Companion, and Tests with warnings as errors, then runs xUnit
+   on the Windows runner.
+4. Creates an ephemeral development signing certificate.
+5. Builds the full solution and a signed MSIX for the selected platform and
+   configuration.
+6. Stages the matching package, certificate, `Install.ps1`, and
+   `Uninstall.ps1`, then uploads them as a 14-day artifact.
+
+The managed xUnit host runs in the hosted runner's native x64 environment.
+`ARM64` selects the subsequent full MSBuild/package configuration; it does not
+claim ARM64 on-device runtime coverage. ARM64 installation and Game Bar
+interaction stay in the final manual validation phase.
 
 Trigger an x64 Debug build from any machine with an authenticated GitHub CLI:
 
@@ -110,6 +126,41 @@ installing the MSIX.
 This remote path builds the package, but it does not replace Windows for
 runtime validation. Installing the package, opening the widget in Xbox Game
 Bar, and completing the manual test checklist still require Windows.
+
+### Version releases
+
+Start a release by dispatching the read-only `Release Request` workflow from
+the current `main` branch:
+
+```bash
+gh workflow run release-request.yml --ref main -f version=v1.2.3
+```
+
+The version must be valid SemVer prefixed with `v`; prerelease and build
+identifiers are supported. The request uploads only a one-day JSON artifact and
+has read-only repository access. Its completion triggers `Publish Release`.
+That privileged workflow runs from the trusted default-branch revision, rejects
+requests that did not originate from the current `main` SHA, revalidates the
+version, and refuses to overwrite an existing tag.
+
+Its required job graph is:
+
+1. `verify-release` — workflow tests, warning-as-error managed builds, and
+   xUnit.
+2. `build-msix / build-msix (x64)` and
+   `build-msix / build-msix (ARM64)` — full signed Release MSIX artifacts.
+3. `publish-release` — rechecks that `main` has not advanced, downloads exactly
+   those two artifacts, creates architecture-specific archives, then creates
+   the version tag and GitHub Release.
+
+GitHub cannot reach `publish-release` when verification or either packaging job
+fails. Direct tag pushes are not a release entry point: the historical
+`.github/workflows/release.yml` workflow is retired and disabled at repository
+level so a tag targeting an old commit cannot execute old publishing logic. A
+release contains
+`LaunchDeck-<tag>-x64.zip` and `LaunchDeck-<tag>-ARM64.zip`; each archive
+contains the matching MSIX, public development certificate, and install and
+uninstall scripts.
 
 ### Prerequisites
 

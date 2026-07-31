@@ -1,0 +1,295 @@
+name: Publish Release
+run-name: Publish ${{ github.event.workflow_run.display_title }}
+
+on:
+  workflow_run:
+    workflows:
+      - Release Request
+    types:
+      - completed
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  verify-release:
+    name: verify-release
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == github.event.repository.default_branch
+    runs-on: windows-latest
+    outputs:
+      version: ${{ steps.request.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Download release request
+        uses: actions/download-artifact@v4
+        with:
+          name: release-request
+          path: release-request
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Verify trusted main request
+        id: request
+        shell: pwsh
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          REQUESTED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          git fetch origin $env:DEFAULT_BRANCH
+          $mainSha = (git rev-parse "origin/$env:DEFAULT_BRANCH").Trim()
+          if ($env:REQUESTED_SHA -ne $mainSha) {
+            Write-Error "Release request SHA $env:REQUESTED_SHA is not the current default-branch SHA $mainSha."
+            exit 1
+          }
+
+          $request = Get-Content release-request/request.json -Raw | ConvertFrom-Json
+          $version = [string]$request.version
+          $numericIdentifier = '(?:0|[1-9][0-9]*)'
+          $prereleaseIdentifier = '(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)'
+          $buildIdentifier = '[0-9A-Za-z-]+'
+          $semanticVersion = "\Av$numericIdentifier\.$numericIdentifier\.$numericIdentifier(?:-$prereleaseIdentifier(?:\.$prereleaseIdentifier)*)?(?:\+$buildIdentifier(?:\.$buildIdentifier)*)?\z"
+
+          if ($version -cnotmatch $semanticVersion) {
+            Write-Error "Release request contains an invalid semantic version."
+            exit 1
+          }
+
+          $existingTag = git ls-remote --tags origin "refs/tags/$version"
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Could not inspect existing release tags."
+            exit 1
+          }
+          if ($existingTag) {
+            Write-Error "Release tag $version already exists."
+            exit 1
+          }
+
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Test workflow scripts
+        run: bun test ./.github/scripts
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build Shared (warnings as errors)
+        run: >-
+          dotnet build LaunchDeck.Shared/LaunchDeck.Shared.csproj
+          --configuration Release
+          -warnaserror
+
+      - name: Build Companion (warnings as errors)
+        run: >-
+          dotnet build LaunchDeck.Companion/LaunchDeck.Companion.csproj
+          --configuration Release
+          -warnaserror
+
+      - name: Build Tests (warnings as errors)
+        run: >-
+          dotnet build LaunchDeck.Tests/LaunchDeck.Tests.csproj
+          --configuration Release
+          -warnaserror
+
+      - name: Run xUnit
+        run: >-
+          dotnet test LaunchDeck.Tests/LaunchDeck.Tests.csproj
+          --configuration Release
+          --no-build
+          --verbosity normal
+
+  build-msix:
+    name: build-msix
+    needs: verify-release
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [x64, ARM64]
+    uses: ./.github/workflows/build-msix.yml
+    with:
+      platform: ${{ matrix.platform }}
+      configuration: Release
+    permissions:
+      contents: read
+
+  publish-release:
+    name: publish-release
+    needs: [verify-release, build-msix]
+    runs-on: windows-latest
+    permissions:
+      actions: read
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Download verified MSIX artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: LaunchDeck-*-Release
+          path: release-input
+          merge-multiple: false
+
+      - name: Create architecture-specific release archives
+        shell: pwsh
+        env:
+          RELEASE_VERSION: ${{ needs.verify-release.outputs.version }}
+        run: |
+          New-Item -ItemType Directory -Path release -Force | Out-Null
+          $artifacts = Get-ChildItem -Path release-input -Directory
+          $platforms = @()
+
+          foreach ($artifact in $artifacts) {
+            if ($artifact.Name -notmatch '^LaunchDeck-(x64|ARM64)-Release$') {
+              continue
+            }
+            $platform = $Matches[1]
+            $platforms += $platform
+            $archive = "release\LaunchDeck-$env:RELEASE_VERSION-$platform.zip"
+            Compress-Archive -Path "$($artifact.FullName)\*" -DestinationPath $archive -Force
+          }
+
+          $expected = @("x64", "ARM64")
+          $missing = $expected | Where-Object { $_ -notin $platforms }
+          if ($missing.Count -gt 0 -or $platforms.Count -ne 2) {
+            Write-Error "Expected exactly one verified artifact for x64 and ARM64. Missing: $($missing -join ', ')"
+            exit 1
+          }
+
+      - name: Recheck release target
+        shell: pwsh
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+          RELEASE_VERSION: ${{ needs.verify-release.outputs.version }}
+        run: |
+          git fetch origin $env:DEFAULT_BRANCH
+          $mainSha = (git rev-parse "origin/$env:DEFAULT_BRANCH").Trim()
+          if ($env:RELEASE_SHA -ne $mainSha) {
+            Write-Error "Default branch advanced during the release build; submit a new release request."
+            exit 1
+          }
+
+          $existingTag = git ls-remote --tags origin "refs/tags/$env:RELEASE_VERSION"
+          if ($LASTEXITCODE -ne 0 -or $existingTag) {
+            Write-Error "Release tag already exists or could not be verified."
+            exit 1
+          }
+
+      - name: Create release tag at the verified SHA
+        id: release-tag
+        uses: actions/github-script@v7
+        env:
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+          RELEASE_VERSION: ${{ needs.verify-release.outputs.version }}
+        with:
+          script: |
+            await github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `refs/tags/${process.env.RELEASE_VERSION}`,
+              sha: process.env.RELEASE_SHA,
+            });
+
+      - name: Confirm main after tag creation
+        uses: actions/github-script@v7
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+        with:
+          script: |
+            const branch = await github.rest.repos.getBranch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              branch: process.env.DEFAULT_BRANCH,
+            });
+            if (branch.data.commit.sha !== process.env.RELEASE_SHA) {
+              core.setFailed(
+                "Default branch advanced while the release tag was being created.",
+              );
+            }
+
+      - name: Create GitHub release
+        id: github-release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.verify-release.outputs.version }}
+          generate_release_notes: true
+          body: |
+            ## Installation
+
+            **Recommended:** Install from the [Microsoft Store](https://apps.microsoft.com/detail/9PJHCMMVQ6HK) for automatic updates.
+
+            **Sideload:** Download the zip for your architecture, extract it, and right-click `Install.ps1` → **Run with PowerShell** (as Administrator). The install script installs a developer certificate and the MSIX package.
+
+            ## Uninstall
+
+            Right-click `Uninstall.ps1` → **Run with PowerShell** (as Administrator).
+
+            ## Requirements
+
+            - Windows 10 19041+ with Xbox Game Bar
+            - x64 or ARM64 matching the downloaded archive
+            - Administrator access (for certificate install)
+          files: |
+            release/LaunchDeck-${{ needs.verify-release.outputs.version }}-x64.zip
+            release/LaunchDeck-${{ needs.verify-release.outputs.version }}-ARM64.zip
+
+      - name: Clean up a failed release
+        if: >-
+          failure() &&
+          steps.release-tag.outcome == 'success' &&
+          steps.github-release.outcome != 'success'
+        uses: actions/github-script@v7
+        env:
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+          RELEASE_VERSION: ${{ needs.verify-release.outputs.version }}
+        with:
+          script: |
+            const ref = await github.rest.git.getRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `tags/${process.env.RELEASE_VERSION}`,
+            });
+            if (ref.data.object.sha !== process.env.RELEASE_SHA) {
+              throw new Error("Refusing to clean up a tag that no longer points at the verified SHA.");
+            }
+
+            try {
+              const release = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag: process.env.RELEASE_VERSION,
+              });
+              await github.rest.repos.deleteRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.data.id,
+              });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
+
+            await github.rest.git.deleteRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `tags/${process.env.RELEASE_VERSION}`,
+            });

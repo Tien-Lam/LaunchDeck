@@ -1,6 +1,16 @@
 name: Build MSIX
 
 on:
+  workflow_call:
+    inputs:
+      platform:
+        description: Windows target architecture
+        required: true
+        type: string
+      configuration:
+        description: Build configuration
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       platform:
@@ -33,6 +43,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate inputs
+        shell: pwsh
+        run: |
+          if ($env:BUILD_PLATFORM -notin @("x64", "ARM64")) {
+            Write-Error "platform must be x64 or ARM64"
+            exit 1
+          }
+          if ($env:BUILD_CONFIGURATION -notin @("Debug", "Release")) {
+            Write-Error "configuration must be Debug or Release"
+            exit 1
+          }
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Test workflow scripts
+        run: bun test ./.github/scripts
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -41,10 +71,29 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      - name: Run tests
+      - name: Build Shared (warnings as errors)
         run: >-
-          dotnet test LaunchDeck.Tests/
+          dotnet build LaunchDeck.Shared/LaunchDeck.Shared.csproj
           --configuration $env:BUILD_CONFIGURATION
+          -warnaserror
+
+      - name: Build Companion (warnings as errors)
+        run: >-
+          dotnet build LaunchDeck.Companion/LaunchDeck.Companion.csproj
+          --configuration $env:BUILD_CONFIGURATION
+          -warnaserror
+
+      - name: Build Tests (warnings as errors)
+        run: >-
+          dotnet build LaunchDeck.Tests/LaunchDeck.Tests.csproj
+          --configuration $env:BUILD_CONFIGURATION
+          -warnaserror
+
+      - name: Run xUnit
+        run: >-
+          dotnet test LaunchDeck.Tests/LaunchDeck.Tests.csproj
+          --configuration $env:BUILD_CONFIGURATION
+          --no-build
           --verbosity normal
 
       - name: Create development signing certificate

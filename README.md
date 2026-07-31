@@ -135,6 +135,13 @@ MSIX, its certificate, and the install/uninstall scripts. It does not publish a
 GitHub Release. See [Deployment](docs/DEPLOYMENT.md#remote-msix-build-from-macos-or-linux)
 for download and installation details.
 
+Releases start with a read-only **Release Request** from `main`. A separate
+trusted workflow verifies that the request still targets the current `main`
+commit, runs managed checks, and builds both x64 and ARM64 full MSIX packages
+before it creates the version tag and GitHub Release. Releases contain separate
+archives for each architecture; see
+[Version releases](docs/DEPLOYMENT.md#version-releases).
+
 ### Deploy
 
 ```powershell

@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 
 const {
+  WORKFLOW_TEST_COMMAND,
   buildSummary,
   ensureStepLogs,
   parseTrxCounters,
@@ -73,6 +74,10 @@ describe("ensureStepLogs", () => {
 });
 
 describe("buildSummary", () => {
+  test("reports the same workflow-test command that CI executes", () => {
+    expect(WORKFLOW_TEST_COMMAND).toBe("bun test ./.github/scripts");
+  });
+
   test("names the failed command, log, totals, and retention", () => {
     const summary = buildSummary({
       counters: { failed: 1, passed: 48, skipped: 0, total: 49 },

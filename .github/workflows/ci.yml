@@ -25,7 +25,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path artifacts/ci-evidence | Out-Null
-          bun test ./.github/scripts/pr-policy.test.ts ./.github/scripts/write-ci-summary.test.ts 2>&1 |
+          bun test ./.github/scripts 2>&1 |
             Tee-Object -FilePath artifacts/ci-evidence/workflow-script-tests.log
           exit $LASTEXITCODE
 
@@ -114,7 +114,7 @@ jobs:
             [pscustomobject]@{
               Name = "Workflow script tests"
               Outcome = $env:POLICY_OUTCOME
-              Command = "bun test ./.github/scripts/pr-policy.test.ts ./.github/scripts/write-ci-summary.test.ts"
+              Command = "bun test ./.github/scripts"
               Log = "workflow-script-tests.log"
             }
             [pscustomobject]@{

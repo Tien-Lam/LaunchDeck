@@ -277,6 +277,59 @@ Release approval identifies the final commit and artifacts, dispositions all
 release-blocking defects, posts project/initiative status updates, and only
 then publishes through the normal release workflow.
 
+For `main`, the merge-blocking GitHub checks are `build-and-test` and
+`pr-policy`, with strict branch freshness. Pull requests are required,
+administrators are included, conversations must be resolved, and force pushes
+and deletion are disabled.
+
+The read-only `Release Request` workflow starts a release from `main`. Its
+successful completion triggers the privileged `Publish Release` workflow,
+which runs trusted default-branch workflow code. The required jobs are
+`verify-release`, both platform instances of `build-msix`, and
+`publish-release`. These are encoded as `needs` dependencies:
+
+```text
+verify-release
+  -> build-msix (x64)
+  -> build-msix (ARM64)
+  -> publish-release
+```
+
+The request must contain a valid ASCII SemVer prefixed with `v` and originate
+from the current `main` SHA. `publish-release` has the only write permission and
+cannot run unless verification plus both signed Release MSIX artifacts succeed.
+It rechecks `main` immediately before and after atomically creating the tag,
+then removes its tag and any partial release if publication fails so a clean
+retry remains possible. The legacy tag-triggered
+`.github/workflows/release.yml` is retired and must remain disabled, preventing
+historical tags from executing historical publishing logic.
+
+Branch protection is GitHub repository state and cannot be committed. TIE-252
+commits the desired state in `.github/main-branch-protection.json` and applies
+it after the workflow change is merged:
+
+```bash
+gh api --method PUT repos/Tien-Lam/LaunchDeck/branches/main/protection \
+  --input .github/main-branch-protection.json
+```
+
+After repository transfer, settings restoration, or required-check renaming,
+an operator must reapply that file and verify:
+
+```bash
+gh api repos/Tien-Lam/LaunchDeck/branches/main/protection
+gh api repos/Tien-Lam/LaunchDeck/branches/main/protection/required_status_checks
+gh api repos/Tien-Lam/LaunchDeck/actions/workflows --paginate \
+  --jq '.workflows[] | select(.path == ".github/workflows/release.yml") | .state'
+```
+
+The protection response must show strict contexts `build-and-test` and
+`pr-policy`, required pull requests and conversation resolution, admin
+enforcement, and no force pushes or deletion. The legacy workflow response must
+be `disabled_manually`. Record any settings correction on the active Linear
+delivery issue. Do not dispatch `Release Request` until the applicable final
+Linear release gate authorizes publishing.
+
 ## GitHub issue routing
 
 Use GitHub for pull requests, code review, Actions, artifacts, and releases.
