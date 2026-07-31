@@ -136,12 +136,23 @@ See [Testing](TESTING.md) for the command and platform matrix.
 
 Every pull request must:
 
-- link its Linear issue;
+- include at least one complete uppercase `TIE-n` identifier in its title or
+  body and link its Linear issue;
 - summarize the accepted scope;
 - list exact automated checks and results;
 - identify config, IPC, localization, packaging, or migration risk;
 - link any deferred manual validation issue;
 - update living documentation when behavior or contracts change.
+
+The required `pr-policy` check validates the identifier without calling Linear
+or using Linear credentials. It runs from the trusted base revision on
+`pull_request_target` and never checks out or executes fork code. A placeholder
+such as `TIE-` and lowercase variants do not pass.
+
+The only automatic exception is a pull request authored by
+`dependabot[bot]`, from a `dependabot/` branch in this repository. Forks,
+similarly named bots, and other automation must provide a TIE issue like any
+other contributor.
 
 When implementation and automated verification are complete:
 
