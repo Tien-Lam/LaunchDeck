@@ -1,6 +1,6 @@
 "use strict";
 
-const TIE_TITLE_PATTERN = /^(TIE-[1-9]\d*)\b/;
+const TIE_TITLE_PATTERN = /^(TIE-[1-9]\d*)(?:$| )/;
 
 function isDependabotException(metadata) {
   return (

@@ -145,13 +145,14 @@ Every pull request must:
 - update living documentation when behavior or contracts change.
 
 The `pr-policy` check accepts an identifier only as an ASCII prefix at the very
-start of the visible pull request title, for example `TIE-253 Require Linear
-metadata`. Body-only tokens, Markdown or HTML content, placeholders such as
-`TIE-`, lowercase variants, and leading control characters do not pass. The
-check does not call Linear or use Linear credentials. It runs from the trusted
-base revision on `pull_request_target` and never checks out or executes fork
-code. TIE-252 makes this check merge-blocking through branch protection; until
-that setting is applied, the Phase 2 gate remains incomplete.
+start of the visible pull request title, followed by an ASCII space or the end
+of the title, for example `TIE-253 Require Linear metadata`. Body-only tokens,
+Markdown or HTML content, placeholders such as `TIE-`, lowercase variants, and
+control or Unicode characters adjacent to the identifier do not pass. The check
+does not call Linear or use Linear credentials. It runs from the trusted base
+revision on `pull_request_target` and never checks out or executes fork code.
+TIE-252 makes this check merge-blocking through branch protection; until that
+setting is applied, the Phase 2 gate remains incomplete.
 
 The only automatic exception is a pull request authored by
 `dependabot[bot]`, from a `dependabot/` branch in this repository. Forks,

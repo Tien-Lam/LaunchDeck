@@ -17,7 +17,8 @@ const baseMetadata = {
 
 describe("findTieReferences", () => {
   test("finds an uppercase Linear reference at the start of the title", () => {
-    expect(findTieReferences("TIE-253: Validate metadata")).toEqual(["TIE-253"]);
+    expect(findTieReferences("TIE-253 Validate metadata")).toEqual(["TIE-253"]);
+    expect(findTieReferences("TIE-253")).toEqual(["TIE-253"]);
   });
 
   test.each([
@@ -27,8 +28,28 @@ describe("findTieReferences", () => {
     ["not first", "Improve layout TIE-253"],
     ["bidi prefix", "\u202eTIE-253 Improve layout"],
     ["bidi identifier", "TIE-\u202e253 Improve layout"],
+    ["colon delimiter", "TIE-253: Improve layout"],
+    ["tab delimiter", "TIE-253\tImprove layout"],
   ])("rejects %s", (_name, title) => {
     expect(findTieReferences(title)).toEqual([]);
+  });
+
+  test.each([
+    ["Latin letter", "é"],
+    ["CJK letter", "中"],
+    ["combining mark", "\u0301"],
+    ["zero-width space", "\u200b"],
+    ["left-to-right mark", "\u200e"],
+    ["right-to-left override", "\u202e"],
+    ["left-to-right isolate", "\u2066"],
+    ["right-to-left isolate", "\u2067"],
+    ["first strong isolate", "\u2068"],
+    ["pop directional isolate", "\u2069"],
+    ["byte order mark", "\ufeff"],
+    ["NUL", "\u0000"],
+    ["DEL", "\u007f"],
+  ])("rejects a %s immediately after the identifier", (_name, suffix) => {
+    expect(findTieReferences(`TIE-253${suffix} Improve layout`)).toEqual([]);
   });
 });
 
