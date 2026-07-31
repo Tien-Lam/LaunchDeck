@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: LaunchDeck Linear tracker (workspace members)
+    url: https://linear.app/tienlam/initiative/launchdeck-b247bff02400
+    about: Workspace members should create and track LaunchDeck work directly in Linear.
