@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 const {
   extractReviewEvidence,
   findTieReferences,
+  isIndependentReviewHeading,
   isSectionBoundary,
   isDependabotException,
   scanMarkdownContext,
@@ -163,6 +164,17 @@ describe("review evidence parsing", () => {
   });
 
   test.each([
+    "<!-- harmless --><details>",
+    "prefix <details>",
+    "<div><details>",
+  ])("rejects collapsed evidence after a line prefix: %s", (opening) => {
+    const body = `${opening}\n${validReviewBody}\n</details>`;
+    expect(extractReviewEvidence(body).errors).toContain(
+      "The `## Independent review` section must not be inside a code fence or collapsed details block.",
+    );
+  });
+
+  test.each([
     ["multiline opening tag", "<details\n>"],
     ["slash-ended non-void tag", "<details />"],
   ])("rejects evidence inside a %s", (_name, opening) => {
@@ -211,6 +223,7 @@ describe("review evidence parsing", () => {
     expect(updateContainerDepth(0, "<details")).toBe(1);
     expect(updateContainerDepth(0, "<details />")).toBe(1);
     expect(updateContainerDepth(0, "`<details>`")).toBe(0);
+    expect(updateContainerDepth(0, "prefix <details>")).toBe(1);
 
     const contexts = scanMarkdownContext([
       "```html",
@@ -259,11 +272,39 @@ describe("review evidence parsing", () => {
     },
   );
 
-  test("recognizes H1, H2, and setext section boundaries", () => {
+  test("recognizes valid spellings of the required H2", () => {
+    expect(isIndependentReviewHeading("## Independent review")).toBe(true);
+    expect(isIndependentReviewHeading(" ## Independent review")).toBe(true);
+    expect(isIndependentReviewHeading("## Independent review ##")).toBe(true);
+    expect(isIndependentReviewHeading("### Independent review")).toBe(false);
+  });
+
+  test.each([" ## Independent review", "## Independent review ##"])(
+    "accepts a valid top-level review heading: %s",
+    (heading) => {
+      expect(
+        extractReviewEvidence(validReviewBody.replace(
+          "## Independent review",
+          heading,
+        )).errors,
+      ).toEqual([]);
+    },
+  );
+
+  test("recognizes H1, H2, and contextual setext section boundaries", () => {
     expect(isSectionBoundary("# Other")).toBe(true);
     expect(isSectionBoundary("##\tOther")).toBe(true);
-    expect(isSectionBoundary("===")).toBe(true);
+    expect(isSectionBoundary("===", "Other", true)).toBe(true);
+    expect(isSectionBoundary("---", "## Independent review", true)).toBe(false);
     expect(isSectionBoundary("### Subsection")).toBe(false);
+  });
+
+  test("allows a thematic break before the evidence fields", () => {
+    const body = validReviewBody.replace(
+      "## Independent review\n",
+      "## Independent review\n\n---\n",
+    );
+    expect(extractReviewEvidence(body).errors).toEqual([]);
   });
 });
 

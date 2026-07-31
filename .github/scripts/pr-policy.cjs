@@ -73,16 +73,18 @@ function updateFenceState(fence, line) {
 }
 
 function updateContainerDepth(depth, line) {
-  if (!/^ {0,3}<\/?(?:details|template)(?:\s|>|$)/i.test(line)) {
+  const structuralLine = line.replace(/(`+)(.*?)\1/g, (codeSpan) =>
+    "x".repeat(codeSpan.length),
+  );
+  if (!/<\/?(?:details|template)(?:\s|>|$)/i.test(structuralLine)) {
     return depth;
   }
 
-  const tags = line.matchAll(/<\/?(details|template)(?:\s[^>]*)?>/gi);
+  const completeTagPattern = /<\/?(details|template)(?:\s[^>]*)?>/gi;
+  const tags = structuralLine.matchAll(completeTagPattern);
   let nextDepth = depth;
-  let foundCompleteTag = false;
 
   for (const tag of tags) {
-    foundCompleteTag = true;
     if (tag[0].startsWith("</")) {
       nextDepth = Math.max(0, nextDepth - 1);
     } else {
@@ -90,10 +92,10 @@ function updateContainerDepth(depth, line) {
     }
   }
 
-  if (
-    !foundCompleteTag &&
-    /^ {0,3}<(?:details|template)(?:\s|$)/i.test(line)
-  ) {
+  const incompleteOpenings = structuralLine
+    .replace(completeTagPattern, "")
+    .match(/<(?:details|template)(?:\s|$)/gi);
+  for (let index = 0; index < (incompleteOpenings?.length ?? 0); index += 1) {
     nextDepth += 1;
   }
 
@@ -120,10 +122,26 @@ function scanMarkdownContext(lines) {
   return contexts;
 }
 
-function isSectionBoundary(line) {
+function isIndependentReviewHeading(line) {
+  return /^ {0,3}##[ \t]+Independent review(?:[ \t]+#+)?[ \t]*$/.test(
+    line,
+  );
+}
+
+function isSectionBoundary(
+  line,
+  previousLine = "",
+  previousLineIsTopLevel = false,
+) {
+  const setextUnderline = /^ {0,3}(?:=+|-+)[ \t]*$/.test(line);
+  const eligibleSetextText =
+    previousLineIsTopLevel &&
+    previousLine.trim().length > 0 &&
+    !/^ {0,3}(?:#{1,6}|>|[*+-]|\d+[.)])(?:[ \t]+|$)/.test(previousLine);
+
   return (
     /^ {0,3}#{1,2}(?:[ \t]+|$)/.test(line) ||
-    /^ {0,3}(?:=+|-+)[ \t]*$/.test(line)
+    (setextUnderline && eligibleSetextText)
   );
 }
 
@@ -132,11 +150,11 @@ function extractReviewEvidence(body) {
   const lines = visibleBody.split(/\r?\n/);
   const contexts = scanMarkdownContext(lines);
   const allSectionIndexes = lines
-    .map((line, index) => (line === "## Independent review" ? index : -1))
+    .map((line, index) => (isIndependentReviewHeading(line) ? index : -1))
     .filter((index) => index >= 0);
   const sectionIndexes = lines
     .map((line, index) =>
-      contexts[index].topLevel && line === "## Independent review" ? index : -1,
+      contexts[index].topLevel && isIndependentReviewHeading(line) ? index : -1,
     )
     .filter((index) => index >= 0);
   const errors = [];
@@ -155,7 +173,11 @@ function extractReviewEvidence(body) {
     (line, index) =>
       index > sectionStart &&
       contexts[index].topLevel &&
-      isSectionBoundary(line),
+      isSectionBoundary(
+        line,
+        lines[index - 1],
+        contexts[index - 1]?.topLevel ?? false,
+      ),
   );
   const sectionEnd = nextSectionIndex < 0 ? lines.length : nextSectionIndex;
   const fields = {};
@@ -256,6 +278,7 @@ function validatePullRequest(metadata) {
 module.exports = {
   extractReviewEvidence,
   findTieReferences,
+  isIndependentReviewHeading,
   isSectionBoundary,
   isDependabotException,
   scanMarkdownContext,
