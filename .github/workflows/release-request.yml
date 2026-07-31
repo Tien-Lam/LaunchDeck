@@ -31,9 +31,9 @@ jobs:
           $numericIdentifier = '(?:0|[1-9][0-9]*)'
           $prereleaseIdentifier = '(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)'
           $buildIdentifier = '[0-9A-Za-z-]+'
-          $semanticVersion = "^v$numericIdentifier\.$numericIdentifier\.$numericIdentifier(?:-$prereleaseIdentifier(?:\.$prereleaseIdentifier)*)?(?:\+$buildIdentifier(?:\.$buildIdentifier)*)?$"
+          $semanticVersion = "\Av$numericIdentifier\.$numericIdentifier\.$numericIdentifier(?:-$prereleaseIdentifier(?:\.$prereleaseIdentifier)*)?(?:\+$buildIdentifier(?:\.$buildIdentifier)*)?\z"
 
-          if ($env:RELEASE_VERSION -notmatch $semanticVersion) {
+          if ($env:RELEASE_VERSION -cnotmatch $semanticVersion) {
             Write-Error "Version must be valid SemVer prefixed with v (for example, v1.2.3 or v1.2.3-rc.1+build.5)."
             exit 1
           }

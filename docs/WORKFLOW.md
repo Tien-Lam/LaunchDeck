@@ -297,11 +297,12 @@ verify-release
 
 The request must contain a valid ASCII SemVer prefixed with `v` and originate
 from the current `main` SHA. `publish-release` has the only write permission and
-cannot run unless verification plus both signed Release MSIX artifacts succeed;
-it rechecks `main` immediately before creating the tag and release. The legacy
-tag-triggered `.github/workflows/release.yml` is retired and must remain
-disabled, preventing historical tags from executing historical publishing
-logic.
+cannot run unless verification plus both signed Release MSIX artifacts succeed.
+It rechecks `main` immediately before and after atomically creating the tag,
+then removes its tag and any partial release if publication fails so a clean
+retry remains possible. The legacy tag-triggered
+`.github/workflows/release.yml` is retired and must remain disabled, preventing
+historical tags from executing historical publishing logic.
 
 Branch protection is GitHub repository state and cannot be committed. TIE-252
 commits the desired state in `.github/main-branch-protection.json` and applies
