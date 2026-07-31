@@ -35,10 +35,10 @@ List exact commands and results:
 - Risk areas:
 - Migration / compatibility:
 - Follow-up issues:
-- Review session:
-- Reviewed commit SHA:
-- Reviewed tree SHA:
-- Review result:
+- Review session: `/root/<fresh-review-session>`
+- Reviewed commit SHA: `<40-character-lowercase-sha>`
+- Reviewed tree SHA: `<40-character-lowercase-tree-sha>`
+- Review result: no findings
 
 Actionable feedback that expands scope must become a Linear sub-issue or
 blocker rather than an untracked checklist item.

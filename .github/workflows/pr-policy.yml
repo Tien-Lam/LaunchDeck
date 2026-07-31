@@ -3,7 +3,8 @@ name: PR Policy
 on:
   pull_request_target:
     branches: [main]
-    types: [opened, edited, synchronize, reopened, ready_for_review]
+    types:
+      [opened, edited, synchronize, reopened, ready_for_review, converted_to_draft]
 
 permissions:
   contents: read
@@ -25,31 +26,79 @@ jobs:
           ref: ${{ github.event.pull_request.base.sha }}
           persist-credentials: false
 
-      - name: Validate Linear issue reference
+      - name: Validate pull request policy
         uses: actions/github-script@v7
         with:
           script: |
             const {
+              findHeadTreeSha,
+              isDependabotException,
               validatePullRequest,
             } = require(
               `${process.env.GITHUB_WORKSPACE}/.github/scripts/pr-policy.cjs`,
             );
-            const pullRequest = context.payload.pull_request;
-            const result = validatePullRequest({
+            const pullRequestResponse = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              mediaType: { format: "full" },
+            });
+            const pullRequest = pullRequestResponse.data;
+            const metadata = {
               actor: pullRequest.user.login,
               baseRepoFullName: pullRequest.base.repo.full_name,
-              body: pullRequest.body ?? "",
+              bodyHtml: pullRequest.body_html ?? "",
               headRef: pullRequest.head.ref,
               headRepoFullName: pullRequest.head.repo?.full_name ?? "",
+              headSha: pullRequest.head.sha,
+              headTreeSha: "",
+              isDraft: pullRequest.draft,
               title: pullRequest.title,
-            });
+            };
+
+            if (!pullRequest.draft && !isDependabotException(metadata)) {
+              if (!pullRequest.head.repo) {
+                core.setFailed(
+                  "The PR head repository is unavailable; review evidence cannot be verified.",
+                );
+                return;
+              }
+              const commits = await github.paginate(
+                github.rest.pulls.listCommits,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pullRequest.number,
+                  per_page: 100,
+                },
+              );
+              metadata.headTreeSha = findHeadTreeSha(
+                commits,
+                pullRequest.head.sha,
+              );
+              if (!metadata.headTreeSha) {
+                core.setFailed(
+                  "The live PR head tree is unavailable from the base-scoped pull-request commits API.",
+                );
+                return;
+              }
+            }
+
+            const result = validatePullRequest(metadata);
 
             await core.summary
               .addHeading("LaunchDeck PR policy")
               .addRaw(
                 result.exempt
                   ? "Same-repository Dependabot PR: Linear reference exemption applied."
-                  : `Linear references: ${result.tieReferences.join(", ") || "none"}`,
+                  : [
+                      `Linear references: ${result.tieReferences.join(", ") || "none"}`,
+                      `Review evidence: ${
+                        pullRequest.draft
+                          ? "deferred while draft"
+                          : result.reviewEvidence?.fields["Review session"] || "missing"
+                      }`,
+                    ].join("\n\n"),
               )
               .write();
 

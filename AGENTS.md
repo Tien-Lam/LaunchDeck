@@ -33,6 +33,11 @@
 - Any content change after review requires a new commit, automated verification,
   and fresh clean-context review. Before merge or completion, confirm the final
   tree SHA exactly matches the tree SHA approved by the latest review session.
+- Before making a pull request ready for review, fill its `Independent review`
+  fields with the fresh `/root/...` session, exact lowercase commit and tree
+  SHAs, and the exact result `no findings`. The `pr-policy` check compares those
+  SHAs with the live PR head; every new push invalidates the evidence until a
+  new clean-context review is recorded.
 - Move work to `Done` only after acceptance criteria are met, changes are merged
   where applicable, final evidence is recorded, and the latest independent
   review session has no unresolved findings. Every blocking issue must be Done.
