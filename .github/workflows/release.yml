@@ -21,8 +21,13 @@ jobs:
       - name: Verify release tag and main ancestry
         shell: pwsh
         run: |
-          if ("${{ github.ref_name }}" -notmatch '^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') {
-            Write-Error "Release tags must use v<major>.<minor>.<patch> with an optional prerelease suffix."
+          $numericIdentifier = '(?:0|[1-9]\d*)'
+          $prereleaseIdentifier = '(?:0|[1-9]\d*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)'
+          $buildIdentifier = '[0-9A-Za-z-]+'
+          $semanticVersion = "^v$numericIdentifier\.$numericIdentifier\.$numericIdentifier(?:-$prereleaseIdentifier(?:\.$prereleaseIdentifier)*)?(?:\+$buildIdentifier(?:\.$buildIdentifier)*)?$"
+
+          if ("${{ github.ref_name }}" -notmatch $semanticVersion) {
+            Write-Error "Release tag must be a valid semantic version prefixed with v (for example, v1.2.3 or v1.2.3-rc.1+build.5)."
             exit 1
           }
           git fetch origin main
