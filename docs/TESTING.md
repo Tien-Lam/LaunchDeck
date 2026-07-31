@@ -331,7 +331,12 @@ Several areas of the codebase are not covered by automated tests due to runtime 
 
 ### UWP Widget UI (`LaunchDeck.Widget`)
 
-The widget project is a UWP XAML app that runs inside the Xbox Game Bar host process. It requires the Game Bar runtime to instantiate `XboxGameBarWidget` objects and render XAML. There is no headless UWP test host that can simulate this environment, so all widget UI behavior is manual-test only.
+The widget project is a UWP XAML app that runs inside the Xbox Game Bar host
+process. It requires the Game Bar runtime to instantiate `XboxGameBarWidget`
+objects and render XAML. There is no headless UWP test host that can simulate
+that hosting and rendering environment. Pure page state, placement, responsive
+layout, and focus-neighbor decisions should be extracted into Shared or another
+testable layer; only the actual Game Bar/XAML behavior remains manual-only.
 
 ### App Service IPC
 
@@ -364,13 +369,43 @@ The `Launch` method calls `Process.Start`, which actually spawns a process. `Bui
 | `LaunchDeck.Companion` (store app enumeration, AUMID parsing) | Yes | xUnit (environment-dependent) |
 | `LaunchDeck.Companion` (icon extraction from real EXEs, store app icon extraction) | Partially | xUnit with known OS fixtures (`notepad.exe`) and installed apps |
 | `LaunchDeck.Companion` (process launching -- success path) | No | Side-effectful; tested manually |
-| `LaunchDeck.Widget` (XAML UI, data binding, grid layout) | No | Requires Game Bar runtime; manual only |
+| Widget state, placement, responsive calculations, and focus-neighbor decisions extracted from UWP | Yes | xUnit against Shared/testable view-model logic |
+| `LaunchDeck.Widget` (Game Bar hosting, XAML rendering, real input and focus) | No | Requires Game Bar runtime; final-phase manual validation |
 | App Service IPC (widget <-> companion) | No | Requires MSIX deployment; manual only |
 | MSIX packaging and activation | No | Requires deployment; manual only |
 
+## Linear Evidence and Sequencing
+
+Testing work is tracked in the
+[LaunchDeck Linear initiative](https://linear.app/tienlam/initiative/launchdeck-b247bff02400)
+and follows [the development workflow](WORKFLOW.md).
+
+Before an implementation issue moves to `In Review`, add a Linear comment with:
+
+- the immutable commit SHA and its tree SHA after confirming the working tree is
+  clean;
+- every automated command or CI check and its pass/fail result;
+- anything not run, why it was not run, and the issue that tracks it;
+- discovered risks, follow-ups, and blocker relations.
+
+Tests and builds that can run without a person interacting with the installed
+product belong in agentic milestones. This includes Shared builds, Windows
+cross-compilation, xUnit, CI, and an explicitly authorized remote MSIX build.
+
+Installation, Game Bar activation, mouse/touch/controller interaction, hardware
+coverage, and subjective UX acceptance are labeled `Manual validation`. They
+must be sub-issues of the final milestone in their project and blocked by the
+automated hardening gate. Do not perform them early or use them to block
+otherwise ready agentic work.
+
+When manual validation finds a failure, create a linked `Bug` sub-issue, make it
+a blocker where required, and keep the acceptance issue focused on evidence.
+
 ## Manual Testing Procedure
 
-For areas that cannot be automated, follow this procedure:
+For areas that cannot be automated, follow this procedure only from the
+applicable final-phase `Manual validation` issue. Record the artifact, commit,
+environment, checklist results, and linked defects on that Linear issue.
 
 ### Prerequisites
 
@@ -422,3 +457,4 @@ Coverage results are written to `LaunchDeck.Tests/TestResults/`. Use a tool like
 
 - [Architecture](ARCHITECTURE.md) -- what is testable depends on the two-process architecture
 - [Deployment](DEPLOYMENT.md) -- build the solution before running tests
+- [Workflow](WORKFLOW.md) -- how automated and manual evidence moves through Linear

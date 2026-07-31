@@ -1,0 +1,42 @@
+name: External report
+description: Public intake for contributors who cannot access the LaunchDeck Linear workspace
+title: "[Intake]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve LaunchDeck. GitHub Issues are an intake bridge, not the project tracker.
+        A maintainer will mirror this report into Linear, reply with the Linear link, and close this issue.
+  - type: dropdown
+    id: report_type
+    attributes:
+      label: Report type
+      options:
+        - Bug
+        - Feature request
+        - Documentation
+        - Testing gap
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe the problem or requested outcome.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence or context
+      description: Include reproduction steps, expected and actual behavior, logs, screenshots, or relevant links.
+    validations:
+      required: false
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: For bugs, include Windows, architecture, package, and Xbox Game Bar versions when known.
+    validations:
+      required: false

@@ -31,6 +31,22 @@ Or build from source — see [Build](#build) and [Deploy](#deploy) below.
 - Focuses launched EXE apps by default, with a setting to turn foreground forcing off
 - Localized app, widget, and editor strings for English, Spanish, French, German, Japanese, Brazilian Portuguese, Russian, Ukrainian, Simplified Chinese, and Traditional Chinese
 
+## Work Tracking
+
+LaunchDeck uses the
+[LaunchDeck initiative in Linear](https://linear.app/tienlam/initiative/launchdeck-b247bff02400)
+for bugs, features, implementation, reviews, testing, documentation, and
+releases. GitHub is used for source, pull requests, Actions, artifacts, and
+release publishing; GitHub Issues are not used for work tracking. Contributors
+without Linear workspace access may use the public GitHub issue form as intake;
+a maintainer mirrors the report into Linear and closes the intake issue.
+
+Before contributing, read the [development workflow](docs/WORKFLOW.md). Every
+change must link a Linear issue and record its automated verification there.
+Interactive MSIX, Game Bar, touch/controller, and subjective UX checks are kept
+in each project's final manual milestone so they do not block earlier agentic
+work.
+
 ## Configuration
 
 Items are stored in `%LOCALAPPDATA%\LaunchDeck\config.json`. Use the built-in editor (gear button in the widget) to manage items, or edit the JSON directly:
@@ -149,3 +165,4 @@ Remove-Item "$env:LOCALAPPDATA\LaunchDeck" -Recurse -Force
 - [UI](docs/UI.md) — dark theme palette, XAML structure, interactive states
 - [Deployment](docs/DEPLOYMENT.md) — build pipeline, VS deploy, manifest, troubleshooting
 - [Testing](docs/TESTING.md) — test coverage, boundaries, manual test checklist
+- [Workflow](docs/WORKFLOW.md) — Linear planning, implementation, review, testing, and release process

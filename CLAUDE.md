@@ -25,6 +25,15 @@ docs/                   # Architecture, IPC, Config, UI, Deployment, Testing doc
 - [UI](docs/UI.md) -- dark theme palette, XAML structure, interactive states
 - [Deployment](docs/DEPLOYMENT.md) -- build pipeline, VS deploy, manifest, troubleshooting
 - [Testing](docs/TESTING.md) -- test coverage, boundaries, manual test checklist
+- [Workflow](docs/WORKFLOW.md) -- Linear hierarchy, statuses, blockers, review, evidence, and release gates
+
+## Work Tracking
+
+All work is tracked in the
+[LaunchDeck Linear initiative](https://linear.app/tienlam/initiative/launchdeck-b247bff02400).
+Follow `AGENTS.md` and `docs/WORKFLOW.md` before changing the repository. GitHub
+Issues are not used for LaunchDeck planning or delivery. Public GitHub reports
+are intake only and must be mirrored into Linear and closed.
 
 ## Sub-Agents
 
@@ -39,7 +48,9 @@ Always pass `model: "opus"` on every Agent tool call. Never use sonnet or haiku 
 - No false-confidence tests (tests that pass even if the code is broken)
 - Extract logic from WPF/UWP code-behind into testable classes (e.g., `EditorModel`)
 - Test patterns: xUnit, `Path.GetTempFileName()` with `try/finally` cleanup, `C:\Windows\notepad.exe` as known fixture
-- UWP widget code is not unit-testable — use manual checklist in docs/TESTING.md
+- Extract widget state, layout, and focus decisions into testable non-UWP logic.
+  Game Bar hosting, installed XAML behavior, and physical interaction remain in
+  the final manual milestone described by docs/TESTING.md and docs/WORKFLOW.md.
 
 ## Code Style
 
