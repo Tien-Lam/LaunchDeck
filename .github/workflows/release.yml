@@ -6,82 +6,127 @@ on:
       - 'v*'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  build-and-release:
+  verify-release:
+    name: verify-release
     runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify release tag and main ancestry
+        shell: pwsh
+        run: |
+          if ("${{ github.ref_name }}" -notmatch '^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') {
+            Write-Error "Release tags must use v<major>.<minor>.<patch> with an optional prerelease suffix."
+            exit 1
+          }
+          git fetch origin main
+          git merge-base --is-ancestor "$env:GITHUB_SHA" origin/main
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Release tag ${{ github.ref_name }} is not reachable from main."
+            exit 1
+          }
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Test workflow scripts
+        run: >-
+          bun test
+          ./.github/scripts/pr-policy.test.ts
+          ./.github/scripts/write-ci-summary.test.ts
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-          include-prerelease: true
 
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
+      - name: Build Shared (warnings as errors)
+        run: >-
+          dotnet build LaunchDeck.Shared/LaunchDeck.Shared.csproj
+          --configuration Release
+          -warnaserror
 
-      - name: Build and test
-        run: |
-          dotnet build LaunchDeck.Shared/LaunchDeck.Shared.csproj -warnaserror
-          dotnet build LaunchDeck.Companion/LaunchDeck.Companion.csproj -warnaserror
-          dotnet test LaunchDeck.Tests/ --configuration Release --verbosity normal
+      - name: Build Companion (warnings as errors)
+        run: >-
+          dotnet build LaunchDeck.Companion/LaunchDeck.Companion.csproj
+          --configuration Release
+          -warnaserror
 
-      - name: Create signing certificate
-        run: |
-          $cert = New-SelfSignedCertificate `
-            -Type Custom `
-            -Subject "CN=E37AAF35-F870-4E74-8486-74BED9927C48" `
-            -KeyUsage DigitalSignature `
-            -FriendlyName "LaunchDeck Dev Certificate" `
-            -CertStoreLocation "Cert:\CurrentUser\My" `
-            -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
-          $password = ConvertTo-SecureString -String "LaunchDeckBuild" -Force -AsPlainText
-          Export-PfxCertificate -cert "Cert:\CurrentUser\My\$($cert.Thumbprint)" `
-            -FilePath "$env:GITHUB_WORKSPACE\LaunchDeck.Package\LaunchDeck_Dev.pfx" `
-            -Password $password
-          Export-Certificate -Cert "Cert:\CurrentUser\My\$($cert.Thumbprint)" `
-            -FilePath "$env:GITHUB_WORKSPACE\LaunchDeck_Dev.cer"
-          echo "CERT_THUMBPRINT=$($cert.Thumbprint)" >> $env:GITHUB_ENV
+      - name: Build Tests (warnings as errors)
+        run: >-
+          dotnet build LaunchDeck.Tests/LaunchDeck.Tests.csproj
+          --configuration Release
+          -warnaserror
+
+      - name: Run xUnit
+        run: >-
+          dotnet test LaunchDeck.Tests/LaunchDeck.Tests.csproj
+          --configuration Release
+          --no-build
+          --verbosity normal
+
+  build-msix:
+    name: build-msix
+    needs: verify-release
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [x64, ARM64]
+    uses: ./.github/workflows/build-msix.yml
+    with:
+      platform: ${{ matrix.platform }}
+      configuration: Release
+    permissions:
+      contents: read
+
+  publish-release:
+    name: publish-release
+    needs: [verify-release, build-msix]
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download verified MSIX artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: LaunchDeck-*-Release
+          path: release-input
+          merge-multiple: false
+
+      - name: Create architecture-specific release archives
         shell: pwsh
-
-      - name: Build signed MSIX
-        run: >
-          msbuild LaunchDeck.sln
-          /p:Configuration=Release
-          /p:Platform=x64
-          /p:AppxBundle=Never
-          /p:AppxPackageSigningEnabled=true
-          /p:PackageCertificateThumbprint=${{ env.CERT_THUMBPRINT }}
-          /p:PackageCertificatePassword=LaunchDeckBuild
-          /p:PackageCertificateKeyFile=${{ github.workspace }}\LaunchDeck.Package\LaunchDeck_Dev.pfx
-          /restore
-
-      - name: Find MSIX
         run: |
-          $msix = Get-ChildItem -Path "LaunchDeck.Package\AppPackages" -Recurse -Filter "*.msix" |
-            Where-Object { $_.Name -notmatch 'Widget' } |
-            Select-Object -First 1
-          if (-not $msix) { Write-Error "No MSIX found"; exit 1 }
-          Write-Host "Found: $($msix.FullName)"
-          echo "MSIX_PATH=$($msix.FullName)" >> $env:GITHUB_ENV
-          echo "MSIX_NAME=$($msix.Name)" >> $env:GITHUB_ENV
-        shell: pwsh
+          New-Item -ItemType Directory -Path release -Force | Out-Null
+          $artifacts = Get-ChildItem -Path release-input -Directory
+          $platforms = @()
 
-      - name: Create release zip
-        run: |
-          New-Item -ItemType Directory -Path "release" -Force
-          Copy-Item "${{ env.MSIX_PATH }}" "release\"
-          Copy-Item "LaunchDeck_Dev.cer" "release\"
-          Copy-Item "Install.ps1" "release\"
-          Copy-Item "Uninstall.ps1" "release\"
-          Compress-Archive -Path "release\*" -DestinationPath "LaunchDeck-${{ github.ref_name }}.zip"
-        shell: pwsh
+          foreach ($artifact in $artifacts) {
+            if ($artifact.Name -notmatch '^LaunchDeck-(x64|ARM64)-Release$') {
+              continue
+            }
+            $platform = $Matches[1]
+            $platforms += $platform
+            $archive = "release\LaunchDeck-${{ github.ref_name }}-$platform.zip"
+            Compress-Archive -Path "$($artifact.FullName)\*" -DestinationPath $archive -Force
+          }
 
-      - name: Create GitHub Release
+          $expected = @("x64", "ARM64")
+          $missing = $expected | Where-Object { $_ -notin $platforms }
+          if ($missing.Count -gt 0 -or $platforms.Count -ne 2) {
+            Write-Error "Expected exactly one verified artifact for x64 and ARM64. Missing: $($missing -join ', ')"
+            exit 1
+          }
+
+      - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
@@ -90,7 +135,7 @@ jobs:
 
             **Recommended:** Install from the [Microsoft Store](https://apps.microsoft.com/detail/9PJHCMMVQ6HK) for automatic updates.
 
-            **Sideload:** Download the zip, extract, and right-click `Install.ps1` → **Run with PowerShell** (as Administrator). The install script installs a developer certificate and the MSIX package.
+            **Sideload:** Download the zip for your architecture, extract it, and right-click `Install.ps1` → **Run with PowerShell** (as Administrator). The install script installs a developer certificate and the MSIX package.
 
             ## Uninstall
 
@@ -99,6 +144,8 @@ jobs:
             ## Requirements
 
             - Windows 10 19041+ with Xbox Game Bar
+            - x64 or ARM64 matching the downloaded archive
             - Administrator access (for certificate install)
           files: |
-            LaunchDeck-${{ github.ref_name }}.zip
+            release/LaunchDeck-${{ github.ref_name }}-x64.zip
+            release/LaunchDeck-${{ github.ref_name }}-ARM64.zip

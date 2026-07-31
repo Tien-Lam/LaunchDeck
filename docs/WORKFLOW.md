@@ -277,6 +277,49 @@ Release approval identifies the final commit and artifacts, dispositions all
 release-blocking defects, posts project/initiative status updates, and only
 then publishes through the normal release workflow.
 
+For `main`, the merge-blocking GitHub checks are `build-and-test` and
+`pr-policy`, with strict branch freshness. Pull requests are required,
+administrators are included, conversations must be resolved, and force pushes
+and deletion are disabled.
+
+For `v*` release tags, the required workflow jobs are `verify-release`, both
+platform instances of `build-msix`, and `publish-release`. These are encoded as
+`needs` dependencies rather than mutable operator convention:
+
+```text
+verify-release
+  -> build-msix (x64)
+  -> build-msix (ARM64)
+  -> publish-release
+```
+
+The tag must use a semantic version shape and point to a commit reachable from
+`main`. `publish-release` has the only write permission and cannot run unless
+verification plus both signed Release MSIX artifacts succeed.
+
+Branch protection is GitHub repository state and cannot be committed. TIE-252
+commits the desired state in `.github/main-branch-protection.json` and applies
+it after the workflow change is merged:
+
+```bash
+gh api --method PUT repos/Tien-Lam/LaunchDeck/branches/main/protection \
+  --input .github/main-branch-protection.json
+```
+
+After repository transfer, settings restoration, or required-check renaming,
+an operator must reapply that file and verify:
+
+```bash
+gh api repos/Tien-Lam/LaunchDeck/branches/main/protection
+gh api repos/Tien-Lam/LaunchDeck/branches/main/protection/required_status_checks
+```
+
+The response must show strict contexts `build-and-test` and `pr-policy`,
+required pull requests and conversation resolution, admin enforcement, and no
+force pushes or deletion. Record any settings correction on the active Linear
+delivery issue. Do not create a release tag until the applicable final Linear
+release gate authorizes publishing.
+
 ## GitHub issue routing
 
 Use GitHub for pull requests, code review, Actions, artifacts, and releases.

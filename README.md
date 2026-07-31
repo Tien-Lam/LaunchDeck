@@ -135,6 +135,11 @@ MSIX, its certificate, and the install/uninstall scripts. It does not publish a
 GitHub Release. See [Deployment](docs/DEPLOYMENT.md#remote-msix-build-from-macos-or-linux)
 for download and installation details.
 
+Version tags publish only after the tag is verified as reachable from `main`,
+managed checks pass, and both x64 and ARM64 full MSIX jobs succeed. Releases
+contain separate archives for each architecture; see
+[Version-tag releases](docs/DEPLOYMENT.md#version-tag-releases).
+
 ### Deploy
 
 ```powershell
