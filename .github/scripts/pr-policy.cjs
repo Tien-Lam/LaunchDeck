@@ -43,6 +43,33 @@ function unwrapCodeSpan(value) {
   return trimmed;
 }
 
+function updateFenceState(fence, line) {
+  if (fence) {
+    const closing = line.match(/^ {0,3}(`{3,}|~{3,})[ \t]*$/);
+    if (
+      closing &&
+      closing[1][0] === fence.marker &&
+      closing[1].length >= fence.length
+    ) {
+      return null;
+    }
+    return fence;
+  }
+
+  const opening = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+  if (
+    !opening ||
+    (opening[1][0] === "`" && opening[2].includes("`"))
+  ) {
+    return null;
+  }
+
+  return {
+    length: opening[1].length,
+    marker: opening[1][0],
+  };
+}
+
 function extractReviewEvidence(body) {
   const visibleBody = stripHtmlComments(body);
   const lines = visibleBody.split(/\r?\n/);
@@ -59,14 +86,12 @@ function extractReviewEvidence(body) {
   }
 
   const sectionStart = sectionIndexes[0];
-  let inFence = false;
+  let fence = null;
   let detailsDepth = 0;
 
   for (let index = 0; index <= sectionStart; index += 1) {
     const line = lines[index];
-    if (/^\s*(```|~~~)/.test(line)) {
-      inFence = !inFence;
-    }
+    fence = updateFenceState(fence, line);
     if (/<details(?:\s|>)/i.test(line)) {
       detailsDepth += 1;
     }
@@ -75,7 +100,7 @@ function extractReviewEvidence(body) {
     }
   }
 
-  if (inFence || detailsDepth > 0) {
+  if (fence || detailsDepth > 0) {
     errors.push(
       "The `## Independent review` section must not be inside a code fence or collapsed details block.",
     );
@@ -196,6 +221,7 @@ module.exports = {
   findTieReferences,
   isDependabotException,
   stripHtmlComments,
+  updateFenceState,
   unwrapCodeSpan,
   validatePullRequest,
 };

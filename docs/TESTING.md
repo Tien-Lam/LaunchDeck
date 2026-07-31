@@ -388,6 +388,16 @@ Before an implementation issue moves to `In Review`, add a Linear comment with:
 - anything not run, why it was not run, and the issue that tracks it;
 - discovered risks, follow-ups, and blocker relations.
 
+After recording that immutable evidence, automatically start a separate review
+session with no inherited conversation history. Give it the issue and acceptance
+criteria, repository instructions, and exact commit SHA; the reviewer resolves
+the tree independently, reports findings without editing, and records its
+session, findings, and dispositions on the Linear issue. An in-scope finding
+returns the issue to `In Progress`. Any content change requires another commit,
+the relevant automated checks, and a new clean-context review session. The issue
+can be completed only when the latest review says `no findings` and its tree
+matches the proposed final tree.
+
 Tests and builds that can run without a person interacting with the installed
 product belong in agentic milestones. This includes Shared builds, Windows
 cross-compilation, xUnit, CI, and an explicitly authorized remote MSIX build.

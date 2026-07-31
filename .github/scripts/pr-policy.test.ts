@@ -5,6 +5,7 @@ const {
   findTieReferences,
   isDependabotException,
   stripHtmlComments,
+  updateFenceState,
   unwrapCodeSpan,
   validatePullRequest,
 } = require("./pr-policy.cjs");
@@ -149,6 +150,29 @@ describe("review evidence parsing", () => {
     ],
   ])("rejects evidence hidden in a %s", (_name, body) => {
     expect(extractReviewEvidence(body).errors.length).toBeGreaterThan(0);
+  });
+
+  test.each([
+    [
+      "different marker",
+      `\`\`\`text\n~~~\n${validReviewBody}\n\`\`\``,
+    ],
+    [
+      "shorter run",
+      `\`\`\`\`text\n\`\`\`\n${validReviewBody}\n\`\`\`\``,
+    ],
+  ])("does not close a fence with a %s", (_name, body) => {
+    expect(extractReviewEvidence(body).errors).toContain(
+      "The `## Independent review` section must not be inside a code fence or collapsed details block.",
+    );
+  });
+
+  test("tracks the CommonMark fence marker and opening length", () => {
+    const opening = updateFenceState(null, "~~~text");
+    expect(opening).toEqual({ length: 3, marker: "~" });
+    expect(updateFenceState(opening, "```")).toEqual(opening);
+    expect(updateFenceState(opening, "~~")).toEqual(opening);
+    expect(updateFenceState(opening, "~~~~")).toBeNull();
   });
 
   test("unwraps either a plain value or one code span", () => {
