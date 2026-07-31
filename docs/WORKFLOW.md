@@ -282,9 +282,11 @@ For `main`, the merge-blocking GitHub checks are `build-and-test` and
 administrators are included, conversations must be resolved, and force pushes
 and deletion are disabled.
 
-For `v*` release tags, the required workflow jobs are `verify-release`, both
-platform instances of `build-msix`, and `publish-release`. These are encoded as
-`needs` dependencies rather than mutable operator convention:
+The read-only `Release Request` workflow starts a release from `main`. Its
+successful completion triggers the privileged `Publish Release` workflow,
+which runs trusted default-branch workflow code. The required jobs are
+`verify-release`, both platform instances of `build-msix`, and
+`publish-release`. These are encoded as `needs` dependencies:
 
 ```text
 verify-release
@@ -293,9 +295,13 @@ verify-release
   -> publish-release
 ```
 
-The tag must use a semantic version shape and point to a commit reachable from
-`main`. `publish-release` has the only write permission and cannot run unless
-verification plus both signed Release MSIX artifacts succeed.
+The request must contain a valid ASCII SemVer prefixed with `v` and originate
+from the current `main` SHA. `publish-release` has the only write permission and
+cannot run unless verification plus both signed Release MSIX artifacts succeed;
+it rechecks `main` immediately before creating the tag and release. The legacy
+tag-triggered `.github/workflows/release.yml` is retired and must remain
+disabled, preventing historical tags from executing historical publishing
+logic.
 
 Branch protection is GitHub repository state and cannot be committed. TIE-252
 commits the desired state in `.github/main-branch-protection.json` and applies
@@ -312,13 +318,16 @@ an operator must reapply that file and verify:
 ```bash
 gh api repos/Tien-Lam/LaunchDeck/branches/main/protection
 gh api repos/Tien-Lam/LaunchDeck/branches/main/protection/required_status_checks
+gh api repos/Tien-Lam/LaunchDeck/actions/workflows --paginate \
+  --jq '.workflows[] | select(.path == ".github/workflows/release.yml") | .state'
 ```
 
-The response must show strict contexts `build-and-test` and `pr-policy`,
-required pull requests and conversation resolution, admin enforcement, and no
-force pushes or deletion. Record any settings correction on the active Linear
-delivery issue. Do not create a release tag until the applicable final Linear
-release gate authorizes publishing.
+The protection response must show strict contexts `build-and-test` and
+`pr-policy`, required pull requests and conversation resolution, admin
+enforcement, and no force pushes or deletion. The legacy workflow response must
+be `disabled_manually`. Record any settings correction on the active Linear
+delivery issue. Do not dispatch `Release Request` until the applicable final
+Linear release gate authorizes publishing.
 
 ## GitHub issue routing
 

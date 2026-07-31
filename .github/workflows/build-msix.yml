@@ -61,10 +61,7 @@ jobs:
           bun-version: 1.3.14
 
       - name: Test workflow scripts
-        run: >-
-          bun test
-          ./.github/scripts/pr-policy.test.ts
-          ./.github/scripts/write-ci-summary.test.ts
+        run: bun test ./.github/scripts
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4

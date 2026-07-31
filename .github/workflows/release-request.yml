@@ -1,0 +1,52 @@
+name: Release Request
+run-name: Release request ${{ inputs.version }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Semantic version prefixed with v (for example, v1.2.3)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  request:
+    name: request
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate release request
+        shell: pwsh
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          if ($env:GITHUB_REF -ne "refs/heads/$env:DEFAULT_BRANCH") {
+            Write-Error "Release requests must run from the default branch."
+            exit 1
+          }
+
+          $numericIdentifier = '(?:0|[1-9][0-9]*)'
+          $prereleaseIdentifier = '(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)'
+          $buildIdentifier = '[0-9A-Za-z-]+'
+          $semanticVersion = "^v$numericIdentifier\.$numericIdentifier\.$numericIdentifier(?:-$prereleaseIdentifier(?:\.$prereleaseIdentifier)*)?(?:\+$buildIdentifier(?:\.$buildIdentifier)*)?$"
+
+          if ($env:RELEASE_VERSION -notmatch $semanticVersion) {
+            Write-Error "Version must be valid SemVer prefixed with v (for example, v1.2.3 or v1.2.3-rc.1+build.5)."
+            exit 1
+          }
+
+          New-Item -ItemType Directory -Path release-request -Force | Out-Null
+          @{
+            version = $env:RELEASE_VERSION
+          } | ConvertTo-Json | Set-Content release-request/request.json
+
+      - name: Upload release request
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-request
+          path: release-request/request.json
+          if-no-files-found: error
+          retention-days: 1

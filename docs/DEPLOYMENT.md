@@ -71,9 +71,9 @@ CPU`; Widget, Companion, Tests, and Package build as the selected native
 platform.
 
 The manual workflow produces one signed single-platform artifact for the
-selected input. A version-tag release invokes the same workflow twice and
-publishes separate `x64` and `ARM64` archives only after both builds succeed.
-It does not combine the architectures into one MSIX bundle.
+selected input. A version release invokes the same workflow twice and publishes
+separate `x64` and `ARM64` archives only after both builds succeed. It does not
+combine the architectures into one MSIX bundle.
 
 ### Remote MSIX build from macOS or Linux
 
@@ -127,21 +127,37 @@ This remote path builds the package, but it does not replace Windows for
 runtime validation. Installing the package, opening the widget in Xbox Game
 Bar, and completing the manual test checklist still require Windows.
 
-### Version-tag releases
+### Version releases
 
-The `Release` workflow accepts only tags shaped like `v1.2.3` or an equivalent
-version with a prerelease suffix, and the tagged commit must be reachable from
-`main`. Its required job graph is:
+Start a release by dispatching the read-only `Release Request` workflow from
+the current `main` branch:
+
+```bash
+gh workflow run release-request.yml --ref main -f version=v1.2.3
+```
+
+The version must be valid SemVer prefixed with `v`; prerelease and build
+identifiers are supported. The request uploads only a one-day JSON artifact and
+has read-only repository access. Its completion triggers `Publish Release`.
+That privileged workflow runs from the trusted default-branch revision, rejects
+requests that did not originate from the current `main` SHA, revalidates the
+version, and refuses to overwrite an existing tag.
+
+Its required job graph is:
 
 1. `verify-release` — workflow tests, warning-as-error managed builds, and
    xUnit.
 2. `build-msix / build-msix (x64)` and
    `build-msix / build-msix (ARM64)` — full signed Release MSIX artifacts.
-3. `publish-release` — downloads exactly those two artifacts, creates
-   architecture-specific archives, and publishes the GitHub Release.
+3. `publish-release` — rechecks that `main` has not advanced, downloads exactly
+   those two artifacts, creates architecture-specific archives, then creates
+   the version tag and GitHub Release.
 
-GitHub cannot reach `publish-release` when verification or either packaging
-job fails. A release contains
+GitHub cannot reach `publish-release` when verification or either packaging job
+fails. Direct tag pushes are not a release entry point: the historical
+`.github/workflows/release.yml` workflow is retired and disabled at repository
+level so a tag targeting an old commit cannot execute old publishing logic. A
+release contains
 `LaunchDeck-<tag>-x64.zip` and `LaunchDeck-<tag>-ARM64.zip`; each archive
 contains the matching MSIX, public development certificate, and install and
 uninstall scripts.
