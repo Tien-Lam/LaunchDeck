@@ -3,6 +3,8 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
+const WORKFLOW_TEST_COMMAND = "bun test ./.github/scripts";
+
 function parseTrxCounters(xml) {
   const countersTag = xml.match(/<Counters\b([^>]*)\/?>/);
   if (!countersTag) {
@@ -109,8 +111,7 @@ function main() {
     : null;
   const steps = [
     {
-      command:
-        "bun test ./.github/scripts/pr-policy.test.ts ./.github/scripts/write-ci-summary.test.ts",
+      command: WORKFLOW_TEST_COMMAND,
       log: "workflow-script-tests.log",
       name: "Workflow script tests",
       outcome: process.env.POLICY_OUTCOME ?? "unknown",
@@ -167,6 +168,7 @@ if (require.main === module) {
 }
 
 module.exports = {
+  WORKFLOW_TEST_COMMAND,
   buildSummary,
   ensureStepLogs,
   findFile,

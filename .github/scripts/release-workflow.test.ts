@@ -134,4 +134,17 @@ describe("release workflow trust boundary", () => {
       .map((job: any) => job.name);
     expect(writeJobs).toEqual(["publish-release"]);
   });
+
+  test("keeps CI execution and fallback evidence commands aligned", () => {
+    const workflow = loadWorkflow("ci.yml");
+    const job = workflow.jobs["build-and-test"];
+    const workflowTests = stepByName(job, "Test workflow scripts");
+    const summary = stepByName(job, "Publish readable CI summary");
+
+    expect(workflowTests.run).toContain("bun test ./.github/scripts");
+    expect(summary.run).toContain(
+      'Command = "bun test ./.github/scripts"',
+    );
+    expect(summary.run).not.toContain("pr-policy.test.ts");
+  });
 });

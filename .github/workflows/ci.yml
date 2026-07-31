@@ -114,7 +114,7 @@ jobs:
             [pscustomobject]@{
               Name = "Workflow script tests"
               Outcome = $env:POLICY_OUTCOME
-              Command = "bun test ./.github/scripts/pr-policy.test.ts ./.github/scripts/write-ci-summary.test.ts"
+              Command = "bun test ./.github/scripts"
               Log = "workflow-script-tests.log"
             }
             [pscustomobject]@{
