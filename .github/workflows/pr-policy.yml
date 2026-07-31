@@ -31,6 +31,7 @@ jobs:
         with:
           script: |
             const {
+              findHeadTreeSha,
               isDependabotException,
               validatePullRequest,
             } = require(
@@ -62,12 +63,25 @@ jobs:
                 );
                 return;
               }
-              const commit = await github.rest.git.getCommit({
-                owner: pullRequest.head.repo.owner.login,
-                repo: pullRequest.head.repo.name,
-                commit_sha: pullRequest.head.sha,
-              });
-              metadata.headTreeSha = commit.data.tree.sha;
+              const commits = await github.paginate(
+                github.rest.pulls.listCommits,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pullRequest.number,
+                  per_page: 100,
+                },
+              );
+              metadata.headTreeSha = findHeadTreeSha(
+                commits,
+                pullRequest.head.sha,
+              );
+              if (!metadata.headTreeSha) {
+                core.setFailed(
+                  "The live PR head tree is unavailable from the base-scoped pull-request commits API.",
+                );
+                return;
+              }
             }
 
             const result = validatePullRequest(metadata);

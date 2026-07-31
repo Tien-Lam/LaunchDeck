@@ -169,11 +169,13 @@ accepts only a genuinely top-level rendered H2 followed by top-level rendered
 list fields. It does not attempt to reinterpret raw Markdown, so headings or
 fields hidden in code, comments, collapsed HTML, blockquotes, or nested lists
 cannot satisfy the check. The workflow also resolves the live head commit's tree
-through the GitHub API. The recorded commit and tree must match that live head
-exactly. A push triggers the policy again and invalidates stale evidence, so any
-content change requires the implementing session to rerun verification and
-automatically start a new clean-context review. Draft pull requests enforce the
-TIE title but defer review-evidence enforcement until `ready_for_review`.
+through the base repository's pull-request commits API, which keeps fork checks
+within the read-only base-repository token boundary. The recorded commit and tree
+must match that live head exactly. A push triggers the policy again and
+invalidates stale evidence, so any content change requires the implementing
+session to rerun verification and automatically start a new clean-context
+review. Draft pull requests enforce the TIE title but defer review-evidence
+enforcement until `ready_for_review`.
 
 The only automatic exception is a pull request authored by
 `dependabot[bot]`, from a `dependabot/` branch in this repository. Forks,

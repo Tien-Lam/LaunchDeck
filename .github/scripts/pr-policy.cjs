@@ -24,6 +24,11 @@ function findTieReferences(title) {
   return match ? [match[1]] : [];
 }
 
+function findHeadTreeSha(commits, headSha) {
+  const headCommit = commits.find((commit) => commit.sha === headSha);
+  return headCommit?.commit?.tree?.sha ?? null;
+}
+
 const VOID_HTML_TAGS = new Set([
   "area",
   "base",
@@ -298,6 +303,7 @@ module.exports = {
   decodeHtmlText,
   extractReviewEvidence,
   findMatchingClose,
+  findHeadTreeSha,
   findTieReferences,
   isDependabotException,
   tokenizeRenderedHtml,

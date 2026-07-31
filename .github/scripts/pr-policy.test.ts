@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 const {
   decodeHtmlText,
   extractReviewEvidence,
+  findHeadTreeSha,
   findTieReferences,
   isDependabotException,
   tokenizeRenderedHtml,
@@ -102,6 +103,25 @@ describe("Dependabot exception", () => {
         ...override,
       }),
     ).toBe(false);
+  });
+});
+
+describe("pull request commit evidence", () => {
+  test("selects the live head tree from base-scoped pull commits", () => {
+    expect(
+      findHeadTreeSha(
+        [
+          { sha: "older", commit: { tree: { sha: "old-tree" } } },
+          { sha: headSha, commit: { tree: { sha: headTreeSha } } },
+        ],
+        headSha,
+      ),
+    ).toBe(headTreeSha);
+  });
+
+  test("fails closed when the head or tree is unavailable", () => {
+    expect(findHeadTreeSha([], headSha)).toBeNull();
+    expect(findHeadTreeSha([{ sha: headSha, commit: {} }], headSha)).toBeNull();
   });
 });
 
