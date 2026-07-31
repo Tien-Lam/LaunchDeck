@@ -144,10 +144,12 @@ Every pull request must:
 - link any deferred manual validation issue;
 - update living documentation when behavior or contracts change.
 
-The required `pr-policy` check validates the identifier without calling Linear
-or using Linear credentials. It runs from the trusted base revision on
-`pull_request_target` and never checks out or executes fork code. A placeholder
-such as `TIE-` and lowercase variants do not pass.
+The required `pr-policy` check accepts the identifier only in the visible pull
+request title or the template's explicit `- Issue:` field. Tokens elsewhere in
+the body, Markdown reference definitions, HTML comments, placeholders such as
+`TIE-`, and lowercase variants do not pass. The check does not call Linear or
+use Linear credentials. It runs from the trusted base revision on
+`pull_request_target` and never checks out or executes fork code.
 
 The only automatic exception is a pull request authored by
 `dependabot[bot]`, from a `dependabot/` branch in this repository. Forks,

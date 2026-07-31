@@ -3,7 +3,7 @@
 const TIE_REFERENCE_PATTERN = /\bTIE-[1-9]\d*\b/g;
 
 function stripHtmlComments(value) {
-  return value.replace(/<!--[\s\S]*?-->/g, "");
+  return value.replace(/<!--[\s\S]*?(?:-->|$)/g, "");
 }
 
 function isDependabotException(metadata) {
@@ -15,8 +15,13 @@ function isDependabotException(metadata) {
 }
 
 function findTieReferences(title, body) {
-  const visibleMetadata = `${title}\n${stripHtmlComments(body)}`;
-  return [...new Set(visibleMetadata.match(TIE_REFERENCE_PATTERN) ?? [])];
+  const titleReferences = title.match(TIE_REFERENCE_PATTERN) ?? [];
+  const visibleBody = stripHtmlComments(body);
+  const issueFieldReferences = [
+    ...visibleBody.matchAll(/^\s*-\s+Issue:\s*(.*)$/gm),
+  ].flatMap((match) => match[1].match(TIE_REFERENCE_PATTERN) ?? []);
+
+  return [...new Set([...titleReferences, ...issueFieldReferences])];
 }
 
 function validatePullRequest(metadata) {
@@ -34,7 +39,8 @@ function validatePullRequest(metadata) {
   if (tieReferences.length === 0) {
     errors.push(
       "Add a Linear issue reference such as TIE-253 to the pull request " +
-        "title or body. The placeholder `TIE-` is not sufficient.",
+        "title or the template's `- Issue:` field. The placeholder `TIE-` " +
+        "and references elsewhere in the body are not sufficient.",
     );
   }
 

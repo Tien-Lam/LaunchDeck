@@ -19,7 +19,10 @@ const baseMetadata = {
 describe("findTieReferences", () => {
   test("finds unique uppercase Linear references", () => {
     expect(
-      findTieReferences("TIE-253: Validate metadata", "Related to TIE-253 and TIE-249"),
+      findTieReferences(
+        "TIE-253: Validate metadata",
+        "- Issue: TIE-253, TIE-249",
+      ),
     ).toEqual(["TIE-253", "TIE-249"]);
   });
 
@@ -32,6 +35,24 @@ describe("findTieReferences", () => {
       findTieReferences("Improve layout", "<!-- Example: TIE-253 -->\nIssue: TIE-"),
     ).toEqual([]);
   });
+
+  test("ignores Markdown reference definitions outside the Issue field", () => {
+    expect(
+      findTieReferences("Improve layout", "[TIE-253]: https://linear.app/example"),
+    ).toEqual([]);
+  });
+
+  test("ignores an Issue field inside an unterminated HTML comment", () => {
+    expect(
+      findTieReferences("Improve layout", "<!-- hidden\n- Issue: TIE-253"),
+    ).toEqual([]);
+  });
+
+  test("ignores visible references outside the configured Issue field", () => {
+    expect(
+      findTieReferences("Improve layout", "Related work: TIE-253"),
+    ).toEqual([]);
+  });
 });
 
 describe("stripHtmlComments", () => {
@@ -39,6 +60,10 @@ describe("stripHtmlComments", () => {
     expect(
       stripHtmlComments("before<!-- hidden\nTIE-253 -->after"),
     ).toBe("beforeafter");
+  });
+
+  test("removes an unterminated comment through end of input", () => {
+    expect(stripHtmlComments("before<!-- hidden TIE-253")).toBe("before");
   });
 });
 
@@ -99,7 +124,7 @@ describe("validatePullRequest", () => {
 
     expect(result.errors).toHaveLength(1);
     expect(result.errors[0]).toContain("TIE-253");
-    expect(result.errors[0]).toContain("title or body");
+    expect(result.errors[0]).toContain("`- Issue:` field");
   });
 
   test("rejects the untouched repository pull request template", async () => {
