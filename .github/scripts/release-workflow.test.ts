@@ -1,6 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 
+const branchProtection = JSON.parse(
+  readFileSync(
+    new URL("../main-branch-protection.json", import.meta.url),
+    "utf8",
+  ),
+) as Record<string, any>;
+
 const loadWorkflow = (name: string) =>
   Bun.YAML.parse(
     readFileSync(new URL(`../workflows/${name}`, import.meta.url), "utf8"),
@@ -16,6 +23,11 @@ const isSemanticVersion = (value: string) =>
   value.match(semanticVersion)?.[0] === value;
 
 describe("release workflow trust boundary", () => {
+  test("keeps fork syncing consistent with an unlocked main branch", () => {
+    expect(branchProtection.lock_branch).toBe(false);
+    expect(branchProtection.allow_fork_syncing).toBe(false);
+  });
+
   test("accepts only exact lowercase-v ASCII semantic versions", () => {
     const valid = [
       "v0.0.0",
