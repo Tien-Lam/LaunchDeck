@@ -17,10 +17,12 @@ function parseTrxCounters(xml) {
   return {
     failed: counters.failed ?? 0,
     passed: counters.passed ?? 0,
-    skipped:
-      (counters.notExecuted ?? 0) +
-      (counters.notRunnable ?? 0) +
-      (counters.disconnected ?? 0),
+    skipped: Math.max(
+      0,
+      (counters.total ?? 0) -
+        (counters.passed ?? 0) -
+        (counters.failed ?? 0),
+    ),
     total: counters.total ?? 0,
   };
 }
@@ -80,6 +82,24 @@ function buildSummary({ counters, retentionDays, steps }) {
   return lines.join("\n");
 }
 
+function ensureStepLogs(evidenceDirectory, steps) {
+  for (const step of steps) {
+    const logPath = path.join(evidenceDirectory, step.log);
+    if (!fs.existsSync(logPath)) {
+      fs.writeFileSync(
+        logPath,
+        [
+          `Command: ${step.command}`,
+          `Outcome: ${step.outcome}`,
+          "The command did not produce a log. It was skipped or setup failed before execution.",
+          "",
+        ].join("\n"),
+        "utf8",
+      );
+    }
+  }
+}
+
 function main() {
   const evidenceDirectory =
     process.env.CI_EVIDENCE_DIRECTORY ?? "artifacts/ci-evidence";
@@ -131,6 +151,7 @@ function main() {
   });
 
   fs.mkdirSync(evidenceDirectory, { recursive: true });
+  ensureStepLogs(evidenceDirectory, steps);
   fs.writeFileSync(
     path.join(evidenceDirectory, "ci-summary.md"),
     summary,
@@ -147,6 +168,7 @@ if (require.main === module) {
 
 module.exports = {
   buildSummary,
+  ensureStepLogs,
   findFile,
   parseTrxCounters,
 };
