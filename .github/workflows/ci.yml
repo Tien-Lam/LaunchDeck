@@ -86,6 +86,7 @@ jobs:
 
       - name: Publish readable CI summary
         if: always()
+        shell: pwsh
         env:
           CI_EVIDENCE_DIRECTORY: artifacts/ci-evidence
           POLICY_OUTCOME: ${{ steps.policy.outcome }}
@@ -93,7 +94,83 @@ jobs:
           COMPANION_OUTCOME: ${{ steps.companion_build.outcome }}
           TESTS_BUILD_OUTCOME: ${{ steps.tests_build.outcome }}
           XUNIT_OUTCOME: ${{ steps.xunit.outcome }}
-        run: bun .github/scripts/write-ci-summary.cjs
+        run: |
+          $summaryPath = Join-Path $env:CI_EVIDENCE_DIRECTORY "ci-summary.md"
+          $bunCommand = Get-Command bun -ErrorAction SilentlyContinue
+
+          if ($null -ne $bunCommand) {
+            & $bunCommand.Source .github/scripts/write-ci-summary.cjs
+            if ($LASTEXITCODE -ne 0) {
+              Write-Warning "Bun summary generation failed; using the PowerShell fallback."
+            }
+          }
+
+          if (Test-Path $summaryPath) {
+            exit 0
+          }
+
+          New-Item -ItemType Directory -Force -Path $env:CI_EVIDENCE_DIRECTORY | Out-Null
+          $steps = @(
+            [pscustomobject]@{
+              Name = "Workflow script tests"
+              Outcome = $env:POLICY_OUTCOME
+              Command = "bun test ./.github/scripts/pr-policy.test.ts ./.github/scripts/write-ci-summary.test.ts"
+              Log = "workflow-script-tests.log"
+            }
+            [pscustomobject]@{
+              Name = "Shared build"
+              Outcome = $env:SHARED_OUTCOME
+              Command = "dotnet build LaunchDeck.Shared/LaunchDeck.Shared.csproj --configuration Release -warnaserror"
+              Log = "shared-build.log"
+            }
+            [pscustomobject]@{
+              Name = "Companion build"
+              Outcome = $env:COMPANION_OUTCOME
+              Command = "dotnet build LaunchDeck.Companion/LaunchDeck.Companion.csproj --configuration Release -warnaserror"
+              Log = "companion-build.log"
+            }
+            [pscustomobject]@{
+              Name = "Tests build"
+              Outcome = $env:TESTS_BUILD_OUTCOME
+              Command = "dotnet build LaunchDeck.Tests/LaunchDeck.Tests.csproj --configuration Release -warnaserror"
+              Log = "tests-build.log"
+            }
+            [pscustomobject]@{
+              Name = "xUnit"
+              Outcome = $env:XUNIT_OUTCOME
+              Command = 'dotnet test LaunchDeck.Tests/LaunchDeck.Tests.csproj --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=launchdeck-tests.trx" --results-directory artifacts/ci-evidence/test-results'
+              Log = "xunit-test.log"
+            }
+          )
+
+          $lines = @(
+            "# LaunchDeck CI evidence"
+            ""
+            "| Step | Outcome | Exact command | Captured log |"
+            "|---|---|---|---|"
+          )
+          foreach ($step in $steps) {
+            $logPath = Join-Path $env:CI_EVIDENCE_DIRECTORY $step.Log
+            if (-not (Test-Path $logPath)) {
+              @(
+                "Command: $($step.Command)"
+                "Outcome: $($step.Outcome)"
+                "The command did not produce a log. It was skipped or setup failed before execution."
+              ) | Set-Content -Path $logPath -Encoding utf8
+            }
+            $lines += "| $($step.Name) | $($step.Outcome) | $($step.Command) | $($step.Log) |"
+          }
+          $lines += @(
+            ""
+            "## xUnit results"
+            ""
+            "No TRX counters were produced. Inspect the named build/test outcome and captured log above."
+            ""
+            "The complete launchdeck-ci-evidence-<run-attempt> artifact is retained for 14 days on success and failure."
+            ""
+          )
+          $lines | Set-Content -Path $summaryPath -Encoding utf8
+          $lines | Add-Content -Path $env:GITHUB_STEP_SUMMARY -Encoding utf8
 
       - name: Upload CI evidence
         if: always()

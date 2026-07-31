@@ -118,9 +118,11 @@ Risks / follow-ups:
 
 The pull-request `build-and-test` check writes a readable job summary naming
 each exact command and outcome, plus xUnit totals when a TRX result exists. It
-always uploads `launchdeck-ci-evidence-<run-attempt>` after setup, on success or
-failure. The artifact contains `ci-summary.md`, one log per named build/test
-command, and the TRX result when tests ran; GitHub retains it for 14 days.
+always uploads `launchdeck-ci-evidence-<run-attempt>`, including when setup or a
+command fails. A PowerShell fallback produces the same outcome table and
+placeholder logs if Bun is unavailable. The artifact contains `ci-summary.md`,
+one log per named build/test command, and the TRX result when tests ran; GitHub
+retains it for 14 days.
 
 Link CI evidence in Linear with the pull request and workflow-run URL, the
 `build-and-test` conclusion, the summary's build/xUnit outcomes, and the exact

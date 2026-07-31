@@ -21,7 +21,7 @@ describe("parseTrxCounters", () => {
   test("extracts readable xUnit totals", () => {
     expect(
       parseTrxCounters(
-        '<ResultSummary><Counters total="91" executed="91" passed="88" failed="2" notExecuted="0" notRunnable="0" disconnected="0" /></ResultSummary>',
+        '<ResultSummary><Counters total="91" executed="90" passed="88" failed="2" notExecuted="0" notRunnable="0" disconnected="0" /></ResultSummary>',
       ),
     ).toEqual({
       failed: 2,
