@@ -22,6 +22,13 @@ To run a specific test class:
 dotnet test LaunchDeck.Tests/ --filter "FullyQualifiedName~LaunchHandlerTests"
 ```
 
+Pull-request CI runs the policy tests, warning-as-error builds for Shared,
+Companion, and Tests, then xUnit with a TRX logger. The `build-and-test` job
+summary reports every command outcome and test totals. Its
+`launchdeck-ci-evidence-<run-attempt>` artifact retains the summary,
+per-command logs, and TRX results for 14 days on both successful and failed
+jobs.
+
 Platform note: the csproj supports `x64`, `x86`, and `ARM64`, but the test project
 references the WPF Companion and requires `Microsoft.WindowsDesktop.App`.
 Execute the tests on Windows. macOS can cross-compile the test assembly with

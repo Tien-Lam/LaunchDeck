@@ -8,6 +8,7 @@ on:
 
 jobs:
   build-and-test:
+    name: build-and-test
     runs-on: windows-latest
 
     steps:
@@ -18,19 +19,110 @@ jobs:
         with:
           bun-version: 1.3.14
 
-      - name: Test PR policy
-        run: bun test ./.github/scripts/pr-policy.test.ts
+      - name: Test workflow scripts
+        id: policy
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts/ci-evidence | Out-Null
+          bun test ./.github/scripts/pr-policy.test.ts ./.github/scripts/write-ci-summary.test.ts 2>&1 |
+            Tee-Object -FilePath artifacts/ci-evidence/workflow-script-tests.log
+          exit $LASTEXITCODE
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
 
-      - name: Build
+      - name: Build Shared (warnings as errors)
+        id: shared_build
+        continue-on-error: true
+        shell: pwsh
         run: |
-          dotnet build LaunchDeck.Shared/LaunchDeck.Shared.csproj --configuration Release -warnaserror
-          dotnet build LaunchDeck.Companion/LaunchDeck.Companion.csproj --configuration Release -warnaserror
-          dotnet build LaunchDeck.Tests/LaunchDeck.Tests.csproj --configuration Release -warnaserror
+          "Command: dotnet build LaunchDeck.Shared/LaunchDeck.Shared.csproj --configuration Release -warnaserror" |
+            Tee-Object -FilePath artifacts/ci-evidence/shared-build.log
+          dotnet build LaunchDeck.Shared/LaunchDeck.Shared.csproj --configuration Release -warnaserror 2>&1 |
+            Tee-Object -FilePath artifacts/ci-evidence/shared-build.log -Append
+          exit $LASTEXITCODE
 
-      - name: Test
-        run: dotnet test LaunchDeck.Tests/ --configuration Release --no-build --verbosity normal
+      - name: Build Companion (warnings as errors)
+        id: companion_build
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          "Command: dotnet build LaunchDeck.Companion/LaunchDeck.Companion.csproj --configuration Release -warnaserror" |
+            Tee-Object -FilePath artifacts/ci-evidence/companion-build.log
+          dotnet build LaunchDeck.Companion/LaunchDeck.Companion.csproj --configuration Release -warnaserror 2>&1 |
+            Tee-Object -FilePath artifacts/ci-evidence/companion-build.log -Append
+          exit $LASTEXITCODE
+
+      - name: Build Tests (warnings as errors)
+        id: tests_build
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          "Command: dotnet build LaunchDeck.Tests/LaunchDeck.Tests.csproj --configuration Release -warnaserror" |
+            Tee-Object -FilePath artifacts/ci-evidence/tests-build.log
+          dotnet build LaunchDeck.Tests/LaunchDeck.Tests.csproj --configuration Release -warnaserror 2>&1 |
+            Tee-Object -FilePath artifacts/ci-evidence/tests-build.log -Append
+          exit $LASTEXITCODE
+
+      - name: Run xUnit with TRX evidence
+        id: xunit
+        if: >-
+          always() &&
+          steps.shared_build.outcome == 'success' &&
+          steps.companion_build.outcome == 'success' &&
+          steps.tests_build.outcome == 'success'
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts/ci-evidence/test-results | Out-Null
+          "Command: dotnet test LaunchDeck.Tests/LaunchDeck.Tests.csproj --configuration Release --no-build --verbosity normal --logger `"trx;LogFileName=launchdeck-tests.trx`" --results-directory artifacts/ci-evidence/test-results" |
+            Tee-Object -FilePath artifacts/ci-evidence/xunit-test.log
+          dotnet test LaunchDeck.Tests/LaunchDeck.Tests.csproj --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=launchdeck-tests.trx" --results-directory artifacts/ci-evidence/test-results 2>&1 |
+            Tee-Object -FilePath artifacts/ci-evidence/xunit-test.log -Append
+          exit $LASTEXITCODE
+
+      - name: Publish readable CI summary
+        if: always()
+        env:
+          CI_EVIDENCE_DIRECTORY: artifacts/ci-evidence
+          POLICY_OUTCOME: ${{ steps.policy.outcome }}
+          SHARED_OUTCOME: ${{ steps.shared_build.outcome }}
+          COMPANION_OUTCOME: ${{ steps.companion_build.outcome }}
+          TESTS_BUILD_OUTCOME: ${{ steps.tests_build.outcome }}
+          XUNIT_OUTCOME: ${{ steps.xunit.outcome }}
+        run: bun .github/scripts/write-ci-summary.cjs
+
+      - name: Upload CI evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: launchdeck-ci-evidence-${{ github.run_attempt }}
+          path: artifacts/ci-evidence
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Enforce CI result
+        if: always()
+        shell: pwsh
+        env:
+          POLICY_OUTCOME: ${{ steps.policy.outcome }}
+          SHARED_OUTCOME: ${{ steps.shared_build.outcome }}
+          COMPANION_OUTCOME: ${{ steps.companion_build.outcome }}
+          TESTS_BUILD_OUTCOME: ${{ steps.tests_build.outcome }}
+          XUNIT_OUTCOME: ${{ steps.xunit.outcome }}
+        run: |
+          $failed = @(
+            "Workflow script tests=$env:POLICY_OUTCOME"
+            "Shared build=$env:SHARED_OUTCOME"
+            "Companion build=$env:COMPANION_OUTCOME"
+            "Tests build=$env:TESTS_BUILD_OUTCOME"
+            "xUnit=$env:XUNIT_OUTCOME"
+          ) | Where-Object { $_ -notmatch '=success$' }
+
+          if ($failed.Count -gt 0) {
+            Write-Error ("CI failed: " + ($failed -join "; "))
+            exit 1
+          }
