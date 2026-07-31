@@ -1,6 +1,8 @@
+<!-- Required PR title format: TIE-<number> concise summary -->
+
 ## Linear
 
-- Issue: TIE- <!-- Required: replace with a complete TIE-<number> identifier. -->
+- Issue: TIE- <!-- Link the same issue named in the PR title. -->
 - Project / milestone:
 - Parent gate:
 

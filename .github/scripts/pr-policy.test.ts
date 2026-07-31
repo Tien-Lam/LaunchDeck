@@ -3,7 +3,6 @@ import { describe, expect, test } from "bun:test";
 const {
   findTieReferences,
   isDependabotException,
-  stripHtmlComments,
   validatePullRequest,
 } = require("./pr-policy.cjs");
 
@@ -17,53 +16,19 @@ const baseMetadata = {
 };
 
 describe("findTieReferences", () => {
-  test("finds unique uppercase Linear references", () => {
-    expect(
-      findTieReferences(
-        "TIE-253: Validate metadata",
-        "- Issue: TIE-253, TIE-249",
-      ),
-    ).toEqual(["TIE-253", "TIE-249"]);
+  test("finds an uppercase Linear reference at the start of the title", () => {
+    expect(findTieReferences("TIE-253: Validate metadata")).toEqual(["TIE-253"]);
   });
 
-  test("rejects placeholders, zero, and lowercase variants", () => {
-    expect(findTieReferences("TIE- and TIE-0", "tie-253")).toEqual([]);
-  });
-
-  test("ignores complete identifiers inside HTML comments", () => {
-    expect(
-      findTieReferences("Improve layout", "<!-- Example: TIE-253 -->\nIssue: TIE-"),
-    ).toEqual([]);
-  });
-
-  test("ignores Markdown reference definitions outside the Issue field", () => {
-    expect(
-      findTieReferences("Improve layout", "[TIE-253]: https://linear.app/example"),
-    ).toEqual([]);
-  });
-
-  test("ignores an Issue field inside an unterminated HTML comment", () => {
-    expect(
-      findTieReferences("Improve layout", "<!-- hidden\n- Issue: TIE-253"),
-    ).toEqual([]);
-  });
-
-  test("ignores visible references outside the configured Issue field", () => {
-    expect(
-      findTieReferences("Improve layout", "Related work: TIE-253"),
-    ).toEqual([]);
-  });
-});
-
-describe("stripHtmlComments", () => {
-  test("removes multiline comments without removing visible content", () => {
-    expect(
-      stripHtmlComments("before<!-- hidden\nTIE-253 -->after"),
-    ).toBe("beforeafter");
-  });
-
-  test("removes an unterminated comment through end of input", () => {
-    expect(stripHtmlComments("before<!-- hidden TIE-253")).toBe("before");
+  test.each([
+    ["placeholder", "TIE- Improve layout"],
+    ["zero", "TIE-0 Improve layout"],
+    ["lowercase", "tie-253 Improve layout"],
+    ["not first", "Improve layout TIE-253"],
+    ["bidi prefix", "\u202eTIE-253 Improve layout"],
+    ["bidi identifier", "TIE-\u202e253 Improve layout"],
+  ])("rejects %s", (_name, title) => {
+    expect(findTieReferences(title)).toEqual([]);
   });
 });
 
@@ -110,13 +75,23 @@ describe("validatePullRequest", () => {
     });
   });
 
-  test("accepts an issue in the body", () => {
-    expect(
-      validatePullRequest({
-        ...baseMetadata,
-        body: "- Issue: TIE-253",
-      }).errors,
-    ).toEqual([]);
+  test("rejects body-only references", () => {
+    const bodyVariants = [
+      "- Issue: TIE-253",
+      "[](TIE-253)",
+      "[TIE-253]: https://linear.app/example",
+      "<details>\nTIE-253\n</details>",
+      "```\nTIE-253\n```",
+    ];
+
+    for (const body of bodyVariants) {
+      expect(
+        validatePullRequest({
+          ...baseMetadata,
+          body,
+        }).errors,
+      ).toHaveLength(1);
+    }
   });
 
   test("returns actionable guidance when the reference is missing", () => {
@@ -124,7 +99,7 @@ describe("validatePullRequest", () => {
 
     expect(result.errors).toHaveLength(1);
     expect(result.errors[0]).toContain("TIE-253");
-    expect(result.errors[0]).toContain("`- Issue:` field");
+    expect(result.errors[0]).toContain("Start the pull request title");
   });
 
   test("rejects the untouched repository pull request template", async () => {

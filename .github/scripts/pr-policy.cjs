@@ -1,10 +1,6 @@
 "use strict";
 
-const TIE_REFERENCE_PATTERN = /\bTIE-[1-9]\d*\b/g;
-
-function stripHtmlComments(value) {
-  return value.replace(/<!--[\s\S]*?(?:-->|$)/g, "");
-}
+const TIE_TITLE_PATTERN = /^(TIE-[1-9]\d*)\b/;
 
 function isDependabotException(metadata) {
   return (
@@ -14,14 +10,9 @@ function isDependabotException(metadata) {
   );
 }
 
-function findTieReferences(title, body) {
-  const titleReferences = title.match(TIE_REFERENCE_PATTERN) ?? [];
-  const visibleBody = stripHtmlComments(body);
-  const issueFieldReferences = [
-    ...visibleBody.matchAll(/^\s*-\s+Issue:\s*(.*)$/gm),
-  ].flatMap((match) => match[1].match(TIE_REFERENCE_PATTERN) ?? []);
-
-  return [...new Set([...titleReferences, ...issueFieldReferences])];
+function findTieReferences(title) {
+  const match = title.match(TIE_TITLE_PATTERN);
+  return match ? [match[1]] : [];
 }
 
 function validatePullRequest(metadata) {
@@ -33,14 +24,14 @@ function validatePullRequest(metadata) {
     };
   }
 
-  const tieReferences = findTieReferences(metadata.title, metadata.body);
+  const tieReferences = findTieReferences(metadata.title);
   const errors = [];
 
   if (tieReferences.length === 0) {
     errors.push(
-      "Add a Linear issue reference such as TIE-253 to the pull request " +
-        "title or the template's `- Issue:` field. The placeholder `TIE-` " +
-        "and references elsewhere in the body are not sufficient.",
+      "Start the pull request title with a Linear issue reference, for " +
+        "example `TIE-253 Require Linear metadata`. Body-only references, " +
+        "lowercase variants, and the placeholder `TIE-` are not sufficient.",
     );
   }
 
@@ -54,6 +45,5 @@ function validatePullRequest(metadata) {
 module.exports = {
   findTieReferences,
   isDependabotException,
-  stripHtmlComments,
   validatePullRequest,
 };
