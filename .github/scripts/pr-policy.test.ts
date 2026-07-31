@@ -4,7 +4,9 @@ const {
   extractReviewEvidence,
   findTieReferences,
   isDependabotException,
+  scanMarkdownContext,
   stripHtmlComments,
+  updateContainerDepth,
   updateFenceState,
   unwrapCodeSpan,
   validatePullRequest,
@@ -152,6 +154,23 @@ describe("review evidence parsing", () => {
     expect(extractReviewEvidence(body).errors.length).toBeGreaterThan(0);
   });
 
+  test("rejects evidence left inside nested collapsed details", () => {
+    const body = `<details><details></details>\n${validReviewBody}\n</details>`;
+    expect(extractReviewEvidence(body).errors).toContain(
+      "The `## Independent review` section must not be inside a code fence or collapsed details block.",
+    );
+  });
+
+  test("ignores details-looking text inside a fenced example", () => {
+    const body = `\`\`\`html\n<details>\n\`\`\`\n\n${validReviewBody}`;
+    expect(extractReviewEvidence(body).errors).toEqual([]);
+  });
+
+  test("ignores a fenced review heading when one visible section exists", () => {
+    const body = `\`\`\`text\n## Independent review\n\`\`\`\n\n${validReviewBody}`;
+    expect(extractReviewEvidence(body).errors).toEqual([]);
+  });
+
   test.each([
     [
       "different marker",
@@ -173,6 +192,25 @@ describe("review evidence parsing", () => {
     expect(updateFenceState(opening, "```")).toEqual(opening);
     expect(updateFenceState(opening, "~~")).toEqual(opening);
     expect(updateFenceState(opening, "~~~~")).toBeNull();
+  });
+
+  test("tracks ordered collapsed-container tags only outside code", () => {
+    expect(updateContainerDepth(0, "<details><details></details>")).toBe(1);
+    expect(updateContainerDepth(1, "</details>")).toBe(0);
+    expect(updateContainerDepth(0, "`<details>`")).toBe(0);
+
+    const contexts = scanMarkdownContext([
+      "```html",
+      "<details>",
+      "```",
+      "## Independent review",
+    ]);
+    expect(contexts.map((context) => context.topLevel)).toEqual([
+      true,
+      false,
+      false,
+      true,
+    ]);
   });
 
   test("unwraps either a plain value or one code span", () => {

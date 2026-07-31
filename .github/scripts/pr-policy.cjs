@@ -70,68 +70,85 @@ function updateFenceState(fence, line) {
   };
 }
 
+function updateContainerDepth(depth, line) {
+  if (!/^ {0,3}<\/?(?:details|template)(?:\s|>)/i.test(line)) {
+    return depth;
+  }
+
+  const tags = line.matchAll(/<\/?(details|template)(?:\s[^>]*)?>/gi);
+  let nextDepth = depth;
+
+  for (const tag of tags) {
+    if (tag[0].startsWith("</")) {
+      nextDepth = Math.max(0, nextDepth - 1);
+    } else if (!tag[0].endsWith("/>")) {
+      nextDepth += 1;
+    }
+  }
+
+  return nextDepth;
+}
+
+function scanMarkdownContext(lines) {
+  const contexts = [];
+  let containerDepth = 0;
+  let fence = null;
+
+  for (const line of lines) {
+    const wasInFence = Boolean(fence);
+    contexts.push({
+      topLevel: !wasInFence && containerDepth === 0,
+    });
+
+    fence = updateFenceState(fence, line);
+    if (!wasInFence && !fence) {
+      containerDepth = updateContainerDepth(containerDepth, line);
+    }
+  }
+
+  return contexts;
+}
+
 function extractReviewEvidence(body) {
   const visibleBody = stripHtmlComments(body);
   const lines = visibleBody.split(/\r?\n/);
-  const sectionIndexes = lines
+  const contexts = scanMarkdownContext(lines);
+  const allSectionIndexes = lines
     .map((line, index) => (line === "## Independent review" ? index : -1))
+    .filter((index) => index >= 0);
+  const sectionIndexes = lines
+    .map((line, index) =>
+      contexts[index].topLevel && line === "## Independent review" ? index : -1,
+    )
     .filter((index) => index >= 0);
   const errors = [];
 
   if (sectionIndexes.length !== 1) {
     errors.push(
-      "The PR body must contain exactly one top-level `## Independent review` section.",
+      sectionIndexes.length === 0 && allSectionIndexes.length > 0
+        ? "The `## Independent review` section must not be inside a code fence or collapsed details block."
+        : "The PR body must contain exactly one top-level `## Independent review` section.",
     );
     return { errors, fields: {} };
   }
 
   const sectionStart = sectionIndexes[0];
-  let fence = null;
-  let detailsDepth = 0;
-
-  for (let index = 0; index <= sectionStart; index += 1) {
-    const line = lines[index];
-    fence = updateFenceState(fence, line);
-    if (/<details(?:\s|>)/i.test(line)) {
-      detailsDepth += 1;
-    }
-    if (/<\/details>/i.test(line)) {
-      detailsDepth = Math.max(0, detailsDepth - 1);
-    }
-  }
-
-  if (fence || detailsDepth > 0) {
-    errors.push(
-      "The `## Independent review` section must not be inside a code fence or collapsed details block.",
-    );
-    return { errors, fields: {} };
-  }
-
-  const sectionEndOffset = lines
-    .slice(sectionStart + 1)
-    .findIndex((line) => /^## /.test(line));
-  const sectionEnd =
-    sectionEndOffset < 0
-      ? lines.length
-      : sectionStart + 1 + sectionEndOffset;
-  const sectionLines = lines.slice(sectionStart + 1, sectionEnd);
+  const nextSectionIndex = lines.findIndex(
+    (line, index) =>
+      index > sectionStart && contexts[index].topLevel && /^## /.test(line),
+  );
+  const sectionEnd = nextSectionIndex < 0 ? lines.length : nextSectionIndex;
   const fields = {};
-
-  if (
-    sectionLines.some(
-      (line) =>
-        /^\s*(```|~~~)/.test(line) ||
-        /<\/?(?:details|template)(?:\s|>)/i.test(line),
-    )
-  ) {
-    errors.push(
-      "The independent-review evidence fields must not be inside code, details, or template blocks.",
-    );
-  }
 
   for (const fieldName of REVIEW_FIELD_NAMES) {
     const prefix = `- ${fieldName}:`;
-    const matches = sectionLines.filter((line) => line.startsWith(prefix));
+    const matches = lines.filter(
+      (line, index) =>
+        index > sectionStart &&
+        index < sectionEnd &&
+        contexts[index].topLevel &&
+        line.startsWith(prefix),
+    );
 
     if (matches.length !== 1) {
       errors.push(
@@ -220,7 +237,9 @@ module.exports = {
   extractReviewEvidence,
   findTieReferences,
   isDependabotException,
+  scanMarkdownContext,
   stripHtmlComments,
+  updateContainerDepth,
   updateFenceState,
   unwrapCodeSpan,
   validatePullRequest,
