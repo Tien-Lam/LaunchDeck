@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 const {
   extractReviewEvidence,
   findTieReferences,
+  isSectionBoundary,
   isDependabotException,
   scanMarkdownContext,
   stripHtmlComments,
@@ -161,6 +162,16 @@ describe("review evidence parsing", () => {
     );
   });
 
+  test.each([
+    ["multiline opening tag", "<details\n>"],
+    ["slash-ended non-void tag", "<details />"],
+  ])("rejects evidence inside a %s", (_name, opening) => {
+    const body = `${opening}\n\n${validReviewBody}\n</details>`;
+    expect(extractReviewEvidence(body).errors).toContain(
+      "The `## Independent review` section must not be inside a code fence or collapsed details block.",
+    );
+  });
+
   test("ignores details-looking text inside a fenced example", () => {
     const body = `\`\`\`html\n<details>\n\`\`\`\n\n${validReviewBody}`;
     expect(extractReviewEvidence(body).errors).toEqual([]);
@@ -197,6 +208,8 @@ describe("review evidence parsing", () => {
   test("tracks ordered collapsed-container tags only outside code", () => {
     expect(updateContainerDepth(0, "<details><details></details>")).toBe(1);
     expect(updateContainerDepth(1, "</details>")).toBe(0);
+    expect(updateContainerDepth(0, "<details")).toBe(1);
+    expect(updateContainerDepth(0, "<details />")).toBe(1);
     expect(updateContainerDepth(0, "`<details>`")).toBe(0);
 
     const contexts = scanMarkdownContext([
@@ -220,8 +233,37 @@ describe("review evidence parsing", () => {
   });
 
   test("strips closed and unterminated HTML comments", () => {
-    expect(stripHtmlComments("before<!-- hidden -->after")).toBe("beforeafter");
-    expect(stripHtmlComments("before<!-- hidden")).toBe("before");
+    const closed = "before<!-- hidden -->after";
+    const unterminated = "before<!-- hidden";
+    expect(stripHtmlComments(closed)).toHaveLength(closed.length);
+    expect(stripHtmlComments(closed)).not.toContain("hidden");
+    expect(stripHtmlComments(unterminated)).toHaveLength(unterminated.length);
+    expect(stripHtmlComments(unterminated)).not.toContain("hidden");
+  });
+
+  test("comment redaction cannot turn a non-closing fence into a close", () => {
+    const body = `\`\`\`text\n\`\`\`<!-- not-a-close -->\n${validReviewBody}\n\`\`\``;
+    expect(extractReviewEvidence(body).errors).toContain(
+      "The `## Independent review` section must not be inside a code fence or collapsed details block.",
+    );
+  });
+
+  test.each(["# Other", "##\tOther", "Other\n==="])(
+    "ends evidence at the next top-level heading form %s",
+    (heading) => {
+      const body = `## Independent review\n\n${heading}\n${validReviewBody
+        .split("\n")
+        .filter((line) => line.startsWith("- Review"))
+        .join("\n")}`;
+      expect(extractReviewEvidence(body).errors.length).toBeGreaterThan(0);
+    },
+  );
+
+  test("recognizes H1, H2, and setext section boundaries", () => {
+    expect(isSectionBoundary("# Other")).toBe(true);
+    expect(isSectionBoundary("##\tOther")).toBe(true);
+    expect(isSectionBoundary("===")).toBe(true);
+    expect(isSectionBoundary("### Subsection")).toBe(false);
   });
 });
 

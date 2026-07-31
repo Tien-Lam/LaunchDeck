@@ -25,7 +25,9 @@ function findTieReferences(title) {
 }
 
 function stripHtmlComments(value) {
-  return value.replace(/<!--[\s\S]*?(?:-->|$)/g, "");
+  return value.replace(/<!--[\s\S]*?(?:-->|$)/g, (comment) =>
+    comment.replace(/[^\r\n]/g, "x"),
+  );
 }
 
 function unwrapCodeSpan(value) {
@@ -71,19 +73,28 @@ function updateFenceState(fence, line) {
 }
 
 function updateContainerDepth(depth, line) {
-  if (!/^ {0,3}<\/?(?:details|template)(?:\s|>)/i.test(line)) {
+  if (!/^ {0,3}<\/?(?:details|template)(?:\s|>|$)/i.test(line)) {
     return depth;
   }
 
   const tags = line.matchAll(/<\/?(details|template)(?:\s[^>]*)?>/gi);
   let nextDepth = depth;
+  let foundCompleteTag = false;
 
   for (const tag of tags) {
+    foundCompleteTag = true;
     if (tag[0].startsWith("</")) {
       nextDepth = Math.max(0, nextDepth - 1);
-    } else if (!tag[0].endsWith("/>")) {
+    } else {
       nextDepth += 1;
     }
+  }
+
+  if (
+    !foundCompleteTag &&
+    /^ {0,3}<(?:details|template)(?:\s|$)/i.test(line)
+  ) {
+    nextDepth += 1;
   }
 
   return nextDepth;
@@ -107,6 +118,13 @@ function scanMarkdownContext(lines) {
   }
 
   return contexts;
+}
+
+function isSectionBoundary(line) {
+  return (
+    /^ {0,3}#{1,2}(?:[ \t]+|$)/.test(line) ||
+    /^ {0,3}(?:=+|-+)[ \t]*$/.test(line)
+  );
 }
 
 function extractReviewEvidence(body) {
@@ -135,7 +153,9 @@ function extractReviewEvidence(body) {
   const sectionStart = sectionIndexes[0];
   const nextSectionIndex = lines.findIndex(
     (line, index) =>
-      index > sectionStart && contexts[index].topLevel && /^## /.test(line),
+      index > sectionStart &&
+      contexts[index].topLevel &&
+      isSectionBoundary(line),
   );
   const sectionEnd = nextSectionIndex < 0 ? lines.length : nextSectionIndex;
   const fields = {};
@@ -236,6 +256,7 @@ function validatePullRequest(metadata) {
 module.exports = {
   extractReviewEvidence,
   findTieReferences,
+  isSectionBoundary,
   isDependabotException,
   scanMarkdownContext,
   stripHtmlComments,
