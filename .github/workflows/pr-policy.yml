@@ -36,11 +36,17 @@ jobs:
             } = require(
               `${process.env.GITHUB_WORKSPACE}/.github/scripts/pr-policy.cjs`,
             );
-            const pullRequest = context.payload.pull_request;
+            const pullRequestResponse = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              mediaType: { format: "full" },
+            });
+            const pullRequest = pullRequestResponse.data;
             const metadata = {
               actor: pullRequest.user.login,
               baseRepoFullName: pullRequest.base.repo.full_name,
-              body: pullRequest.body ?? "",
+              bodyHtml: pullRequest.body_html ?? "",
               headRef: pullRequest.head.ref,
               headRepoFullName: pullRequest.head.repo?.full_name ?? "",
               headSha: pullRequest.head.sha,

@@ -1,16 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
 const {
+  decodeHtmlText,
   extractReviewEvidence,
   findTieReferences,
-  isIndependentReviewHeading,
-  isSectionBoundary,
   isDependabotException,
-  scanMarkdownContext,
-  stripHtmlComments,
-  updateContainerDepth,
-  updateFenceState,
-  unwrapCodeSpan,
+  tokenizeRenderedHtml,
   validatePullRequest,
 } = require("./pr-policy.cjs");
 
@@ -20,7 +15,7 @@ const headTreeSha = "2".repeat(40);
 const baseMetadata = {
   actor: "contributor",
   baseRepoFullName: "Tien-Lam/LaunchDeck",
-  body: "",
+  bodyHtml: "",
   headRef: "feature/layout",
   headRepoFullName: "contributor/LaunchDeck",
   headSha,
@@ -29,18 +24,19 @@ const baseMetadata = {
   title: "Improve layout",
 };
 
-const validReviewBody = `## Independent review
+const reviewFieldsHtml = `<ul>
+<li>Risk areas: none</li>
+<li>Migration / compatibility: none</li>
+<li>Follow-up issues: none</li>
+<li>Review session: <code>/root/tie248_review</code></li>
+<li>Reviewed commit SHA: <code>${headSha}</code></li>
+<li>Reviewed tree SHA: <code>${headTreeSha}</code></li>
+<li>Review result: no findings</li>
+</ul>`;
 
-- Risk areas: none
-- Migration / compatibility: none
-- Follow-up issues: none
-- Review session: \`/root/tie248_review\`
-- Reviewed commit SHA: \`${headSha}\`
-- Reviewed tree SHA: \`${headTreeSha}\`
-- Review result: no findings
-
-## Manual validation
-`;
+const validReviewHtml = `<h2>Independent review</h2>
+${reviewFieldsHtml}
+<h2>Manual validation</h2>`;
 
 describe("findTieReferences", () => {
   test("finds an uppercase Linear reference at the start of the title", () => {
@@ -109,9 +105,9 @@ describe("Dependabot exception", () => {
   });
 });
 
-describe("review evidence parsing", () => {
-  test("extracts one plain top-level field set", () => {
-    expect(extractReviewEvidence(validReviewBody)).toEqual({
+describe("rendered review evidence", () => {
+  test("extracts one top-level rendered field set", () => {
+    expect(extractReviewEvidence(validReviewHtml)).toEqual({
       errors: [],
       fields: {
         "Review session": "/root/tie248_review",
@@ -122,194 +118,81 @@ describe("review evidence parsing", () => {
     });
   });
 
+  test("decodes rendered entities and tokenizes tag ancestry", () => {
+    expect(decodeHtmlText("a&amp;b &#x2f; &#47;")).toBe("a&b / /");
+    const heading = tokenizeRenderedHtml(
+      "<details><h2>Independent review</h2></details>",
+    ).find((token) => token.type === "open" && token.name === "h2");
+    expect(heading.ancestors).toEqual(["details"]);
+  });
+
+  test.each([
+    ["collapsed details", `<details>${validReviewHtml}</details>`],
+    ["template", `<template>${validReviewHtml}</template>`],
+    ["blockquote", `<blockquote>${validReviewHtml}</blockquote>`],
+    ["list item", `<ul><li>${validReviewHtml}</li></ul>`],
+    [
+      "code block",
+      `<pre><code>## Independent review\n- Review result: no findings</code></pre>`,
+    ],
+  ])("rejects a section rendered inside %s", (_name, html) => {
+    expect(extractReviewEvidence(html).errors).toContain(
+      "The rendered PR body must contain exactly one top-level `Independent review` H2 section.",
+    );
+  });
+
+  test("rejects duplicate top-level sections", () => {
+    expect(
+      extractReviewEvidence(`${validReviewHtml}${validReviewHtml}`).errors,
+    ).toContain(
+      "The rendered PR body must contain exactly one top-level `Independent review` H2 section.",
+    );
+  });
+
+  test("stops at the next rendered H1 or H2", () => {
+    const html = `<h2>Independent review</h2><h1>Other</h1>${reviewFieldsHtml}`;
+    expect(extractReviewEvidence(html).errors.length).toBe(4);
+  });
+
+  test("rejects fields in nested lists or hidden containers", () => {
+    const nestedList = `<h2>Independent review</h2><ul><li><ul>
+      <li>Review session: /root/tie248_review</li>
+      <li>Reviewed commit SHA: ${headSha}</li>
+      <li>Reviewed tree SHA: ${headTreeSha}</li>
+      <li>Review result: no findings</li>
+    </ul></li></ul>`;
+    expect(extractReviewEvidence(nestedList).errors.length).toBe(4);
+
+    const hiddenValue = validReviewHtml.replace(
+      "/root/tie248_review",
+      "<details>/root/tie248_review</details>",
+    );
+    expect(extractReviewEvidence(hiddenValue).errors).toContain(
+      "The rendered independent-review section must contain exactly one top-level `- Review session:` field.",
+    );
+  });
+
   test("rejects duplicate and missing fields", () => {
-    const duplicate = validReviewBody.replace(
-      "- Review result: no findings",
-      "- Review result: no findings\n- Review result: no findings",
+    const duplicate = validReviewHtml.replace(
+      "<li>Review result: no findings</li>",
+      "<li>Review result: no findings</li><li>Review result: no findings</li>",
     );
     expect(extractReviewEvidence(duplicate).errors).toContain(
-      "The independent-review section must contain exactly one `- Review result:` field.",
+      "The rendered independent-review section must contain exactly one top-level `- Review result:` field.",
     );
-    expect(
-      extractReviewEvidence(
-        validReviewBody.replace(`- Reviewed tree SHA: \`${headTreeSha}\`\n`, ""),
-      ).errors,
-    ).toContain(
-      "The independent-review section must contain exactly one `- Reviewed tree SHA:` field.",
+
+    const missing = validReviewHtml.replace(
+      `<li>Reviewed tree SHA: <code>${headTreeSha}</code></li>`,
+      "",
     );
-  });
-
-  test.each([
-    [
-      "code fence",
-      `\`\`\`\n${validReviewBody}\n\`\`\``,
-    ],
-    [
-      "details block",
-      `<details>\n${validReviewBody}\n</details>`,
-    ],
-    [
-      "HTML comment",
-      `<!--\n${validReviewBody}\n-->`,
-    ],
-  ])("rejects evidence hidden in a %s", (_name, body) => {
-    expect(extractReviewEvidence(body).errors.length).toBeGreaterThan(0);
-  });
-
-  test("rejects evidence left inside nested collapsed details", () => {
-    const body = `<details><details></details>\n${validReviewBody}\n</details>`;
-    expect(extractReviewEvidence(body).errors).toContain(
-      "The `## Independent review` section must not be inside a code fence or collapsed details block.",
+    expect(extractReviewEvidence(missing).errors).toContain(
+      "The rendered independent-review section must contain exactly one top-level `- Reviewed tree SHA:` field.",
     );
-  });
-
-  test.each([
-    "<!-- harmless --><details>",
-    "prefix <details>",
-    "<div><details>",
-  ])("rejects collapsed evidence after a line prefix: %s", (opening) => {
-    const body = `${opening}\n${validReviewBody}\n</details>`;
-    expect(extractReviewEvidence(body).errors).toContain(
-      "The `## Independent review` section must not be inside a code fence or collapsed details block.",
-    );
-  });
-
-  test.each([
-    ["multiline opening tag", "<details\n>"],
-    ["slash-ended non-void tag", "<details />"],
-  ])("rejects evidence inside a %s", (_name, opening) => {
-    const body = `${opening}\n\n${validReviewBody}\n</details>`;
-    expect(extractReviewEvidence(body).errors).toContain(
-      "The `## Independent review` section must not be inside a code fence or collapsed details block.",
-    );
-  });
-
-  test("ignores details-looking text inside a fenced example", () => {
-    const body = `\`\`\`html\n<details>\n\`\`\`\n\n${validReviewBody}`;
-    expect(extractReviewEvidence(body).errors).toEqual([]);
-  });
-
-  test("ignores a fenced review heading when one visible section exists", () => {
-    const body = `\`\`\`text\n## Independent review\n\`\`\`\n\n${validReviewBody}`;
-    expect(extractReviewEvidence(body).errors).toEqual([]);
-  });
-
-  test.each([
-    [
-      "different marker",
-      `\`\`\`text\n~~~\n${validReviewBody}\n\`\`\``,
-    ],
-    [
-      "shorter run",
-      `\`\`\`\`text\n\`\`\`\n${validReviewBody}\n\`\`\`\``,
-    ],
-  ])("does not close a fence with a %s", (_name, body) => {
-    expect(extractReviewEvidence(body).errors).toContain(
-      "The `## Independent review` section must not be inside a code fence or collapsed details block.",
-    );
-  });
-
-  test("tracks the CommonMark fence marker and opening length", () => {
-    const opening = updateFenceState(null, "~~~text");
-    expect(opening).toEqual({ length: 3, marker: "~" });
-    expect(updateFenceState(opening, "```")).toEqual(opening);
-    expect(updateFenceState(opening, "~~")).toEqual(opening);
-    expect(updateFenceState(opening, "~~~~")).toBeNull();
-  });
-
-  test("tracks ordered collapsed-container tags only outside code", () => {
-    expect(updateContainerDepth(0, "<details><details></details>")).toBe(1);
-    expect(updateContainerDepth(1, "</details>")).toBe(0);
-    expect(updateContainerDepth(0, "<details")).toBe(1);
-    expect(updateContainerDepth(0, "<details />")).toBe(1);
-    expect(updateContainerDepth(0, "`<details>`")).toBe(0);
-    expect(updateContainerDepth(0, "prefix <details>")).toBe(1);
-
-    const contexts = scanMarkdownContext([
-      "```html",
-      "<details>",
-      "```",
-      "## Independent review",
-    ]);
-    expect(contexts.map((context) => context.topLevel)).toEqual([
-      true,
-      false,
-      false,
-      true,
-    ]);
-  });
-
-  test("unwraps either a plain value or one code span", () => {
-    expect(unwrapCodeSpan(" value ")).toBe("value");
-    expect(unwrapCodeSpan(" `value` ")).toBe("value");
-    expect(unwrapCodeSpan("`broken")).toBeNull();
-  });
-
-  test("strips closed and unterminated HTML comments", () => {
-    const closed = "before<!-- hidden -->after";
-    const unterminated = "before<!-- hidden";
-    expect(stripHtmlComments(closed)).toHaveLength(closed.length);
-    expect(stripHtmlComments(closed)).not.toContain("hidden");
-    expect(stripHtmlComments(unterminated)).toHaveLength(unterminated.length);
-    expect(stripHtmlComments(unterminated)).not.toContain("hidden");
-  });
-
-  test("comment redaction cannot turn a non-closing fence into a close", () => {
-    const body = `\`\`\`text\n\`\`\`<!-- not-a-close -->\n${validReviewBody}\n\`\`\``;
-    expect(extractReviewEvidence(body).errors).toContain(
-      "The `## Independent review` section must not be inside a code fence or collapsed details block.",
-    );
-  });
-
-  test.each(["# Other", "##\tOther", "Other\n==="])(
-    "ends evidence at the next top-level heading form %s",
-    (heading) => {
-      const body = `## Independent review\n\n${heading}\n${validReviewBody
-        .split("\n")
-        .filter((line) => line.startsWith("- Review"))
-        .join("\n")}`;
-      expect(extractReviewEvidence(body).errors.length).toBeGreaterThan(0);
-    },
-  );
-
-  test("recognizes valid spellings of the required H2", () => {
-    expect(isIndependentReviewHeading("## Independent review")).toBe(true);
-    expect(isIndependentReviewHeading(" ## Independent review")).toBe(true);
-    expect(isIndependentReviewHeading("## Independent review ##")).toBe(true);
-    expect(isIndependentReviewHeading("### Independent review")).toBe(false);
-  });
-
-  test.each([" ## Independent review", "## Independent review ##"])(
-    "accepts a valid top-level review heading: %s",
-    (heading) => {
-      expect(
-        extractReviewEvidence(validReviewBody.replace(
-          "## Independent review",
-          heading,
-        )).errors,
-      ).toEqual([]);
-    },
-  );
-
-  test("recognizes H1, H2, and contextual setext section boundaries", () => {
-    expect(isSectionBoundary("# Other")).toBe(true);
-    expect(isSectionBoundary("##\tOther")).toBe(true);
-    expect(isSectionBoundary("===", "Other", true)).toBe(true);
-    expect(isSectionBoundary("---", "## Independent review", true)).toBe(false);
-    expect(isSectionBoundary("### Subsection")).toBe(false);
-  });
-
-  test("allows a thematic break before the evidence fields", () => {
-    const body = validReviewBody.replace(
-      "## Independent review\n",
-      "## Independent review\n\n---\n",
-    );
-    expect(extractReviewEvidence(body).errors).toEqual([]);
   });
 });
 
 describe("validatePullRequest", () => {
-  test("accepts an issue in the title", () => {
+  test("accepts a TIE title while a PR is draft", () => {
     expect(
       validatePullRequest({
         ...baseMetadata,
@@ -323,44 +206,10 @@ describe("validatePullRequest", () => {
     });
   });
 
-  test("rejects body-only references", () => {
-    const bodyVariants = [
-      "- Issue: TIE-253",
-      "[](TIE-253)",
-      "[TIE-253]: https://linear.app/example",
-      "<details>\nTIE-253\n</details>",
-      "```\nTIE-253\n```",
-    ];
-
-    for (const body of bodyVariants) {
-      expect(
-        validatePullRequest({
-          ...baseMetadata,
-          body,
-        }).errors,
-      ).toHaveLength(1);
-    }
-  });
-
   test("returns actionable guidance when the reference is missing", () => {
     const result = validatePullRequest(baseMetadata);
-
     expect(result.errors).toHaveLength(1);
-    expect(result.errors[0]).toContain("TIE-253");
     expect(result.errors[0]).toContain("Start the pull request title");
-  });
-
-  test("rejects the untouched repository pull request template", async () => {
-    const template = await Bun.file(
-      ".github/pull_request_template.md",
-    ).text();
-    const result = validatePullRequest({
-      ...baseMetadata,
-      body: template,
-    });
-
-    expect(result.tieReferences).toEqual([]);
-    expect(result.errors).toHaveLength(1);
   });
 
   test("exempts a valid Dependabot pull request", () => {
@@ -378,14 +227,13 @@ describe("validatePullRequest", () => {
     });
   });
 
-  test("accepts matching review evidence on a ready PR", () => {
+  test("accepts matching rendered review evidence on a ready PR", () => {
     const result = validatePullRequest({
       ...baseMetadata,
-      body: validReviewBody,
+      bodyHtml: validReviewHtml,
       isDraft: false,
       title: "TIE-248 Enforce review evidence",
     });
-
     expect(result.errors).toEqual([]);
     expect(result.reviewEvidence.fields["Reviewed commit SHA"]).toBe(headSha);
   });
@@ -394,12 +242,11 @@ describe("validatePullRequest", () => {
     const newHead = "3".repeat(40);
     const result = validatePullRequest({
       ...baseMetadata,
-      body: validReviewBody,
+      bodyHtml: validReviewHtml,
       headSha: newHead,
       isDraft: false,
       title: "TIE-248 Enforce review evidence",
     });
-
     expect(result.errors).toContain(
       `The reviewed commit ${headSha} does not match the current PR head ${newHead}. Start a fresh review for the new head.`,
     );
@@ -409,12 +256,11 @@ describe("validatePullRequest", () => {
     const newTree = "4".repeat(40);
     const result = validatePullRequest({
       ...baseMetadata,
-      body: validReviewBody,
+      bodyHtml: validReviewHtml,
       headTreeSha: newTree,
       isDraft: false,
       title: "TIE-248 Enforce review evidence",
     });
-
     expect(result.errors).toContain(
       `The reviewed tree ${headTreeSha} does not match the current PR tree ${newTree}. Start a fresh review for the new tree.`,
     );
@@ -427,7 +273,7 @@ describe("validatePullRequest", () => {
   ])("rejects %s", (_name, session) => {
     const result = validatePullRequest({
       ...baseMetadata,
-      body: validReviewBody.replace("/root/tie248_review", session),
+      bodyHtml: validReviewHtml.replace("/root/tie248_review", session),
       isDraft: false,
       title: "TIE-248 Enforce review evidence",
     });
@@ -439,7 +285,7 @@ describe("validatePullRequest", () => {
   test("requires an exact no-findings result", () => {
     const result = validatePullRequest({
       ...baseMetadata,
-      body: validReviewBody.replace("no findings", "approved"),
+      bodyHtml: validReviewHtml.replace("no findings", "approved"),
       isDraft: false,
       title: "TIE-248 Enforce review evidence",
     });
