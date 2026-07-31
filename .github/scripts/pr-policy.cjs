@@ -2,6 +2,10 @@
 
 const TIE_REFERENCE_PATTERN = /\bTIE-[1-9]\d*\b/g;
 
+function stripHtmlComments(value) {
+  return value.replace(/<!--[\s\S]*?-->/g, "");
+}
+
 function isDependabotException(metadata) {
   return (
     metadata.actor === "dependabot[bot]" &&
@@ -11,7 +15,8 @@ function isDependabotException(metadata) {
 }
 
 function findTieReferences(title, body) {
-  return [...new Set(`${title}\n${body}`.match(TIE_REFERENCE_PATTERN) ?? [])];
+  const visibleMetadata = `${title}\n${stripHtmlComments(body)}`;
+  return [...new Set(visibleMetadata.match(TIE_REFERENCE_PATTERN) ?? [])];
 }
 
 function validatePullRequest(metadata) {
@@ -43,5 +48,6 @@ function validatePullRequest(metadata) {
 module.exports = {
   findTieReferences,
   isDependabotException,
+  stripHtmlComments,
   validatePullRequest,
 };

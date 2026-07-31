@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 const {
   findTieReferences,
   isDependabotException,
+  stripHtmlComments,
   validatePullRequest,
 } = require("./pr-policy.cjs");
 
@@ -24,6 +25,20 @@ describe("findTieReferences", () => {
 
   test("rejects placeholders, zero, and lowercase variants", () => {
     expect(findTieReferences("TIE- and TIE-0", "tie-253")).toEqual([]);
+  });
+
+  test("ignores complete identifiers inside HTML comments", () => {
+    expect(
+      findTieReferences("Improve layout", "<!-- Example: TIE-253 -->\nIssue: TIE-"),
+    ).toEqual([]);
+  });
+});
+
+describe("stripHtmlComments", () => {
+  test("removes multiline comments without removing visible content", () => {
+    expect(
+      stripHtmlComments("before<!-- hidden\nTIE-253 -->after"),
+    ).toBe("beforeafter");
   });
 });
 
@@ -85,6 +100,19 @@ describe("validatePullRequest", () => {
     expect(result.errors).toHaveLength(1);
     expect(result.errors[0]).toContain("TIE-253");
     expect(result.errors[0]).toContain("title or body");
+  });
+
+  test("rejects the untouched repository pull request template", async () => {
+    const template = await Bun.file(
+      ".github/pull_request_template.md",
+    ).text();
+    const result = validatePullRequest({
+      ...baseMetadata,
+      body: template,
+    });
+
+    expect(result.tieReferences).toEqual([]);
+    expect(result.errors).toHaveLength(1);
   });
 
   test("exempts a valid Dependabot pull request", () => {

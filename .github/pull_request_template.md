@@ -1,6 +1,6 @@
 ## Linear
 
-- Issue: TIE- <!-- Required: replace with at least one complete identifier, such as TIE-253. -->
+- Issue: TIE- <!-- Required: replace with a complete TIE-<number> identifier. -->
 - Project / milestone:
 - Parent gate:
 
