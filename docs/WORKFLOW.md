@@ -154,6 +154,23 @@ revision on `pull_request_target` and never checks out or executes fork code.
 TIE-252 makes this check merge-blocking through branch protection; until that
 setting is applied, the Phase 2 gate remains incomplete.
 
+For every ready (non-draft) pull request, the same `pr-policy` job also requires
+exactly one top-level `Independent review` section containing:
+
+```text
+- Review session: `/root/<fresh-review-session>`
+- Reviewed commit SHA: `<40-character-lowercase-sha>`
+- Reviewed tree SHA: `<40-character-lowercase-tree-sha>`
+- Review result: no findings
+```
+
+The workflow resolves the live head commit's tree through the GitHub API. The
+recorded commit and tree must match that live head exactly. A push triggers the
+policy again and invalidates stale evidence, so any content change requires the
+implementing session to rerun verification and automatically start a new
+clean-context review. Draft pull requests enforce the TIE title but defer
+review-evidence enforcement until `ready_for_review`.
+
 The only automatic exception is a pull request authored by
 `dependabot[bot]`, from a `dependabot/` branch in this repository. Forks,
 similarly named bots, and other automation must provide a TIE issue like any

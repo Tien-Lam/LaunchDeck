@@ -1,10 +1,16 @@
 import { describe, expect, test } from "bun:test";
 
 const {
+  extractReviewEvidence,
   findTieReferences,
   isDependabotException,
+  stripHtmlComments,
+  unwrapCodeSpan,
   validatePullRequest,
 } = require("./pr-policy.cjs");
+
+const headSha = "1".repeat(40);
+const headTreeSha = "2".repeat(40);
 
 const baseMetadata = {
   actor: "contributor",
@@ -12,8 +18,24 @@ const baseMetadata = {
   body: "",
   headRef: "feature/layout",
   headRepoFullName: "contributor/LaunchDeck",
+  headSha,
+  headTreeSha,
+  isDraft: true,
   title: "Improve layout",
 };
+
+const validReviewBody = `## Independent review
+
+- Risk areas: none
+- Migration / compatibility: none
+- Follow-up issues: none
+- Review session: \`/root/tie248_review\`
+- Reviewed commit SHA: \`${headSha}\`
+- Reviewed tree SHA: \`${headTreeSha}\`
+- Review result: no findings
+
+## Manual validation
+`;
 
 describe("findTieReferences", () => {
   test("finds an uppercase Linear reference at the start of the title", () => {
@@ -82,6 +104,65 @@ describe("Dependabot exception", () => {
   });
 });
 
+describe("review evidence parsing", () => {
+  test("extracts one plain top-level field set", () => {
+    expect(extractReviewEvidence(validReviewBody)).toEqual({
+      errors: [],
+      fields: {
+        "Review session": "/root/tie248_review",
+        "Reviewed commit SHA": headSha,
+        "Reviewed tree SHA": headTreeSha,
+        "Review result": "no findings",
+      },
+    });
+  });
+
+  test("rejects duplicate and missing fields", () => {
+    const duplicate = validReviewBody.replace(
+      "- Review result: no findings",
+      "- Review result: no findings\n- Review result: no findings",
+    );
+    expect(extractReviewEvidence(duplicate).errors).toContain(
+      "The independent-review section must contain exactly one `- Review result:` field.",
+    );
+    expect(
+      extractReviewEvidence(
+        validReviewBody.replace(`- Reviewed tree SHA: \`${headTreeSha}\`\n`, ""),
+      ).errors,
+    ).toContain(
+      "The independent-review section must contain exactly one `- Reviewed tree SHA:` field.",
+    );
+  });
+
+  test.each([
+    [
+      "code fence",
+      `\`\`\`\n${validReviewBody}\n\`\`\``,
+    ],
+    [
+      "details block",
+      `<details>\n${validReviewBody}\n</details>`,
+    ],
+    [
+      "HTML comment",
+      `<!--\n${validReviewBody}\n-->`,
+    ],
+  ])("rejects evidence hidden in a %s", (_name, body) => {
+    expect(extractReviewEvidence(body).errors.length).toBeGreaterThan(0);
+  });
+
+  test("unwraps either a plain value or one code span", () => {
+    expect(unwrapCodeSpan(" value ")).toBe("value");
+    expect(unwrapCodeSpan(" `value` ")).toBe("value");
+    expect(unwrapCodeSpan("`broken")).toBeNull();
+  });
+
+  test("strips closed and unterminated HTML comments", () => {
+    expect(stripHtmlComments("before<!-- hidden -->after")).toBe("beforeafter");
+    expect(stripHtmlComments("before<!-- hidden")).toBe("before");
+  });
+});
+
 describe("validatePullRequest", () => {
   test("accepts an issue in the title", () => {
     expect(
@@ -92,6 +173,7 @@ describe("validatePullRequest", () => {
     ).toEqual({
       errors: [],
       exempt: false,
+      reviewEvidence: null,
       tieReferences: ["TIE-253"],
     });
   });
@@ -149,5 +231,75 @@ describe("validatePullRequest", () => {
       exempt: true,
       tieReferences: [],
     });
+  });
+
+  test("accepts matching review evidence on a ready PR", () => {
+    const result = validatePullRequest({
+      ...baseMetadata,
+      body: validReviewBody,
+      isDraft: false,
+      title: "TIE-248 Enforce review evidence",
+    });
+
+    expect(result.errors).toEqual([]);
+    expect(result.reviewEvidence.fields["Reviewed commit SHA"]).toBe(headSha);
+  });
+
+  test("invalidates review evidence after a new head commit", () => {
+    const newHead = "3".repeat(40);
+    const result = validatePullRequest({
+      ...baseMetadata,
+      body: validReviewBody,
+      headSha: newHead,
+      isDraft: false,
+      title: "TIE-248 Enforce review evidence",
+    });
+
+    expect(result.errors).toContain(
+      `The reviewed commit ${headSha} does not match the current PR head ${newHead}. Start a fresh review for the new head.`,
+    );
+  });
+
+  test("invalidates review evidence after a tree change", () => {
+    const newTree = "4".repeat(40);
+    const result = validatePullRequest({
+      ...baseMetadata,
+      body: validReviewBody,
+      headTreeSha: newTree,
+      isDraft: false,
+      title: "TIE-248 Enforce review evidence",
+    });
+
+    expect(result.errors).toContain(
+      `The reviewed tree ${headTreeSha} does not match the current PR tree ${newTree}. Start a fresh review for the new tree.`,
+    );
+  });
+
+  test.each([
+    ["placeholder session", "/root/"],
+    ["noncanonical session", "same-session"],
+    ["uppercase session", "/root/TIE248"],
+  ])("rejects %s", (_name, session) => {
+    const result = validatePullRequest({
+      ...baseMetadata,
+      body: validReviewBody.replace("/root/tie248_review", session),
+      isDraft: false,
+      title: "TIE-248 Enforce review evidence",
+    });
+    expect(result.errors).toContain(
+      "The review session must be a concrete clean-context session path such as `/root/tie248_review`.",
+    );
+  });
+
+  test("requires an exact no-findings result", () => {
+    const result = validatePullRequest({
+      ...baseMetadata,
+      body: validReviewBody.replace("no findings", "approved"),
+      isDraft: false,
+      title: "TIE-248 Enforce review evidence",
+    });
+    expect(result.errors).toContain(
+      "The latest independent review result must be exactly `no findings`.",
+    );
   });
 });
