@@ -1,12 +1,11 @@
 name: External report
-description: Public intake for contributors who cannot access the LaunchDeck Linear workspace
-title: "[Intake]: "
+description: Report a bug or request a feature for LaunchDeck
+title: "[Report]: "
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for helping improve LaunchDeck. GitHub Issues are an intake bridge, not the project tracker.
-        A maintainer will mirror this report into Linear, reply with the Linear link, and close this issue.
+        Describe your report below. A maintainer will triage it into the GitHub project and track its status here.
   - type: dropdown
     id: report_type
     attributes:

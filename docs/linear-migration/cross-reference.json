@@ -1,0 +1,414 @@
+{
+  "migratedOn": "2026-10-08",
+  "project": "https://github.com/users/Tien-Lam/projects/3",
+  "issues": {
+    "TIE-192": {
+      "linearUuid": "917a638d-ceb6-4d58-a0f5-4581cb3ba4d0",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/7",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-193": {
+      "linearUuid": "9aaae1cb-e05e-4cc5-a4aa-831bdeaf43d4",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/8",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-194": {
+      "linearUuid": "dcc0a2ce-c5db-46f5-b934-5c90f62d730c",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/9",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-195": {
+      "linearUuid": "bbce0576-bd2a-4076-9af0-1e43232bf02e",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/10",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-196": {
+      "linearUuid": "0c53b25d-342f-41fd-9a6f-d729f856aa53",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/11",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-197": {
+      "linearUuid": "948b150f-e2f9-40ee-a983-3a7dfb0dd050",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/12",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-198": {
+      "linearUuid": "af18d7f6-1d2a-4451-a55d-4be9f7838307",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/13",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-199": {
+      "linearUuid": "b2b3d1c0-a5e2-4a66-8073-9e30a12fa11c",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/14",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-200": {
+      "linearUuid": "c2b74a7b-5a85-4725-829c-2745f35b6b88",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/15",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-201": {
+      "linearUuid": "3e7a2e96-83c4-455c-9c33-67472aa7dd01",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/16",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-202": {
+      "linearUuid": "9d95d8df-e38b-4a95-b003-9daec9899be7",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/17",
+      "originalStatus": "Done",
+      "archivedAt": null
+    },
+    "TIE-203": {
+      "linearUuid": "ae6ab56c-1397-4423-bd86-50493b14b5ed",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/18",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-204": {
+      "linearUuid": "98380cf8-e897-49ec-844f-193ee6452aec",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/19",
+      "originalStatus": "Done",
+      "archivedAt": null
+    },
+    "TIE-205": {
+      "linearUuid": "e9829572-b909-422b-9ff0-06dfeae223f8",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/20",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-206": {
+      "linearUuid": "0113e7d7-146d-4c40-b5c2-9b8d7c415cdf",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/21",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-207": {
+      "linearUuid": "5da5b808-2e09-4919-b6a0-4c78c0c41320",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/22",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-208": {
+      "linearUuid": "856a6ad0-e8cf-44cb-8c23-154f6ca62534",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/23",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-209": {
+      "linearUuid": "93db5403-1c2e-45f6-a6f9-5194250845cf",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/24",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-210": {
+      "linearUuid": "5cc70976-4cd8-4efb-9b77-389f1d466258",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/25",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-211": {
+      "linearUuid": "97afebeb-6e5c-4328-80ce-c8166ec02515",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/26",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-212": {
+      "linearUuid": "ae84e0c1-c6f0-4961-9dfa-b4f4b9b5a7ed",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/27",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-213": {
+      "linearUuid": "ff27ce1e-db1a-4303-9437-c58644c8c60e",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/28",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-214": {
+      "linearUuid": "efd5c4ba-2d1a-4cc5-ac69-84728e0123bb",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/29",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-215": {
+      "linearUuid": "bfb2d86e-ba0c-455b-98d5-7aee224ea2ec",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/30",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-216": {
+      "linearUuid": "4f2e91a8-8f25-483d-a8af-0858b2f4e343",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/31",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-217": {
+      "linearUuid": "e72f290a-6770-4f29-859f-dc13613ebd1f",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/32",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-218": {
+      "linearUuid": "a680364d-d7a1-47e0-aabb-adb946b3ee99",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/33",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-219": {
+      "linearUuid": "fd7bf305-be58-40f3-9094-2c64df278482",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/34",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-220": {
+      "linearUuid": "a07d341a-73ef-4091-8671-8ddde53fd582",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/35",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-221": {
+      "linearUuid": "52ab716a-39ba-401a-8b44-48ec840f9da3",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/36",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-222": {
+      "linearUuid": "007c8e9b-3450-482b-b5ea-11d507319bb5",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/37",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-223": {
+      "linearUuid": "52a447af-ccb1-42c4-a1c4-df4088577dc9",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/38",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-224": {
+      "linearUuid": "9b2f8d51-fe79-4b23-8180-74139b551a28",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/39",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-225": {
+      "linearUuid": "e05872c8-bf7d-4c70-9b6c-4b67ad90b121",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/40",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-226": {
+      "linearUuid": "d876a04e-96e2-496b-931d-7ea4e85b2d5d",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/41",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-227": {
+      "linearUuid": "06b1141e-9703-4b69-9627-60fe6b1f503f",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/42",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-228": {
+      "linearUuid": "98ffa9bf-bfdf-4b3a-93ed-5ff4f4a8d2ae",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/43",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-229": {
+      "linearUuid": "b2f4001d-d9a5-4d68-8c27-5261706d4df6",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/44",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-230": {
+      "linearUuid": "6c1cec4d-e875-4aa8-ae6d-df80a9b0a9de",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/45",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-231": {
+      "linearUuid": "2e0e0044-643a-4e79-a60f-7777f13544fa",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/46",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-232": {
+      "linearUuid": "717a09b6-8707-4ecd-9a34-c45d2611bd1a",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/47",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-233": {
+      "linearUuid": "a4f6d6bd-eb24-4043-977a-cc186524f3f0",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/48",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-234": {
+      "linearUuid": "e1c3a2e7-0404-4f44-ac75-fd0761a30139",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/49",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-235": {
+      "linearUuid": "1b0b0ed2-c524-40ae-b40b-9f48d0302133",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/50",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-236": {
+      "linearUuid": "5a02925f-6183-45f6-95b1-98e4fd2cfc3d",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/51",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-237": {
+      "linearUuid": "f660746d-712a-430d-b230-460f327cdae8",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/52",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-238": {
+      "linearUuid": "cc4a108f-d44d-4735-8a49-0e9dc1a187b1",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/53",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-239": {
+      "linearUuid": "0f110afc-8372-4531-b5c8-78d2e538e6c9",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/54",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-240": {
+      "linearUuid": "a3021fae-12d9-4a01-8797-9c5b204be7d7",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/55",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-241": {
+      "linearUuid": "ba6b64eb-6b27-4bb9-8866-362576f3e044",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/56",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-242": {
+      "linearUuid": "29dfa6a0-20c3-407f-b858-a0dffba53dd7",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/57",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-243": {
+      "linearUuid": "fb3b8ff6-6522-4e3f-8d5c-7702340e40de",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/58",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-244": {
+      "linearUuid": "d660e5f7-64da-4763-b84d-f4392627662e",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/59",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-245": {
+      "linearUuid": "7e6b6f61-63e3-4935-bf65-2028b922b4d9",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/60",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-246": {
+      "linearUuid": "27f0620b-9f09-418f-9ed7-21b42b85e977",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/61",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-247": {
+      "linearUuid": "66b7f0ca-5977-4ca1-afd2-27baf3ddfc0b",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/62",
+      "originalStatus": "Done",
+      "archivedAt": null
+    },
+    "TIE-248": {
+      "linearUuid": "3433c8c8-18ad-4665-b229-1c241d944e06",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/63",
+      "originalStatus": "Done",
+      "archivedAt": null
+    },
+    "TIE-249": {
+      "linearUuid": "7c04485e-0d41-4b40-b66c-18c4bac20dca",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/64",
+      "originalStatus": "Done",
+      "archivedAt": null
+    },
+    "TIE-250": {
+      "linearUuid": "5a9baf3c-669b-4209-96c0-aff3f6769214",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/65",
+      "originalStatus": "Done",
+      "archivedAt": null
+    },
+    "TIE-251": {
+      "linearUuid": "b15d215e-3623-47a0-aefe-5a76d0d1b7a6",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/66",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-252": {
+      "linearUuid": "1245eed6-27b4-47ea-8b1b-e675342060fd",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/67",
+      "originalStatus": "Done",
+      "archivedAt": null
+    },
+    "TIE-253": {
+      "linearUuid": "75035598-56b5-4013-abb2-5b221b1bba90",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/68",
+      "originalStatus": "Done",
+      "archivedAt": null
+    },
+    "TIE-254": {
+      "linearUuid": "59e818ef-b86d-4b95-ac46-353da821ad36",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/69",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-255": {
+      "linearUuid": "b58a15c7-ea26-4b20-b1eb-aa1cb1d48148",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/70",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-256": {
+      "linearUuid": "9d3a49c5-4f2d-4432-8e8c-3e2367d4c418",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/71",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-257": {
+      "linearUuid": "31829132-5633-473d-89be-46d57dbd7d9d",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/72",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-258": {
+      "linearUuid": "fe468d05-fa53-4cf4-977e-d873f5ee67c0",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/73",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    },
+    "TIE-259": {
+      "linearUuid": "81b3c29e-2550-4045-b779-9493709da5a7",
+      "url": "https://github.com/Tien-Lam/LaunchDeck/issues/74",
+      "originalStatus": "Backlog",
+      "archivedAt": null
+    }
+  }
+}

@@ -314,3 +314,16 @@ describe("validatePullRequest", () => {
     );
   });
 });
+
+// Native GitHub IDs retain the same strict title boundaries and review checks.
+describe("GitHub issue title references", () => {
+  test("accepts native issue numbers and preserves immutable review gates", () => {
+    expect(findTieReferences("#75 Migrate tracking")).toEqual(["#75"]);
+    expect(findTieReferences("#75")).toEqual(["#75"]);
+    expect(validatePullRequest({ ...baseMetadata, title: "#75 Migrate tracking", isDraft: false, bodyHtml: validReviewHtml }).errors).toEqual([]);
+    expect(validatePullRequest({ ...baseMetadata, title: "#75 Migrate tracking", isDraft: false, bodyHtml: "" }).errors.length).toBeGreaterThan(0);
+  });
+  test.each(["#0 invalid", "# invalid", "#075 invalid", "Fix #75", "#75: invalid", "#75\tinvalid", "\u202e#75 invalid", "#75\u200binvalid", "#75\ninvalid"])("rejects ambiguous issue title %s", (title) => {
+    expect(findTieReferences(title)).toEqual([]);
+  });
+});

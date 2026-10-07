@@ -381,13 +381,13 @@ The `Launch` method calls `Process.Start`, which actually spawns a process. `Bui
 | App Service IPC (widget <-> companion) | No | Requires MSIX deployment; manual only |
 | MSIX packaging and activation | No | Requires deployment; manual only |
 
-## Linear Evidence and Sequencing
+## GitHub Evidence and Sequencing
 
 Testing work is tracked in the
-[LaunchDeck Linear initiative](https://linear.app/tienlam/initiative/launchdeck-b247bff02400)
+[LaunchDeck project board](https://github.com/users/Tien-Lam/projects/3)
 and follows [the development workflow](WORKFLOW.md).
 
-Before an implementation issue moves to `In Review`, add a Linear comment with:
+Before an implementation issue moves to `In Review`, add a GitHub issue comment with:
 
 - the immutable commit SHA and its tree SHA after confirming the working tree is
   clean;
@@ -399,7 +399,7 @@ After recording that immutable evidence, automatically start a separate review
 session with no inherited conversation history. Give it the issue and acceptance
 criteria, repository instructions, and exact commit SHA; the reviewer resolves
 the tree independently, reports findings without editing, and records its
-session, findings, and dispositions on the Linear issue. An in-scope finding
+session, findings, and dispositions on the GitHub issue. An in-scope finding
 returns the issue to `In Progress`. Any content change requires another commit,
 the relevant automated checks, and a new clean-context review session. The issue
 can be completed only when the latest review says `no findings` and its tree
@@ -422,7 +422,7 @@ a blocker where required, and keep the acceptance issue focused on evidence.
 
 For areas that cannot be automated, follow this procedure only from the
 applicable final-phase `Manual validation` issue. Record the artifact, commit,
-environment, checklist results, and linked defects on that Linear issue.
+environment, checklist results, and linked defects on that GitHub issue.
 
 ### Prerequisites
 
@@ -474,4 +474,4 @@ Coverage results are written to `LaunchDeck.Tests/TestResults/`. Use a tool like
 
 - [Architecture](ARCHITECTURE.md) -- what is testable depends on the two-process architecture
 - [Deployment](DEPLOYMENT.md) -- build the solution before running tests
-- [Workflow](WORKFLOW.md) -- how automated and manual evidence moves through Linear
+- [Workflow](WORKFLOW.md) -- how automated and manual evidence moves through GitHub
