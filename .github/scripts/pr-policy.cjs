@@ -1,6 +1,6 @@
 "use strict";
 
-const TIE_TITLE_PATTERN = /^(TIE-[1-9]\d*)(?:$| )/;
+const TIE_TITLE_PATTERN = /^(#[1-9]\d*|TIE-[1-9]\d*)(?:$| )/;
 const COMMIT_SHA_PATTERN = /^[0-9a-f]{40}$/;
 const REVIEW_SESSION_PATTERN =
   /^\/root(?:\/[a-z0-9][a-z0-9_-]*)+$/;
@@ -248,8 +248,8 @@ function validatePullRequest(metadata) {
 
   if (tieReferences.length === 0) {
     errors.push(
-      "Start the pull request title with a Linear issue reference, for " +
-        "example `TIE-253 Require Linear metadata`. Body-only references, " +
+      "Start the pull request title with a GitHub issue number or migrated TIE alias, for " +
+        "example `#75 Require issue metadata`. Body-only references, " +
         "lowercase variants, and the placeholder `TIE-` are not sufficient.",
     );
   }

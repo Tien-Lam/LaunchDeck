@@ -1,24 +1,20 @@
 # Development Workflow
 
-LaunchDeck uses [Linear](https://linear.app/tienlam/initiative/launchdeck-b247bff02400)
-as the source of truth for product planning, implementation, reviews, testing,
-documentation, and releases. GitHub remains the source host, pull-request
-review surface, CI runner, artifact store, and release publisher; GitHub Issues
-are not used for work tracking.
+GitHub Issues and [Projects](https://github.com/users/Tien-Lam/projects/3) are the source of truth for planning, implementation, review, testing and delivery. Workstreams retain the four prior project boundaries. GitHub also hosts source, PRs, checks, artifacts and releases. See [the migration index](linear-migration/README.md) for historical records and [the GitHub workflow](GITHUB_WORKFLOW.md) for current conventions.
 
-## Linear hierarchy
+## GitHub project hierarchy
 
 Work belongs to the **LaunchDeck** initiative and one of these projects:
 
-- [Layout Platform](https://linear.app/tienlam/project/launchdeck-layout-platform-4454546079d8)
+- [Layout Platform](https://github.com/Tien-Lam/LaunchDeck/blob/main/docs/linear-migration/projects/P-TIE-5.md)
   owns configuration, migration, persistence, shared placement, and automated
   layout confidence.
-- [Widget Experience](https://linear.app/tienlam/project/launchdeck-widget-experience-d9ec2aa72a08)
+- [Widget Experience](https://github.com/Tien-Lam/LaunchDeck/blob/main/docs/linear-migration/projects/P-TIE-8.md)
   owns the Game Bar renderer, pages, focus navigation, and widget runtime.
-- [Live Grid Editor](https://linear.app/tienlam/project/launchdeck-live-grid-editor-c5378a958725)
+- [Live Grid Editor](https://github.com/Tien-Lam/LaunchDeck/blob/main/docs/linear-migration/projects/P-TIE-7.md)
   owns the WPF editing experience, direct manipulation, layout controls, and
   page management.
-- [Delivery & Quality](https://linear.app/tienlam/project/launchdeck-delivery-and-quality-419de99cfa4e)
+- [Delivery & Quality](https://github.com/Tien-Lam/LaunchDeck/blob/main/docs/linear-migration/projects/P-TIE-6.md)
   owns workflow, CI/review gates, cross-project release readiness, and final
   release acceptance.
 
@@ -60,7 +56,7 @@ does not authorize doing it early; create or update the final-phase issue.
 | In Review | Implementation and required automated verification are complete; an independent clean-context review is active or awaiting disposition. |
 | Done | Acceptance criteria are met, every blocker is Done, the change is merged where applicable, evidence is recorded, and the latest independent review has no unresolved findings. |
 | Canceled | Work will not be done; the reason and replacement, if any, are recorded. |
-| Duplicate | Another Linear issue is the source of truth. |
+| Duplicate | Another GitHub issue is the source of truth. |
 
 A blocked dependent issue stays in Backlog. Investigate or fix the dependency
 on the blocking issue; do not move or work the dependent issue while any
@@ -71,13 +67,13 @@ individual task looks implementable.
 
 Before changing code, tests, workflow files, or living documentation:
 
-1. Find or create the Linear issue.
+1. Find or create the GitHub issue.
 2. Confirm its initiative, project, milestone, parent gate, labels, priority,
    and acceptance criteria.
 3. Confirm every `blocked by` issue is Done.
 4. Split the issue if it contains independently reviewable outcomes.
 5. Assign the issue and move it to In Progress.
-6. Use Linear's generated branch name when creating a branch.
+6. Use a codex/ branch containing the GitHub issue number when creating a branch.
 
 Small review fixes may remain in the current issue when they are necessary to
 meet its existing acceptance criteria. New behavior, broader cleanup, or a
@@ -86,10 +82,10 @@ gate.
 
 ## Implementation and commits
 
-- Keep one coherent Linear issue per branch unless a gate issue explicitly
+- Keep one coherent GitHub issue per branch unless a gate issue explicitly
   coordinates a tightly coupled change.
 - Include the issue identifier in branch and pull-request metadata.
-- Before review, commit every intended file on Linear's generated issue branch
+- Before review, commit every intended file on the GitHub issue branch
   and confirm `git status --short` is empty. Untracked or modified files are not
   a reviewable delivery state.
 - Preserve the repository's existing build, runtime, and non-interactive shell
@@ -102,7 +98,7 @@ gate.
 
 Every implementation issue must state the regression its tests prevent and the
 verification appropriate to its layer. Before moving to In Review, add a
-Linear comment containing:
+GitHub issue comment containing:
 
 ```text
 Commit: <immutable commit SHA>
@@ -124,7 +120,7 @@ placeholder logs if Bun is unavailable. The artifact contains `ci-summary.md`,
 one log per named build/test command, and the TRX result when tests ran; GitHub
 retains it for 14 days.
 
-Link CI evidence in Linear with the pull request and workflow-run URL, the
+Link CI evidence on the GitHub issue with the pull request and workflow-run URL, the
 `build-and-test` conclusion, the summary's build/xUnit outcomes, and the exact
 artifact name. When a command fails, cite its named log rather than rerunning
 solely to discover which project failed. A missing TRX after a build failure is
@@ -151,19 +147,18 @@ See [Testing](TESTING.md) for the command and platform matrix.
 Every pull request must:
 
 - start its title with a complete uppercase `TIE-n` identifier and link the same
-  Linear issue in the body;
+  GitHub issue in the body;
 - summarize the accepted scope;
 - list exact automated checks and results;
 - identify config, IPC, localization, packaging, or migration risk;
 - link any deferred manual validation issue;
 - update living documentation when behavior or contracts change.
 
-The `pr-policy` check accepts an identifier only as an ASCII prefix at the very
+The `pr-policy` check accepts a GitHub issue number or historical TIE alias only as an ASCII prefix at the very
 start of the visible pull request title, followed by an ASCII space or the end
-of the title, for example `TIE-253 Require Linear metadata`. Body-only tokens,
+of the title, for example `#75 Require issue metadata`. Body-only tokens,
 Markdown or HTML content, placeholders such as `TIE-`, lowercase variants, and
-control or Unicode characters adjacent to the identifier do not pass. The check
-does not call Linear or use Linear credentials. It runs from the trusted base
+control or Unicode characters adjacent to the identifier do not pass. The check reads GitHub metadata without external tracker credentials. It runs from the trusted base
 revision on `pull_request_target` and never checks out or executes fork code.
 TIE-252 makes this check merge-blocking through branch protection; until that
 setting is applied, the Phase 2 gate remains incomplete.
@@ -188,24 +183,24 @@ within the read-only base-repository token boundary. The recorded commit and tre
 must match that live head exactly. A push triggers the policy again and
 invalidates stale evidence, so any content change requires the implementing
 session to rerun verification and automatically start a new clean-context
-review. Draft pull requests enforce the TIE title but defer review-evidence
+review. Draft pull requests enforce the issue-reference title but defer review-evidence
 enforcement until `ready_for_review`.
 
 The only automatic exception is a pull request authored by
 `dependabot[bot]`, from a `dependabot/` branch in this repository. Forks,
-similarly named bots, and other automation must provide a TIE issue like any
+similarly named bots, and other automation must provide an issue reference like any
 other contributor.
 
 When implementation and automated verification are complete:
 
-1. Commit every intended change on Linear's generated issue branch.
+1. Commit every intended change on the GitHub issue branch.
 2. Confirm `git status --short` is empty, then record the immutable commit SHA,
-   its tree SHA, and automated evidence in Linear.
+   its tree SHA, and automated evidence on the GitHub issue.
 3. Move the issue to In Review.
 4. Automatically start a separate review session with no inherited
    conversation history. Do not use the implementation session as the sole
    reviewer.
-5. Give the reviewer only the Linear issue and acceptance criteria, repository
+5. Give the reviewer only the GitHub issue and acceptance criteria, repository
    instructions, and the exact commit SHA to inspect. The reviewer resolves the
    tree from that commit and does not review a mutable working-tree diff. Do not
    prime it with the implementation session's reasoning or conclusions.
@@ -214,7 +209,7 @@ When implementation and automated verification are complete:
    not edit the work unless it is later assigned a separate implementation
    task.
 7. Record the review session identity, inspected commit and tree SHAs, findings
-   (including an explicit no-findings result), and disposition in a Linear
+   (including an explicit no-findings result), and disposition in a GitHub
    comment.
 
 For every review finding:
@@ -227,7 +222,7 @@ For every review finding:
   or gate can complete;
 - when a new blocker is added, move the current issue to Backlog and do not
   resume implementation or review until every blocker is Done;
-- link the review thread or summarize the decision in Linear.
+- link the review thread or summarize the decision on the GitHub issue.
 
 After any content change, commit it, rerun the required automated verification,
 and automatically start another new clean-context review session. The earlier
@@ -326,24 +321,10 @@ gh api repos/Tien-Lam/LaunchDeck/actions/workflows --paginate \
 The protection response must show strict contexts `build-and-test` and
 `pr-policy`, required pull requests and conversation resolution, admin
 enforcement, and no force pushes or deletion. The legacy workflow response must
-be `disabled_manually`. Record any settings correction on the active Linear
+be `disabled_manually`. Record any settings correction on the active GitHub
 delivery issue. Do not dispatch `Release Request` until the applicable final
-Linear release gate authorizes publishing.
+GitHub release gate authorizes publishing.
 
 ## GitHub issue routing
 
-Use GitHub for pull requests, code review, Actions, artifacts, and releases.
-Workspace members create new bugs, features, chores, test gaps, documentation
-gaps, and review follow-ups directly in Linear.
-
-The public GitHub issue form is an intake bridge for contributors who cannot
-access the Linear workspace. For every GitHub intake issue, a maintainer must:
-
-1. create the correctly scoped Linear issue;
-2. preserve a link to the original report on the Linear issue;
-3. reply with the Linear issue link; and
-4. close the GitHub issue without using it for status, planning, or completion.
-
-Maintainers must not use GitHub's privileged blank-issue option to bypass this
-route. If a blank GitHub issue is created, mirror and close it using the same
-procedure.
+Contributors and maintainers create work directly in GitHub Issues. Triage each issue into the project board with its workstream, milestone, labels, owner, parent gate and native dependencies. Keep the discussion and status on that issue through implementation, review and completion.

@@ -33,19 +33,7 @@ Or build from source — see [Build](#build) and [Deploy](#deploy) below.
 
 ## Work Tracking
 
-LaunchDeck uses the
-[LaunchDeck initiative in Linear](https://linear.app/tienlam/initiative/launchdeck-b247bff02400)
-for bugs, features, implementation, reviews, testing, documentation, and
-releases. GitHub is used for source, pull requests, Actions, artifacts, and
-release publishing; GitHub Issues are not used for work tracking. Contributors
-without Linear workspace access may use the public GitHub issue form as intake;
-a maintainer mirrors the report into Linear and closes the intake issue.
-
-Before contributing, read the [development workflow](docs/WORKFLOW.md). Every
-change must link a Linear issue and record its automated verification there.
-Interactive MSIX, Game Bar, touch/controller, and subjective UX checks are kept
-in each project's final manual milestone so they do not block earlier agentic
-work.
+Use [GitHub Issues](https://github.com/Tien-Lam/LaunchDeck/issues) for bugs, features and delivery evidence, and the [project board](https://github.com/users/Tien-Lam/projects/3) for status, workstreams and phases. Read the [development workflow](docs/WORKFLOW.md) before contributing. Interactive MSIX, Game Bar, touch/controller and subjective UX checks remain in each workstream’s final manual milestone. [The migration index](docs/linear-migration/README.md) retains historical specifications and Linear aliases.
 
 ## Configuration
 
@@ -172,4 +160,4 @@ Remove-Item "$env:LOCALAPPDATA\LaunchDeck" -Recurse -Force
 - [UI](docs/UI.md) — dark theme palette, XAML structure, interactive states
 - [Deployment](docs/DEPLOYMENT.md) — build pipeline, VS deploy, manifest, troubleshooting
 - [Testing](docs/TESTING.md) — test coverage, boundaries, manual test checklist
-- [Workflow](docs/WORKFLOW.md) — Linear planning, implementation, review, testing, and release process
+- [Workflow](docs/WORKFLOW.md) — GitHub planning, implementation, review, testing, and release process

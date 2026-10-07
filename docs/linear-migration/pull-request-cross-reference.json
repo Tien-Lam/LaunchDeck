@@ -1,0 +1,248 @@
+[
+  {
+    "id": "5066f592-213e-49b7-8f21-a69e9cee0a68",
+    "slugId": "f6e1cdde0be0",
+    "title": "TIE-252 Align branch protection desired state",
+    "number": 6,
+    "fullIdentifier": "Tien-Lam/LaunchDeck#6",
+    "sourceBranch": "tien/tie-252-align-protection-desired-state",
+    "targetBranch": "main",
+    "status": "merged",
+    "mergeStatus": "merged",
+    "url": "https://github.com/Tien-Lam/LaunchDeck/pull/6",
+    "appUrl": "https://linear.app/tienlam/review/tie-252-align-branch-protection-desired-state-f6e1cdde0be0",
+    "headSha": "4f3fe1d05a79e184ab94cb964d0ff52ddc382cae",
+    "baseSha": "d25077686072539780cdca33ddcdb7de751baabb",
+    "openedAt": "2026-07-31T03:39:02.000Z",
+    "updatedAt": "2026-07-31T03:40:36.000Z",
+    "diffStats": {
+      "fileCount": 2,
+      "additions": 13,
+      "changes": 0,
+      "deletions": 1
+    },
+    "creator": {
+      "id": "9eae46f7-c527-49bc-8d6a-465118651013",
+      "name": "Tien Long Lam"
+    },
+    "reviewers": [],
+    "viewerReviewState": {
+      "currentDecision": null,
+      "isReviewRequested": false,
+      "isAskedToReviewAgain": false,
+      "requestedViaTeams": [],
+      "lastSubmittedDecision": null,
+      "lastSubmittedAt": null
+    },
+    "needsAttention": false,
+    "linkedIssues": [],
+    "stackedPullRequests": [],
+    "discussion": null,
+    "commentMappings": []
+  },
+  {
+    "id": "ce1833d6-7f18-4699-a3d5-213eba90441a",
+    "slugId": "4b262b8adb08",
+    "title": "TIE-252 Enforce release and repository gates",
+    "number": 5,
+    "fullIdentifier": "Tien-Lam/LaunchDeck#5",
+    "sourceBranch": "tien/tie-252-audit-required-checks-and-protect-release-workflows-from",
+    "targetBranch": "main",
+    "status": "merged",
+    "mergeStatus": "merged",
+    "url": "https://github.com/Tien-Lam/LaunchDeck/pull/5",
+    "appUrl": "https://linear.app/tienlam/review/tie-252-enforce-release-and-repository-gates-4b262b8adb08",
+    "headSha": "3ed2bbb8849cff9255c002c35a4ce4bd4f24fdb2",
+    "baseSha": "1963197885cd2295f8cc03a2bd4af1284f072935",
+    "openedAt": "2026-07-31T03:25:52.000Z",
+    "updatedAt": "2026-07-31T03:36:01.000Z",
+    "diffStats": {
+      "fileCount": 12,
+      "additions": 710,
+      "changes": 0,
+      "deletions": 110
+    },
+    "creator": {
+      "id": "9eae46f7-c527-49bc-8d6a-465118651013",
+      "name": "Tien Long Lam"
+    },
+    "reviewers": [],
+    "viewerReviewState": {
+      "currentDecision": null,
+      "isReviewRequested": false,
+      "isAskedToReviewAgain": false,
+      "requestedViaTeams": [],
+      "lastSubmittedDecision": null,
+      "lastSubmittedAt": null
+    },
+    "needsAttention": false,
+    "linkedIssues": [],
+    "stackedPullRequests": [],
+    "discussion": null,
+    "commentMappings": []
+  },
+  {
+    "id": "9e4e82d4-d924-4322-9a29-f55e241a351e",
+    "slugId": "d65d6b1e75bc",
+    "title": "TIE-249 Publish durable CI test evidence",
+    "number": 4,
+    "fullIdentifier": "Tien-Lam/LaunchDeck#4",
+    "sourceBranch": "tien/tie-249-publish-ci-test-results-and-useful-failure-evidence-for",
+    "targetBranch": "main",
+    "status": "merged",
+    "mergeStatus": "merged",
+    "url": "https://github.com/Tien-Lam/LaunchDeck/pull/4",
+    "appUrl": "https://linear.app/tienlam/review/tie-249-publish-durable-ci-test-evidence-d65d6b1e75bc",
+    "headSha": "325c366c407047fe9d64e76303801a67ef1d6037",
+    "baseSha": "e46b4377d4a89ddefc8bb612de90886fc7e38d19",
+    "openedAt": "2026-07-31T02:41:48.000Z",
+    "updatedAt": "2026-07-31T02:44:23.000Z",
+    "diffStats": {
+      "fileCount": 5,
+      "additions": 477,
+      "changes": 0,
+      "deletions": 8
+    },
+    "creator": {
+      "id": "9eae46f7-c527-49bc-8d6a-465118651013",
+      "name": "Tien Long Lam"
+    },
+    "reviewers": [],
+    "viewerReviewState": {
+      "currentDecision": null,
+      "isReviewRequested": false,
+      "isAskedToReviewAgain": false,
+      "requestedViaTeams": [],
+      "lastSubmittedDecision": null,
+      "lastSubmittedAt": null
+    },
+    "needsAttention": false,
+    "linkedIssues": [],
+    "stackedPullRequests": [],
+    "discussion": null,
+    "commentMappings": []
+  },
+  {
+    "id": "9278486b-7858-4498-9980-9b9a867fb650",
+    "slugId": "58549c5d76e6",
+    "title": "TIE-248 Enforce immutable independent review evidence",
+    "number": 3,
+    "fullIdentifier": "Tien-Lam/LaunchDeck#3",
+    "sourceBranch": "tien/tie-248-codify-review-follow-ups-scope-expansion-blockers-and",
+    "targetBranch": "main",
+    "status": "merged",
+    "mergeStatus": "merged",
+    "url": "https://github.com/Tien-Lam/LaunchDeck/pull/3",
+    "appUrl": "https://linear.app/tienlam/review/tie-248-enforce-immutable-independent-review-evidence-58549c5d76e6",
+    "headSha": "d3f1b42871e8c8c65ce8e5c89d58a80988f28b32",
+    "baseSha": "5025d2d4c05731e0a062a7c534b2bcd224027fbe",
+    "openedAt": "2026-07-31T02:17:36.000Z",
+    "updatedAt": "2026-07-31T02:20:33.000Z",
+    "diffStats": {
+      "fileCount": 7,
+      "additions": 559,
+      "changes": 0,
+      "deletions": 47
+    },
+    "creator": {
+      "id": "9eae46f7-c527-49bc-8d6a-465118651013",
+      "name": "Tien Long Lam"
+    },
+    "reviewers": [],
+    "viewerReviewState": {
+      "currentDecision": null,
+      "isReviewRequested": false,
+      "isAskedToReviewAgain": false,
+      "requestedViaTeams": [],
+      "lastSubmittedDecision": null,
+      "lastSubmittedAt": null
+    },
+    "needsAttention": false,
+    "linkedIssues": [],
+    "stackedPullRequests": [],
+    "discussion": null,
+    "commentMappings": []
+  },
+  {
+    "id": "57ed196c-6668-4a45-b8ce-457add639cab",
+    "slugId": "480e01595998",
+    "title": "TIE-253 Enforce Linear references on pull requests",
+    "number": 2,
+    "fullIdentifier": "Tien-Lam/LaunchDeck#2",
+    "sourceBranch": "tien/tie-253-require-a-valid-tie-issue-reference-in-pull-request-metadata",
+    "targetBranch": "main",
+    "status": "merged",
+    "mergeStatus": "merged",
+    "url": "https://github.com/Tien-Lam/LaunchDeck/pull/2",
+    "appUrl": "https://linear.app/tienlam/review/tie-253-enforce-linear-references-on-pull-requests-480e01595998",
+    "headSha": "29607cca6a6fe2b18caedc80500a56554174dcc1",
+    "baseSha": "1f508f1e2a0b3be99847c1fe61506f94a8439923",
+    "openedAt": "2026-07-31T01:24:09.000Z",
+    "updatedAt": "2026-07-31T01:26:29.000Z",
+    "diffStats": {
+      "fileCount": 6,
+      "additions": 288,
+      "changes": 0,
+      "deletions": 3
+    },
+    "creator": {
+      "id": "9eae46f7-c527-49bc-8d6a-465118651013",
+      "name": "Tien Long Lam"
+    },
+    "reviewers": [],
+    "viewerReviewState": {
+      "currentDecision": null,
+      "isReviewRequested": false,
+      "isAskedToReviewAgain": false,
+      "requestedViaTeams": [],
+      "lastSubmittedDecision": null,
+      "lastSubmittedAt": null
+    },
+    "needsAttention": false,
+    "linkedIssues": [],
+    "stackedPullRequests": [],
+    "discussion": null,
+    "commentMappings": []
+  },
+  {
+    "id": "05bc1da6-168f-4ef0-9a7e-189d7d85a1f1",
+    "slugId": "eb075b131a2c",
+    "title": "TIE-247 Adopt Linear-first delivery workflow",
+    "number": 1,
+    "fullIdentifier": "Tien-Lam/LaunchDeck#1",
+    "sourceBranch": "tien/tie-247-make-repository-guidance-prs-testing-review-and-github-issue",
+    "targetBranch": "main",
+    "status": "merged",
+    "mergeStatus": "merged",
+    "url": "https://github.com/Tien-Lam/LaunchDeck/pull/1",
+    "appUrl": "https://linear.app/tienlam/review/tie-247-adopt-linear-first-delivery-workflow-eb075b131a2c",
+    "headSha": "75465b32281622f66ed02b2d5efe7c84adece626",
+    "baseSha": "1e3b6904524d107ef5d5b927eee6aa25db1a3f22",
+    "openedAt": "2026-07-31T00:35:22.000Z",
+    "updatedAt": "2026-07-31T00:37:41.000Z",
+    "diffStats": {
+      "fileCount": 8,
+      "additions": 473,
+      "changes": 0,
+      "deletions": 4
+    },
+    "creator": {
+      "id": "9eae46f7-c527-49bc-8d6a-465118651013",
+      "name": "Tien Long Lam"
+    },
+    "reviewers": [],
+    "viewerReviewState": {
+      "currentDecision": null,
+      "isReviewRequested": false,
+      "isAskedToReviewAgain": false,
+      "requestedViaTeams": [],
+      "lastSubmittedDecision": null,
+      "lastSubmittedAt": null
+    },
+    "needsAttention": false,
+    "linkedIssues": [],
+    "stackedPullRequests": [],
+    "discussion": null,
+    "commentMappings": []
+  }
+]

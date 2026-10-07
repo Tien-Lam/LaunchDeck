@@ -1,52 +1,17 @@
 # Agent Instructions
 
-## Linear Work Management
+## GitHub Work Management
 
-- Linear is the source of truth for all LaunchDeck planning, implementation,
-  review, testing, documentation, and release work. Use the
-  [LaunchDeck initiative](https://linear.app/tienlam/initiative/launchdeck-b247bff02400)
-  and follow `docs/WORKFLOW.md`.
-- Before changing code, tests, workflow files, or living documentation, find or
-  create the Linear issue and confirm its project, milestone, parent gate,
-  labels, priority, acceptance criteria, and blockers.
-- Do not start a blocked issue. Assign the issue, move it to `In Progress`, and
-  use Linear's generated branch name when work begins.
-- Keep independently deliverable work in sub-issues. If review or implementation
-  discovers broader scope, create a linked sub-issue and add a blocking relation
-  when it must land first.
-- Move work to `In Review` only after implementation and required automated
-  verification are complete. First commit every intended file, confirm the
-  working tree is clean, and record exact commands/results plus the immutable
-  commit SHA and tree SHA in a Linear comment.
-- On entering `In Review`, automatically start a separate review session with
-  no inherited conversation history. Give it only the Linear issue, repository
-  instructions, and the exact commit SHA to inspect. The implementation session
-  must not act as the sole reviewer or prime the reviewer with its reasoning.
-- The review session reports findings without editing the work. Record its
-  session identity, inspected commit and tree SHAs, findings, and disposition
-  in Linear.
-  In-scope findings return the issue to `In Progress`; after fixes and automated
-  verification, start another fresh review session. A newly discovered blocker
-  moves the issue to `Backlog` until every blocker is Done. If a separate
-  session cannot be started, keep the work in review and report the blocker
-  instead of self-approving.
-- Any content change after review requires a new commit, automated verification,
-  and fresh clean-context review. Before merge or completion, confirm the final
-  tree SHA exactly matches the tree SHA approved by the latest review session.
-- Before making a pull request ready for review, fill its `Independent review`
-  fields with the fresh `/root/...` session, exact lowercase commit and tree
-  SHAs, and the exact result `no findings`. The `pr-policy` check compares those
-  SHAs with the live PR head; every new push invalidates the evidence until a
-  new clean-context review is recorded.
-- Move work to `Done` only after acceptance criteria are met, changes are merged
-  where applicable, final evidence is recorded, and the latest independent
-  review session has no unresolved findings. Every blocking issue must be Done.
-- Issues labeled `Manual validation` must be in the final milestone of their
-  project and must not block earlier agentic work. Do not perform installed-MSIX,
-  Game Bar, touch/controller, hardware, or subjective UX checks early.
-- Use GitHub for source, pull requests, review threads, Actions, artifacts, and
-  releases. GitHub Issues are public intake only: mirror each report into Linear,
-  post the Linear link, and close the GitHub issue. Do not track work there.
+- GitHub Issues and [Projects](https://github.com/users/Tien-Lam/projects/3) own planning, implementation, review, testing, documentation and release status. Follow docs/WORKFLOW.md and docs/GITHUB_WORKFLOW.md.
+- Before changes, read the owning issue and confirm workstream, milestone, parent gate, labels, priority, acceptance criteria and blockers. Do not start blocked work. Assign it, set In Progress and use a codex/ branch containing the GitHub issue number.
+- Keep independently deliverable outcomes in native sub-issues. Add native blocked-by relations for prerequisites.
+- Before In Review, commit every intended file, confirm a clean working tree and record exact verification commands/results plus immutable commit and tree SHAs on the GitHub issue.
+- Automatically start a separate clean-context read-only review session with the issue, repository instructions and exact commit. The implementer must not be the sole reviewer or prime the review with its conclusions. Record session identity, findings and dispositions on the issue.
+- Fix actionable findings and repeat verification/fresh review after content changes. Expanded scope becomes a linked sub-issue; blockers return the dependent issue to Backlog. The final tree must equal the independently approved tree.
+- Ready PRs must fill the Independent review fields with the fresh /root/... session, exact lowercase commit/tree SHAs and result no findings. The pr-policy check rejects stale or hidden evidence. New titles use #<GitHub issue number>; historical TIE aliases remain accepted for migrated work.
+- Close as completed/Done only after matching acceptance, blockers completed, merge, required checks and final review evidence. Preserve canceled/unfinished dispositions and capability gaps.
+- Manual validation issues belong to the workstream’s final milestone. Do not perform installed-MSIX, Game Bar, touch/controller, hardware or subjective UX checks early.
+- GitHub Issues accept contributor reports directly; triage them into the same project, milestone and dependency model. No Linear mirroring is required.
 
 ## Non-Interactive Shell Commands
 

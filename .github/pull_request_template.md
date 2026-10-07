@@ -1,14 +1,14 @@
-<!-- Required PR title format: TIE-<number> concise summary -->
+<!-- Required PR title format: #<GitHub issue number> concise summary -->
 
-## Linear
+## GitHub
 
-- Issue: TIE- <!-- Link the same issue named in the PR title. -->
+- Issue: # <!-- Link the same issue named in the PR title. -->
 - Project / milestone:
 - Parent gate:
 
 Confirm before requesting review:
 
-- [ ] The Linear issue is In Review.
+- [ ] The GitHub issue is In Review.
 - [ ] Its project, milestone, parent, labels, and acceptance criteria are correct.
 - [ ] All blocking issues are Done.
 
@@ -40,16 +40,16 @@ List exact commands and results:
 - Reviewed tree SHA: `<40-character-lowercase-tree-sha>`
 - Review result: no findings
 
-Actionable feedback that expands scope must become a Linear sub-issue or
+Actionable feedback that expands scope must become a GitHub sub-issue or
 blocker rather than an untracked checklist item.
 
 - [ ] After implementation and automated verification, a separate review
       session was started automatically without inherited conversation context.
 - [ ] Every intended file was committed and `git status --short` was empty
       before review started.
-- [ ] The reviewer received the Linear issue, repository instructions, and
+- [ ] The reviewer received the GitHub issue, repository instructions, and
       exact commit SHA, and independently inspected that immutable commit.
-- [ ] All findings and dispositions are recorded on the Linear issue.
+- [ ] All findings and dispositions are recorded on the GitHub issue.
 - [ ] The latest independent review has no unresolved findings.
 - [ ] The proposed final tree SHA matches the latest independently reviewed
       tree SHA.
@@ -57,15 +57,15 @@ blocker rather than an untracked checklist item.
 ## Manual validation
 
 - [ ] Not required for this issue or milestone.
-- [ ] Deferred to final-phase issue: TIE-
+- [ ] Deferred to final-phase issue: #
 
 Do not perform interactive Game Bar, installed-MSIX, touch/controller, or
 subjective UX acceptance early. Those checks belong to the final milestone of
-the relevant Linear project.
+the relevant GitHub project.
 
 ## Completion
 
-- [ ] Final CI evidence will be recorded on the Linear issue.
+- [ ] Final CI evidence will be recorded on the GitHub issue.
 - [ ] Every blocking issue is Done.
-- [ ] The Linear issue will move to Done only after acceptance criteria are met
+- [ ] The GitHub issue will move to Done only after acceptance criteria are met
       and this change is merged.

@@ -90,9 +90,9 @@ jobs:
               .addHeading("LaunchDeck PR policy")
               .addRaw(
                 result.exempt
-                  ? "Same-repository Dependabot PR: Linear reference exemption applied."
+                  ? "Same-repository Dependabot PR: Issue reference exemption applied."
                   : [
-                      `Linear references: ${result.tieReferences.join(", ") || "none"}`,
+                      `Issue references: ${result.tieReferences.join(", ") || "none"}`,
                       `Review evidence: ${
                         pullRequest.draft
                           ? "deferred while draft"
