@@ -146,8 +146,8 @@ See [Testing](TESTING.md) for the command and platform matrix.
 
 Every pull request must:
 
-- start its title with a complete uppercase `TIE-n` identifier and link the same
-  GitHub issue in the body;
+- start its title with `#<GitHub issue number>` and link that issue in the body;
+  historical `TIE-n` aliases remain accepted for migrated issues;
 - summarize the accepted scope;
 - list exact automated checks and results;
 - identify config, IPC, localization, packaging, or migration risk;
@@ -160,8 +160,8 @@ of the title, for example `#75 Require issue metadata`. Body-only tokens,
 Markdown or HTML content, placeholders such as `TIE-`, lowercase variants, and
 control or Unicode characters adjacent to the identifier do not pass. The check reads GitHub metadata without external tracker credentials. It runs from the trusted base
 revision on `pull_request_target` and never checks out or executes fork code.
-TIE-252 makes this check merge-blocking through branch protection; until that
-setting is applied, the Phase 2 gate remains incomplete.
+The main branch requires the `pr-policy` check. Preserve this merge gate when
+changing repository protection settings.
 
 For every ready (non-draft) pull request, the same `pr-policy` job also requires
 exactly one top-level `Independent review` section containing:
