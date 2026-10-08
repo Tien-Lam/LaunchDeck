@@ -16,6 +16,7 @@
 ## Non-Interactive Shell Commands
 
 Always use non-interactive flags to avoid hanging:
+
 ```bash
 cp -f source dest        # NOT: cp source dest
 mv -f source dest        # NOT: mv source dest
@@ -54,3 +55,7 @@ rm -rf directory         # NOT: rm -r directory
 - The resulting Actions artifact contains the signed development MSIX,
   certificate, `Install.ps1`, and `Uninstall.ps1`. Installation and Game Bar
   testing still require Windows.
+
+## GitHub products and documentation
+
+Use GitHub Issues for scope and acceptance, GitHub Projects for status and priority, GitHub Pull Requests for review, GitHub Actions for automated verification and authorized publishing, and GitHub Releases for versioned releases. Keep README.md, AGENTS.md and repository Markdown docs canonical; an existing GitHub Wiki is a navigation index. Follow [the product map and documentation policy](docs/GITHUB_WORKFLOW.md).

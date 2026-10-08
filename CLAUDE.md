@@ -25,15 +25,13 @@ docs/                   # Architecture, IPC, Config, UI, Deployment, Testing doc
 - [UI](docs/UI.md) -- dark theme palette, XAML structure, interactive states
 - [Deployment](docs/DEPLOYMENT.md) -- build pipeline, VS deploy, manifest, troubleshooting
 - [Testing](docs/TESTING.md) -- test coverage, boundaries, manual test checklist
-- [Workflow](docs/WORKFLOW.md) -- Linear hierarchy, statuses, blockers, review, evidence, and release gates
+- [Workflow](docs/WORKFLOW.md) -- GitHub Projects workstreams, milestones, statuses, blockers, review, evidence, and release gates
 
 ## Work Tracking
 
-All work is tracked in the
-[LaunchDeck Linear initiative](https://linear.app/tienlam/initiative/launchdeck-b247bff02400).
-Follow `AGENTS.md` and `docs/WORKFLOW.md` before changing the repository. GitHub
-Issues are not used for LaunchDeck planning or delivery. Public GitHub reports
-are intake only and must be mirrored into Linear and closed.
+Use [GitHub Issues](https://github.com/Tien-Lam/LaunchDeck/issues) for scope, ownership and acceptance evidence, and [GitHub Projects — LaunchDeck](https://github.com/users/Tien-Lam/projects/3) for status, priority and workstream. Contributor reports stay in GitHub Issues and are triaged into the same board; do not mirror them into Linear or close them merely for intake.
+
+Use GitHub Pull Requests for reviewed changes, GitHub Actions for checks/builds and authorized publication, and GitHub Releases for versioned packages. Keep README.md and docs/ Markdown canonical; the GitHub Wiki links to those documents. Follow AGENTS.md, [the development workflow](docs/WORKFLOW.md) and [the GitHub product map](docs/GITHUB_WORKFLOW.md).
 
 ## Sub-Agents
 

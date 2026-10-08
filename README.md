@@ -33,7 +33,7 @@ Or build from source — see [Build](#build) and [Deploy](#deploy) below.
 
 ## Work Tracking
 
-Use [GitHub Issues](https://github.com/Tien-Lam/LaunchDeck/issues) for bugs, features and delivery evidence, and the [project board](https://github.com/users/Tien-Lam/projects/3) for status, workstreams and phases. Read the [development workflow](docs/WORKFLOW.md) before contributing. Interactive MSIX, Game Bar, touch/controller and subjective UX checks remain in each workstream’s final manual milestone. [The migration index](docs/linear-migration/README.md) retains historical specifications and Linear aliases.
+Use [GitHub Issues](https://github.com/Tien-Lam/LaunchDeck/issues) for bugs, features and delivery evidence, and [GitHub Projects](https://github.com/users/Tien-Lam/projects/3) for status, workstreams and phases. Read the [development workflow](docs/WORKFLOW.md) before contributing. Interactive MSIX, Game Bar, touch/controller and subjective UX checks remain in each workstream’s final manual milestone. [The migration index](docs/linear-migration/README.md) retains historical specifications and Linear aliases.
 
 ## Configuration
 
@@ -45,9 +45,23 @@ Items are stored in `%LOCALAPPDATA%\LaunchDeck\config.json`. Use the built-in ed
   "items": [
     { "name": "Notepad", "type": "exe", "path": "C:\\Windows\\notepad.exe" },
     { "name": "YouTube", "type": "url", "path": "https://youtube.com" },
-    { "name": "Spotify", "type": "store", "path": "shell:AppsFolder\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify" },
-    { "name": "Dev Server", "type": "exe", "path": "C:\\tools\\server.exe", "args": "--port 8080" },
-    { "name": "Discord", "type": "exe", "path": "C:\\Discord\\Discord.exe", "icon": "C:\\icons\\discord.png" }
+    {
+      "name": "Spotify",
+      "type": "store",
+      "path": "shell:AppsFolder\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify"
+    },
+    {
+      "name": "Dev Server",
+      "type": "exe",
+      "path": "C:\\tools\\server.exe",
+      "args": "--port 8080"
+    },
+    {
+      "name": "Discord",
+      "type": "exe",
+      "path": "C:\\Discord\\Discord.exe",
+      "icon": "C:\\icons\\discord.png"
+    }
   ]
 }
 ```
@@ -161,3 +175,7 @@ Remove-Item "$env:LOCALAPPDATA\LaunchDeck" -Recurse -Force
 - [Deployment](docs/DEPLOYMENT.md) — build pipeline, VS deploy, manifest, troubleshooting
 - [Testing](docs/TESTING.md) — test coverage, boundaries, manual test checklist
 - [Workflow](docs/WORKFLOW.md) — GitHub planning, implementation, review, testing, and release process
+
+## Documentation and workflow
+
+Documentation stays in README.md and repository Markdown files, reviewed through GitHub Pull Requests. The [GitHub workflow](docs/GITHUB_WORKFLOW.md) names the products used for tracking, review, checks and releases; the existing [GitHub Wiki](https://github.com/Tien-Lam/LaunchDeck/wiki) links to canonical docs.

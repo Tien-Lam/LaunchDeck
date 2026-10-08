@@ -1,6 +1,16 @@
 # GitHub work and delivery
 
-[Issues](https://github.com/Tien-Lam/LaunchDeck/issues) own scope, decisions, ownership and acceptance evidence. [The project board](https://github.com/users/Tien-Lam/projects/3) owns status, priority and workstream. Repository milestones retain delivery phases. Pull requests, checks and releases remain the code and publication record. [Migration index](linear-migration/README.md) maps historical Linear IDs and preserves specifications and dated history.
+Use the following GitHub products for **LaunchDeck**. [The migration index](linear-migration/README.md) maps historical Linear IDs and preserves specifications and dated history.
+
+| Product                                                                           | Responsibility                                                                                      |
+| --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [GitHub Issues](https://github.com/Tien-Lam/LaunchDeck/issues)                    | Scope, bugs/features, ownership, decisions, native sub-issues/dependencies and acceptance evidence. |
+| [GitHub Projects — LaunchDeck](https://github.com/users/Tien-Lam/projects/3)      | Status, priority and workstream. Use this existing board for the repository.                        |
+| [GitHub repository milestones](https://github.com/Tien-Lam/LaunchDeck/milestones) | Delivery phases and their exit gates.                                                               |
+| [GitHub Pull Requests](https://github.com/Tien-Lam/LaunchDeck/pulls)              | Review and merge of code and Markdown documentation.                                                |
+| [GitHub Actions](https://github.com/Tien-Lam/LaunchDeck/actions)                  | Automated checks, builds and authorized publication through the repository's existing workflows.    |
+| [GitHub Releases](https://github.com/Tien-Lam/LaunchDeck/releases)                | Versioned release notes and distributable artifacts when the product has a release.                 |
+| [GitHub Wiki](https://github.com/Tien-Lam/LaunchDeck/wiki)                        | Navigation to canonical repository docs and work tracking.                                          |
 
 ## Issue lifecycle
 
@@ -15,6 +25,12 @@
 ## Pull requests
 
 Link the owning GitHub issue and summarize the concrete outcome, verification, risks and review evidence. Legacy TIE identifiers are historical aliases; the cross-reference maps them to GitHub. New work uses GitHub issue numbers. Full temporary reports and captures remain in ignored local work folders; save concise durable evidence on the issue and PR. Do not add transient status tables outside the project board.
+
+## Documentation
+
+Keep README.md, AGENTS.md and repository Markdown documentation (normally docs/) canonical and review changes through GitHub Pull Requests. Update the existing document alongside the related implementation; keep specifications, architecture, setup, testing, review and publishing procedures with the source. Operational runbooks belong in Tien-Lam/runbooks. An existing GitHub Wiki is a navigation index linking to these documents, GitHub Issues and GitHub Projects; do not duplicate specifications, workflows or live task status there. Put temporary plans, full QA captures and full review reports in ignored local work folders, and concise durable acceptance evidence on the issue and PR.
+
+GitHub Issues and GitHub Projects own current work. Do not create or update Linear tasks or mirror contributor reports into Linear. Preserve historical imported documents, IDs, attribution and dated evidence unchanged; the migration index resolves old IDs.
 
 ## Imported history
 

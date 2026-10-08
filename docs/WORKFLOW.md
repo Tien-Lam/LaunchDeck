@@ -2,9 +2,9 @@
 
 GitHub Issues and [Projects](https://github.com/users/Tien-Lam/projects/3) are the source of truth for planning, implementation, review, testing and delivery. Workstreams retain the four prior project boundaries. GitHub also hosts source, PRs, checks, artifacts and releases. See [the migration index](linear-migration/README.md) for historical records and [the GitHub workflow](GITHUB_WORKFLOW.md) for current conventions.
 
-## GitHub project hierarchy
+## GitHub Projects workstream hierarchy
 
-Work belongs to the **LaunchDeck** initiative and one of these projects:
+Use the **LaunchDeck** GitHub Projects board linked above. Its Workstream field retains the four former Linear project boundaries:
 
 - [Layout Platform](https://github.com/Tien-Lam/LaunchDeck/blob/main/docs/linear-migration/projects/P-TIE-5.md)
   owns configuration, migration, persistence, shared placement, and automated
@@ -18,14 +18,14 @@ Work belongs to the **LaunchDeck** initiative and one of these projects:
   owns workflow, CI/review gates, cross-project release readiness, and final
   release acceptance.
 
-Each project is organized as:
+Each workstream is organized as:
 
 1. Ordered milestones describe delivery phases.
 2. A parent **Gate:** issue defines each milestone's exit criteria.
 3. Independently deliverable work is represented by sub-issues under the gate.
 4. `blocked by` relations encode both phase order and cross-project
    prerequisites.
-5. The project's last milestone contains manual and interactive acceptance
+5. The workstream's last milestone contains manual and interactive acceptance
    only.
 
 Do not create an unparented implementation issue when an existing milestone
@@ -42,21 +42,21 @@ gate.
 - `Feature`, `Improvement`, and `Bug`: retain their normal product meaning.
 
 `Manual validation` and `Agentic` are mutually exclusive. A manual issue must
-be in the final milestone of its project and must be blocked by that project's
+be in the final milestone of its workstream and must be blocked by that workstream’s
 automated hardening gate. Finding a manual requirement during earlier work
 does not authorize doing it early; create or update the final-phase issue.
 
 ## Status workflow
 
-| Status | Meaning |
-|--------|---------|
-| Backlog | Valid work that is not ready because prioritization or blockers remain. |
-| Todo | Unblocked, scoped, and ready to start. |
-| In Progress | Implementation is active. |
-| In Review | Implementation and required automated verification are complete; an independent clean-context review is active or awaiting disposition. |
-| Done | Acceptance criteria are met, every blocker is Done, the change is merged where applicable, evidence is recorded, and the latest independent review has no unresolved findings. |
-| Canceled | Work will not be done; the reason and replacement, if any, are recorded. |
-| Duplicate | Another GitHub issue is the source of truth. |
+| Status      | Meaning                                                                                                                                                                        |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Backlog     | Valid work that is not ready because prioritization or blockers remain.                                                                                                        |
+| Todo        | Unblocked, scoped, and ready to start.                                                                                                                                         |
+| In Progress | Implementation is active.                                                                                                                                                      |
+| In Review   | Implementation and required automated verification are complete; an independent clean-context review is active or awaiting disposition.                                        |
+| Done        | Acceptance criteria are met, every blocker is Done, the change is merged where applicable, evidence is recorded, and the latest independent review has no unresolved findings. |
+| Canceled    | Work will not be done; the reason and replacement, if any, are recorded.                                                                                                       |
+| Duplicate   | Another GitHub issue is the source of truth.                                                                                                                                   |
 
 A blocked dependent issue stays in Backlog. Investigate or fix the dependency
 on the blocking issue; do not move or work the dependent issue while any
@@ -68,7 +68,7 @@ individual task looks implementable.
 Before changing code, tests, workflow files, or living documentation:
 
 1. Find or create the GitHub issue.
-2. Confirm its initiative, project, milestone, parent gate, labels, priority,
+2. Confirm its GitHub Projects board, workstream, milestone, parent gate, labels, priority,
    and acceptance criteria.
 3. Confirm every `blocked by` issue is Done.
 4. Split the issue if it contains independently reviewable outcomes.
@@ -258,7 +258,7 @@ appropriate active state.
 ## Releases
 
 The automated integrated-release gate depends on the automated gates from the
-layout, widget, editor, and delivery projects. It intentionally does not wait
+layout, widget, editor, and delivery workstreams. It intentionally does not wait
 for their interactive checks.
 
 The final release gate depends on:
@@ -269,7 +269,7 @@ The final release gate depends on:
 - Live Grid Editor manual usability acceptance.
 
 Release approval identifies the final commit and artifacts, dispositions all
-release-blocking defects, posts project/initiative status updates, and only
+release-blocking defects, updates GitHub Projects status and repository milestones, and only
 then publishes through the normal release workflow.
 
 For `main`, the merge-blocking GitHub checks are `build-and-test` and
